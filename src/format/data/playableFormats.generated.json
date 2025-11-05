@@ -2,7 +2,7 @@
   {
     "id": "hypernova",
     "name": "Hypernova",
-    "cardSubtitle": "2026-10-19 list · pool through 2026-10-19",
+    "cardSubtitle": "2026-10-19 list, pool through 2026-10-19",
     "banlistHeading": "October 2026 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -17,7 +17,7 @@
   {
     "id": "protocol",
     "name": "Protocol",
-    "cardSubtitle": "2026-09-21 list · pool through 2026-10-18",
+    "cardSubtitle": "2026-09-21 list, pool through 2026-10-18",
     "banlistHeading": "September 2026 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -32,7 +32,7 @@
   {
     "id": "doom",
     "name": "Doom",
-    "cardSubtitle": "2026-05-18 list · pool through 2026-09-20",
+    "cardSubtitle": "2026-05-18 list, pool through 2026-09-20",
     "banlistHeading": "May 2026 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -47,7 +47,7 @@
   {
     "id": "mjolnir",
     "name": "Mjolnir",
-    "cardSubtitle": "2026-02-02 list · pool through 2026-05-17",
+    "cardSubtitle": "2026-02-02 list, pool through 2026-05-17",
     "banlistHeading": "February 2026 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -62,7 +62,7 @@
   {
     "id": "justice",
     "name": "Justice",
-    "cardSubtitle": "2025-10-27 list · pool through 2026-02-01",
+    "cardSubtitle": "2025-10-27 list, pool through 2026-02-01",
     "banlistHeading": "October 2025 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -77,7 +77,7 @@
   {
     "id": "maliss",
     "name": "Maliss",
-    "cardSubtitle": "2025-09-15 list · pool through 2025-10-26",
+    "cardSubtitle": "2025-09-15 list, pool through 2025-10-26",
     "banlistHeading": "September 2025 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -92,7 +92,7 @@
   {
     "id": "ryzeal",
     "name": "Ryzeal",
-    "cardSubtitle": "2025-04-07 list · pool through 2025-09-14",
+    "cardSubtitle": "2025-04-07 list, pool through 2025-09-14",
     "banlistHeading": "April 2025 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -107,7 +107,7 @@
   {
     "id": "lacrima",
     "name": "Lacrima",
-    "cardSubtitle": "2024-12-09 list · pool through 2025-04-06",
+    "cardSubtitle": "2024-12-09 list, pool through 2025-04-06",
     "banlistHeading": "December 2024 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -122,7 +122,7 @@
   {
     "id": "fiendsmith",
     "name": "Fiendsmith",
-    "cardSubtitle": "2024-09-02 list · pool through 2024-12-08",
+    "cardSubtitle": "2024-09-02 list, pool through 2024-12-08",
     "banlistHeading": "September 2024 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -137,7 +137,7 @@
   {
     "id": "snake-eye",
     "name": "Snake-Eye",
-    "cardSubtitle": "2024-04-15 list · pool through 2024-09-01",
+    "cardSubtitle": "2024-04-15 list, pool through 2024-09-01",
     "banlistHeading": "April 2024 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -152,7 +152,7 @@
   {
     "id": "fire-king",
     "name": "Fire King",
-    "cardSubtitle": "2024-01-01 list · pool through 2024-04-14",
+    "cardSubtitle": "2024-01-01 list, pool through 2024-04-14",
     "banlistHeading": "January 2024 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -167,7 +167,7 @@
   {
     "id": "overlord",
     "name": "Overlord",
-    "cardSubtitle": "2023-09-25 list · pool through 2023-12-31",
+    "cardSubtitle": "2023-09-25 list, pool through 2023-12-31",
     "banlistHeading": "September 2023 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -182,7 +182,7 @@
   {
     "id": "kashtira",
     "name": "Kashtira",
-    "cardSubtitle": "2023-06-05 list · pool through 2023-09-24",
+    "cardSubtitle": "2023-06-05 list, pool through 2023-09-24",
     "banlistHeading": "June 2023 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -197,7 +197,7 @@
   {
     "id": "list-2023-02-13",
     "name": "February 2023",
-    "cardSubtitle": "2023-02-13 list · pool through 2023-06-04",
+    "cardSubtitle": "2023-02-13 list, pool through 2023-06-04",
     "banlistHeading": "February 2023 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -212,7 +212,7 @@
   {
     "id": "tearlaments",
     "name": "Tearlaments",
-    "cardSubtitle": "2022-12-01 list · pool through 2023-02-12",
+    "cardSubtitle": "2022-12-01 list, pool through 2023-02-12",
     "banlistHeading": "December 2022 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -227,7 +227,7 @@
   {
     "id": "darkwing",
     "name": "Darkwing",
-    "cardSubtitle": "2022-10-03 list · pool through 2022-11-30",
+    "cardSubtitle": "2022-10-03 list, pool through 2022-11-30",
     "banlistHeading": "October 2022 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -242,7 +242,7 @@
   {
     "id": "despia",
     "name": "Despia",
-    "cardSubtitle": "2022-05-17 list · pool through 2022-10-02",
+    "cardSubtitle": "2022-05-17 list, pool through 2022-10-02",
     "banlistHeading": "May 2022 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -257,7 +257,7 @@
   {
     "id": "elements",
     "name": "Elements",
-    "cardSubtitle": "2022-05-17 list · pool through 2022-10-02",
+    "cardSubtitle": "2022-05-17 list, pool through 2022-10-02",
     "banlistHeading": "May 2022 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -272,7 +272,7 @@
   {
     "id": "phoenix",
     "name": "Phoenix",
-    "cardSubtitle": "2022-02-07 list · pool through 2022-05-16",
+    "cardSubtitle": "2022-02-07 list, pool through 2022-05-16",
     "banlistHeading": "February 2022 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -287,7 +287,7 @@
   {
     "id": "tri-brigade",
     "name": "Tri-Brigade",
-    "cardSubtitle": "2021-10-01 list · pool through 2022-02-06",
+    "cardSubtitle": "2021-10-01 list, pool through 2022-02-06",
     "banlistHeading": "October 2021 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -302,7 +302,7 @@
   {
     "id": "bird-up",
     "name": "Bird-Up",
-    "cardSubtitle": "2021-10-01 list · pool through 2022-02-06",
+    "cardSubtitle": "2021-10-01 list, pool through 2022-02-06",
     "banlistHeading": "October 2021 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -317,7 +317,7 @@
   {
     "id": "dragon-link",
     "name": "Dragon Link",
-    "cardSubtitle": "2021-07-01 list · pool through 2021-09-30",
+    "cardSubtitle": "2021-07-01 list, pool through 2021-09-30",
     "banlistHeading": "July 2021 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -332,7 +332,7 @@
   {
     "id": "virtual-world",
     "name": "Virtual World",
-    "cardSubtitle": "2021-03-15 list · pool through 2021-06-30",
+    "cardSubtitle": "2021-03-15 list, pool through 2021-06-30",
     "banlistHeading": "March 2021 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -347,7 +347,7 @@
   {
     "id": "infernoble",
     "name": "Infernoble",
-    "cardSubtitle": "2020-12-15 list · pool through 2021-03-14",
+    "cardSubtitle": "2020-12-15 list, pool through 2021-03-14",
     "banlistHeading": "December 2020 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -362,7 +362,7 @@
   {
     "id": "adamancipator",
     "name": "Adamancipator",
-    "cardSubtitle": "2020-09-14 list · pool through 2020-12-14",
+    "cardSubtitle": "2020-09-14 list, pool through 2020-12-14",
     "banlistHeading": "September 2020 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -377,7 +377,7 @@
   {
     "id": "list-2020-06-15",
     "name": "June 2020",
-    "cardSubtitle": "2020-06-15 list · pool through 2020-09-13",
+    "cardSubtitle": "2020-06-15 list, pool through 2020-09-13",
     "banlistHeading": "June 2020 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -392,7 +392,7 @@
   {
     "id": "list-2020-04-01",
     "name": "April 2020",
-    "cardSubtitle": "2020-04-01 list · pool through 2020-06-14",
+    "cardSubtitle": "2020-04-01 list, pool through 2020-06-14",
     "banlistHeading": "April 2020 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -407,7 +407,7 @@
   {
     "id": "rokket",
     "name": "Rokket",
-    "cardSubtitle": "2020-01-20 list · pool through 2020-03-31",
+    "cardSubtitle": "2020-01-20 list, pool through 2020-03-31",
     "banlistHeading": "January 2020 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -422,7 +422,7 @@
   {
     "id": "toss",
     "name": "TOSS",
-    "cardSubtitle": "2019-10-14 list · pool through 2020-01-19",
+    "cardSubtitle": "2019-10-14 list, pool through 2020-01-19",
     "banlistHeading": "October 2019 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -437,7 +437,7 @@
   {
     "id": "lunalight",
     "name": "Lunalight",
-    "cardSubtitle": "2019-07-15 list · pool through 2019-10-13",
+    "cardSubtitle": "2019-07-15 list, pool through 2019-10-13",
     "banlistHeading": "July 2019 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -452,7 +452,7 @@
   {
     "id": "thunder-dragon",
     "name": "Thunder Dragon",
-    "cardSubtitle": "2019-04-29 list · pool through 2019-07-14",
+    "cardSubtitle": "2019-04-29 list, pool through 2019-07-14",
     "banlistHeading": "April 2019 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -467,7 +467,7 @@
   {
     "id": "sky-striker",
     "name": "Sky Striker",
-    "cardSubtitle": "2019-01-28 list · pool through 2019-04-28",
+    "cardSubtitle": "2019-01-28 list, pool through 2019-04-28",
     "banlistHeading": "January 2019 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -482,7 +482,7 @@
   {
     "id": "danger-2",
     "name": "Danger 2",
-    "cardSubtitle": "2018-12-03 list · pool through 2019-01-27",
+    "cardSubtitle": "2018-12-03 list, pool through 2019-01-27",
     "banlistHeading": "December 2018 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -497,7 +497,7 @@
   {
     "id": "danger-1",
     "name": "Danger 1",
-    "cardSubtitle": "2018-09-17 list · pool through 2018-12-02",
+    "cardSubtitle": "2018-09-17 list, pool through 2018-12-02",
     "banlistHeading": "September 2018 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -512,7 +512,7 @@
   {
     "id": "secaucus",
     "name": "Secaucus",
-    "cardSubtitle": "2018-05-21 list · pool through 2018-09-16",
+    "cardSubtitle": "2018-05-21 list, pool through 2018-09-16",
     "banlistHeading": "May 2018 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -527,7 +527,7 @@
   {
     "id": "magician",
     "name": "Magician",
-    "cardSubtitle": "2018-02-05 list · pool through 2018-05-20",
+    "cardSubtitle": "2018-02-05 list, pool through 2018-05-20",
     "banlistHeading": "February 2018 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -542,7 +542,7 @@
   {
     "id": "spyral",
     "name": "SPYRAL",
-    "cardSubtitle": "2017-11-06 list · pool through 2018-02-04",
+    "cardSubtitle": "2017-11-06 list, pool through 2018-02-04",
     "banlistHeading": "November 2017 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -557,7 +557,7 @@
   {
     "id": "decode",
     "name": "Decode",
-    "cardSubtitle": "2017-09-18 list · pool through 2017-11-05",
+    "cardSubtitle": "2017-09-18 list, pool through 2017-11-05",
     "banlistHeading": "September 2017 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -572,7 +572,7 @@
   {
     "id": "draco-zoo",
     "name": "Draco Zoo",
-    "cardSubtitle": "2017-06-12 list · pool through 2017-09-17",
+    "cardSubtitle": "2017-06-12 list, pool through 2017-09-17",
     "banlistHeading": "June 2017 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -587,7 +587,7 @@
   {
     "id": "link-zoo",
     "name": "Link Zoo",
-    "cardSubtitle": "2017-06-12 list · pool through 2017-09-17",
+    "cardSubtitle": "2017-06-12 list, pool through 2017-09-17",
     "banlistHeading": "June 2017 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -602,7 +602,7 @@
   {
     "id": "grass-zoo",
     "name": "Grass Zoo",
-    "cardSubtitle": "2017-03-31 list · pool through 2017-06-11",
+    "cardSubtitle": "2017-03-31 list, pool through 2017-06-11",
     "banlistHeading": "March 2017 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -617,7 +617,7 @@
   {
     "id": "invasion",
     "name": "Invasion",
-    "cardSubtitle": "2016-08-29 list · pool through 2017-03-30",
+    "cardSubtitle": "2016-08-29 list, pool through 2017-03-30",
     "banlistHeading": "August 2016 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -632,7 +632,7 @@
   {
     "id": "monarch",
     "name": "Monarch",
-    "cardSubtitle": "2016-04-11 list · pool through 2016-08-28",
+    "cardSubtitle": "2016-04-11 list, pool through 2016-08-28",
     "banlistHeading": "April 2016 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -647,7 +647,7 @@
   {
     "id": "dracoslayer",
     "name": "Dracoslayer",
-    "cardSubtitle": "2016-02-08 list · pool through 2016-04-10",
+    "cardSubtitle": "2016-02-08 list, pool through 2016-04-10",
     "banlistHeading": "February 2016 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -662,7 +662,7 @@
   {
     "id": "performapal",
     "name": "Performapal",
-    "cardSubtitle": "2015-11-09 list · pool through 2016-02-07",
+    "cardSubtitle": "2015-11-09 list, pool through 2016-02-07",
     "banlistHeading": "November 2015 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -677,7 +677,7 @@
   {
     "id": "clown",
     "name": "Clown",
-    "cardSubtitle": "2015-07-16 list · pool through 2015-11-08",
+    "cardSubtitle": "2015-07-16 list, pool through 2015-11-08",
     "banlistHeading": "July 2015 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -692,7 +692,7 @@
   {
     "id": "nekroz",
     "name": "Nekroz",
-    "cardSubtitle": "2015-04-01 list · pool through 2015-07-15",
+    "cardSubtitle": "2015-04-01 list, pool through 2015-07-15",
     "banlistHeading": "April 2015 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -707,7 +707,7 @@
   {
     "id": "charleston",
     "name": "Charleston",
-    "cardSubtitle": "2015-01-01 list · pool through 2015-03-31",
+    "cardSubtitle": "2015-01-01 list, pool through 2015-03-31",
     "banlistHeading": "January 2015 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -722,7 +722,7 @@
   {
     "id": "london",
     "name": "London",
-    "cardSubtitle": "2014-10-01 list · pool through 2014-12-31",
+    "cardSubtitle": "2014-10-01 list, pool through 2014-12-31",
     "banlistHeading": "October 2014 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -737,7 +737,7 @@
   {
     "id": "burning-abyss",
     "name": "Burning Abyss",
-    "cardSubtitle": "2014-10-01 list · pool through 2014-12-31",
+    "cardSubtitle": "2014-10-01 list, pool through 2014-12-31",
     "banlistHeading": "October 2014 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -752,7 +752,7 @@
   {
     "id": "shaddoll",
     "name": "Shaddoll",
-    "cardSubtitle": "2014-07-14 list · pool through 2014-09-30",
+    "cardSubtitle": "2014-07-14 list, pool through 2014-09-30",
     "banlistHeading": "July 2014 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -767,7 +767,7 @@
   {
     "id": "vegas",
     "name": "Vegas",
-    "cardSubtitle": "2014-04-01 list · pool through 2014-07-13",
+    "cardSubtitle": "2014-04-01 list, pool through 2014-07-13",
     "banlistHeading": "April 2014 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -782,7 +782,7 @@
   {
     "id": "fire-water",
     "name": "Fire-Water",
-    "cardSubtitle": "2014-01-01 list · pool through 2014-03-31",
+    "cardSubtitle": "2014-01-01 list, pool through 2014-03-31",
     "banlistHeading": "January 2014 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -797,7 +797,7 @@
   {
     "id": "list-2013-10-11",
     "name": "October 2013",
-    "cardSubtitle": "2013-10-11 list · pool through 2013-12-31",
+    "cardSubtitle": "2013-10-11 list, pool through 2013-12-31",
     "banlistHeading": "October 2013 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -812,7 +812,7 @@
   {
     "id": "ravine-ruler",
     "name": "Ravine Ruler",
-    "cardSubtitle": "2013-09-01 list · pool through 2013-10-10",
+    "cardSubtitle": "2013-09-01 list, pool through 2013-10-10",
     "banlistHeading": "September 2013 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -827,7 +827,7 @@
   {
     "id": "meadowlands",
     "name": "Meadowlands",
-    "cardSubtitle": "2013-03-01 list · pool through 2013-08-31",
+    "cardSubtitle": "2013-03-01 list, pool through 2013-08-31",
     "banlistHeading": "March 2013 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -842,7 +842,7 @@
   {
     "id": "baby-ruler",
     "name": "Baby Ruler",
-    "cardSubtitle": "2013-03-01 list · pool through 2013-08-31",
+    "cardSubtitle": "2013-03-01 list, pool through 2013-08-31",
     "banlistHeading": "March 2013 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -857,7 +857,7 @@
   {
     "id": "wind-up",
     "name": "Wind-Up",
-    "cardSubtitle": "2012-09-01 list · pool through 2013-02-28",
+    "cardSubtitle": "2012-09-01 list, pool through 2013-02-28",
     "banlistHeading": "September 2012 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -872,7 +872,7 @@
   {
     "id": "miami",
     "name": "Miami",
-    "cardSubtitle": "2012-09-01 list · pool through 2013-02-28",
+    "cardSubtitle": "2012-09-01 list, pool through 2013-02-28",
     "banlistHeading": "September 2012 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -887,7 +887,7 @@
   {
     "id": "dino-rabbit",
     "name": "Dino Rabbit",
-    "cardSubtitle": "2012-03-01 list · pool through 2012-08-31",
+    "cardSubtitle": "2012-03-01 list, pool through 2012-08-31",
     "banlistHeading": "March 2012 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -902,7 +902,7 @@
   {
     "id": "list-2011-09-01",
     "name": "September 2011",
-    "cardSubtitle": "2011-09-01 list · pool through 2012-02-29",
+    "cardSubtitle": "2011-09-01 list, pool through 2012-02-29",
     "banlistHeading": "September 2011 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -917,7 +917,7 @@
   {
     "id": "trishula",
     "name": "Trishula",
-    "cardSubtitle": "2011-03-01 list · pool through 2011-08-31",
+    "cardSubtitle": "2011-03-01 list, pool through 2011-08-31",
     "banlistHeading": "March 2011 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -932,7 +932,7 @@
   {
     "id": "x-saber",
     "name": "X-Saber",
-    "cardSubtitle": "2010-09-01 list · pool through 2011-02-28",
+    "cardSubtitle": "2010-09-01 list, pool through 2011-02-28",
     "banlistHeading": "September 2010 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -947,7 +947,7 @@
   {
     "id": "starstrike",
     "name": "Starstrike",
-    "cardSubtitle": "2010-09-01 list · pool through 2011-02-28",
+    "cardSubtitle": "2010-09-01 list, pool through 2011-02-28",
     "banlistHeading": "September 2010 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -962,7 +962,7 @@
   {
     "id": "frog",
     "name": "Frog",
-    "cardSubtitle": "2010-03-01 list · pool through 2010-08-31",
+    "cardSubtitle": "2010-03-01 list, pool through 2010-08-31",
     "banlistHeading": "March 2010 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -977,7 +977,7 @@
   {
     "id": "lightsworn",
     "name": "Lightsworn",
-    "cardSubtitle": "2009-09-01 list · pool through 2010-02-28",
+    "cardSubtitle": "2009-09-01 list, pool through 2010-02-28",
     "banlistHeading": "September 2009 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -992,7 +992,7 @@
   {
     "id": "cat",
     "name": "Cat",
-    "cardSubtitle": "2009-03-01 list · pool through 2009-08-31",
+    "cardSubtitle": "2009-03-01 list, pool through 2009-08-31",
     "banlistHeading": "March 2009 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1007,7 +1007,7 @@
   {
     "id": "teledad",
     "name": "TeleDAD",
-    "cardSubtitle": "2008-09-01 list · pool through 2009-02-28",
+    "cardSubtitle": "2008-09-01 list, pool through 2009-02-28",
     "banlistHeading": "September 2008 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1022,7 +1022,7 @@
   {
     "id": "gladiator",
     "name": "Gladiator",
-    "cardSubtitle": "2008-05-09 list · pool through 2008-08-31",
+    "cardSubtitle": "2008-05-09 list, pool through 2008-08-31",
     "banlistHeading": "May 2008 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1037,7 +1037,7 @@
   {
     "id": "dad-return",
     "name": "DAD Return",
-    "cardSubtitle": "2008-03-01 list · pool through 2008-05-08",
+    "cardSubtitle": "2008-03-01 list, pool through 2008-05-08",
     "banlistHeading": "March 2008 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1052,7 +1052,7 @@
   {
     "id": "zombie",
     "name": "Zombie",
-    "cardSubtitle": "2007-09-01 list · pool through 2008-02-29",
+    "cardSubtitle": "2007-09-01 list, pool through 2008-02-29",
     "banlistHeading": "September 2007 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1067,7 +1067,7 @@
   {
     "id": "perfect-circle",
     "name": "Perfect Circle",
-    "cardSubtitle": "2007-09-01 list · pool through 2008-02-29",
+    "cardSubtitle": "2007-09-01 list, pool through 2008-02-29",
     "banlistHeading": "September 2007 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1082,7 +1082,7 @@
   {
     "id": "trooper",
     "name": "Trooper",
-    "cardSubtitle": "2007-06-01 list · pool through 2007-08-31",
+    "cardSubtitle": "2007-06-01 list, pool through 2007-08-31",
     "banlistHeading": "June 2007 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1097,7 +1097,7 @@
   {
     "id": "demise",
     "name": "Demise",
-    "cardSubtitle": "2007-03-01 list · pool through 2007-05-31",
+    "cardSubtitle": "2007-03-01 list, pool through 2007-05-31",
     "banlistHeading": "March 2007 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1112,7 +1112,7 @@
   {
     "id": "stein",
     "name": "Stein",
-    "cardSubtitle": "2006-09-01 list · pool through 2007-02-28",
+    "cardSubtitle": "2006-09-01 list, pool through 2007-02-28",
     "banlistHeading": "September 2006 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1127,7 +1127,7 @@
   {
     "id": "chimeratech",
     "name": "Chimeratech",
-    "cardSubtitle": "2006-09-01 list · pool through 2007-02-28",
+    "cardSubtitle": "2006-09-01 list, pool through 2007-02-28",
     "banlistHeading": "September 2006 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1142,7 +1142,7 @@
   {
     "id": "chaos-return",
     "name": "Chaos Return",
-    "cardSubtitle": "2006-04-01 list · pool through 2006-08-31",
+    "cardSubtitle": "2006-04-01 list, pool through 2006-08-31",
     "banlistHeading": "April 2006 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1157,7 +1157,7 @@
   {
     "id": "cyber",
     "name": "Cyber",
-    "cardSubtitle": "2005-10-01 list · pool through 2006-03-31",
+    "cardSubtitle": "2005-10-01 list, pool through 2006-03-31",
     "banlistHeading": "October 2005 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1172,7 +1172,7 @@
   {
     "id": "reaper",
     "name": "Reaper",
-    "cardSubtitle": "2005-10-01 list · pool through 2006-03-31",
+    "cardSubtitle": "2005-10-01 list, pool through 2006-03-31",
     "banlistHeading": "October 2005 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1187,7 +1187,7 @@
   {
     "id": "list-2005-04-01",
     "name": "April 2005",
-    "cardSubtitle": "2005-04-01 list · pool through 2005-09-30",
+    "cardSubtitle": "2005-04-01 list, pool through 2005-09-30",
     "banlistHeading": "April 2005 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1202,7 +1202,7 @@
   {
     "id": "warrior",
     "name": "Warrior",
-    "cardSubtitle": "2004-10-01 list · pool through 2005-03-31",
+    "cardSubtitle": "2004-10-01 list, pool through 2005-03-31",
     "banlistHeading": "October 2004 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1217,7 +1217,7 @@
   {
     "id": "list-2004-08-25",
     "name": "August 2004",
-    "cardSubtitle": "2004-08-25 list · pool through 2004-09-30",
+    "cardSubtitle": "2004-08-25 list, pool through 2004-09-30",
     "banlistHeading": "August 2004 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1232,7 +1232,7 @@
   {
     "id": "chaos",
     "name": "Chaos",
-    "cardSubtitle": "2004-04-19 list · pool through 2004-08-24",
+    "cardSubtitle": "2004-04-19 list, pool through 2004-08-24",
     "banlistHeading": "April 2004 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1247,7 +1247,7 @@
   {
     "id": "vampire",
     "name": "Vampire",
-    "cardSubtitle": "2004-02-02 list · pool through 2004-04-18",
+    "cardSubtitle": "2004-02-02 list, pool through 2004-04-18",
     "banlistHeading": "February 2004 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1262,7 +1262,7 @@
   {
     "id": "scientist",
     "name": "Scientist",
-    "cardSubtitle": "2003-11-17 list · pool through 2004-02-01",
+    "cardSubtitle": "2003-11-17 list, pool through 2004-02-01",
     "banlistHeading": "November 2003 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1277,7 +1277,7 @@
   {
     "id": "yata",
     "name": "Yata",
-    "cardSubtitle": "2003-08-25 list · pool through 2003-11-16",
+    "cardSubtitle": "2003-08-25 list, pool through 2003-11-16",
     "banlistHeading": "August 2003 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1292,7 +1292,7 @@
   {
     "id": "fiber",
     "name": "Fiber",
-    "cardSubtitle": "2003-07-08 list · pool through 2003-08-24",
+    "cardSubtitle": "2003-07-08 list, pool through 2003-08-24",
     "banlistHeading": "July 2003 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1307,7 +1307,7 @@
   {
     "id": "joey-pegasus",
     "name": "Joey-Pegasus",
-    "cardSubtitle": "2003-05-08 list · pool through 2003-07-07",
+    "cardSubtitle": "2003-05-08 list, pool through 2003-07-07",
     "banlistHeading": "May 2003 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1322,7 +1322,7 @@
   {
     "id": "android",
     "name": "Android",
-    "cardSubtitle": "2003-04-01 list · pool through 2003-05-07",
+    "cardSubtitle": "2003-04-01 list, pool through 2003-05-07",
     "banlistHeading": "April 2003 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1337,7 +1337,7 @@
   {
     "id": "imperial",
     "name": "Imperial",
-    "cardSubtitle": "2002-12-01 list · pool through 2003-03-31",
+    "cardSubtitle": "2002-12-01 list, pool through 2003-03-31",
     "banlistHeading": "December 2002 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1352,7 +1352,7 @@
   {
     "id": "treasure",
     "name": "Treasure",
-    "cardSubtitle": "2002-10-01 list · pool through 2002-11-30",
+    "cardSubtitle": "2002-10-01 list, pool through 2002-11-30",
     "banlistHeading": "October 2002 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1367,7 +1367,7 @@
   {
     "id": "critter",
     "name": "Critter",
-    "cardSubtitle": "2002-07-01 list · pool through 2002-09-30",
+    "cardSubtitle": "2002-07-01 list, pool through 2002-09-30",
     "banlistHeading": "July 2002 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",
@@ -1382,7 +1382,7 @@
   {
     "id": "yugi-kaiba",
     "name": "Yugi-Kaiba",
-    "cardSubtitle": "2002-05-07 list · pool through 2002-06-30",
+    "cardSubtitle": "2002-05-07 list, pool through 2002-06-30",
     "banlistHeading": "May 2002 TCG Forbidden & Limited List",
     "deckRulesSummary": "Main 40–60, Extra 0–15, Side 0–15",
     "poolRule": "tcg-earliest-on-or-before",

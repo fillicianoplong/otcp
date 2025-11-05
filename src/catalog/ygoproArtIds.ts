@@ -120,10 +120,23 @@ async function fetchArtIdsForPasscode(passcode: number): Promise<readonly number
 
 const BATCH_SIZE = 40;
 
+function catalogArtNetworkLookupsDisabled(): boolean {
+  return import.meta.env.VITE_DISABLE_CATALOG_ART_WARM === 'true';
+}
+
 /** Fetches alternate artwork passcodes from YGOPRODeck for cards missing them in the catalog. */
 export async function fetchYgoproArtIdsForPasscodes(
   passcodes: readonly number[],
 ): Promise<Map<number, readonly number[]>> {
+  if (catalogArtNetworkLookupsDisabled()) {
+    const results = new Map<number, readonly number[]>();
+    for (const id of passcodes) {
+      const cached = artIdsByPasscode.get(id);
+      if (cached) results.set(id, cached);
+    }
+    return results;
+  }
+
   const unique = [...new Set(passcodes)];
   const results = new Map<number, readonly number[]>();
 

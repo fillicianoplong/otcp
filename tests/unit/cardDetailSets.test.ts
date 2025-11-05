@@ -39,7 +39,7 @@ describe('cardDetailSets collapse UI', () => {
 
 describe('cardDetailSets printing helpers', () => {
   it('formats set row code and rarity on the second line', () => {
-    expect(cardDetailSetRowCodeRarity('PHNI-EN001', 'Ultra Rare')).toBe('PHNI-EN001 · Ultra Rare');
+    expect(cardDetailSetRowCodeRarity('PHNI-EN001', 'Ultra Rare')).toBe('PHNI-EN001, Ultra Rare');
   });
 
   it('formats a TCG release date for the first line when setIndex has tcgDate', () => {

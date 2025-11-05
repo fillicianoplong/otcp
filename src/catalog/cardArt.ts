@@ -77,13 +77,7 @@ export function catalogLargeImageUrl(card: YugiohCard, imageId: number): string 
   return publishedImagePathsByImageId(imageId, base).large;
 }
 
-export function expandCardsToArtTiles(
-  cards: readonly YugiohCard[],
-  allArtworks: boolean,
-): CatalogArtTile[] {
-  if (!allArtworks) {
-    return cards.map((card) => ({ card, imageId: defaultArtId(card) }));
-  }
+export function expandCardsToArtTiles(cards: readonly YugiohCard[]): CatalogArtTile[] {
   const tiles: CatalogArtTile[] = [];
   for (const card of cards) {
     for (const imageId of resolveArtIds(card)) {
@@ -93,10 +87,6 @@ export function expandCardsToArtTiles(
   return tiles;
 }
 
-export function catalogResultCount(
-  matchingCardCount: number,
-  visibleTiles: readonly CatalogArtTile[],
-  allArtworks: boolean,
-): number {
-  return allArtworks ? visibleTiles.length : matchingCardCount;
+export function catalogResultCount(visibleTiles: readonly CatalogArtTile[]): number {
+  return visibleTiles.length;
 }

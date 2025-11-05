@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { resolveArtIds } from './cardArt.ts';
-import { fetchYgoproArtIdsForPasscodes } from './ygoproArtIds.ts';
+import { fetchYgoproArtIdsForPasscodes, readCachedYgoproArtIds } from './ygoproArtIds.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
 function needsYgoproArtLookup(card: YugiohCard): boolean {
@@ -20,26 +20,29 @@ function mergeArtIdsOntoCard(card: YugiohCard, artIds: readonly number[] | undef
   return { ...card, artIds: [...artIds] };
 }
 
-/** When All artworks is on, backfill missing `artIds` from YGOPRODeck for visible cards. */
+/** Backfill missing `artIds` from YGOPRODeck for the given cards (e.g. current search results). */
 export function useArtworkEnrichedCards(
   cards: readonly YugiohCard[],
-  allArtworks: boolean,
+  artCacheRevision = 0,
 ): YugiohCard[] {
   const [artIdsByCardId, setArtIdsByCardId] = useState<Map<number, readonly number[]>>(
     () => new Map(),
   );
 
   const lookupKey = useMemo(() => {
-    if (!allArtworks) return '';
     return cards
       .filter(needsYgoproArtLookup)
       .map((card) => card.id)
       .sort((left, right) => left - right)
       .join(',');
-  }, [allArtworks, cards]);
+  }, [cards]);
 
   useEffect(() => {
-    if (!allArtworks || lookupKey.length === 0) {
+    if (import.meta.env.VITE_DISABLE_CATALOG_ART_WARM === 'true') {
+      queueMicrotask(() => setArtIdsByCardId(new Map()));
+      return;
+    }
+    if (lookupKey.length === 0) {
       queueMicrotask(() => setArtIdsByCardId(new Map()));
       return;
     }
@@ -61,11 +64,14 @@ export function useArtworkEnrichedCards(
     return () => {
       cancelled = true;
     };
-  }, [allArtworks, lookupKey]);
+  }, [lookupKey]);
 
-  return useMemo(
-    () =>
-      cards.map((card) => mergeArtIdsOntoCard(card, artIdsByCardId.get(card.id) ?? card.artIds)),
-    [artIdsByCardId, cards],
-  );
+  return useMemo(() => {
+    return cards.map((card) => {
+      const fromWarm = readCachedYgoproArtIds(card.id);
+      const artIds =
+        fromWarm && fromWarm.length > 1 ? fromWarm : (artIdsByCardId.get(card.id) ?? card.artIds);
+      return mergeArtIdsOntoCard(card, artIds);
+    });
+  }, [artCacheRevision, artIdsByCardId, cards]);
 }

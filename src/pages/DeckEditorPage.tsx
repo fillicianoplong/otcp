@@ -22,10 +22,6 @@ const SAMPLE_SKILL_IDS = {
   ancientFusion: 300302022,
 } as const;
 
-function deckSectionLabel(main: number, extra: number, side: number): string {
-  return `Main ${main}  Extra ${extra}  Side ${side}`;
-}
-
 function deckStateFromDraft(draft: GuestDeckDraft): DeckListState {
   return {
     main: draft.main,
@@ -248,9 +244,9 @@ export function DeckEditorPage() {
             ← My decks
           </Link>
           <h1 className="truncate text-2xl font-semibold text-heading">{draft.name}</h1>
-          <p className="text-sm text-text-2">
-            {formatDisplayName(draft.formatId)}{' '}
-            {deckSectionLabel(draft.main.length, draft.extra.length, draft.side.length)}
+          <p className="text-sm text-text-2">{formatDisplayName(draft.formatId)}</p>
+          <p className="text-sm tabular-nums text-text-2">
+            Main {draft.main.length} / Extra {draft.extra.length} / Side {draft.side.length}
           </p>
         </div>
       </div>

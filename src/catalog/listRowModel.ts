@@ -33,7 +33,7 @@ export function buildListRowTypeLine(card: YugiohCard): string {
     parts.push(token);
   }
   if (card.race) parts.push(card.race);
-  return parts.join(' · ');
+  return parts.join(', ');
 }
 
 /** Level / Rank / Link label, or null for spells and traps. */
@@ -50,7 +50,7 @@ export function buildListRowStatsLine(card: YugiohCard): string | null {
   if (card.type.includes('Spell') || card.type.includes('Trap')) return null;
   const atk = formatStat(card.atk);
   if (card.linkRating != null) {
-    return `ATK ${atk} · Link ${card.linkRating}`;
+    return `ATK ${atk}, Link ${card.linkRating}`;
   }
   const def = formatStat(card.def);
   return `ATK ${atk} / DEF ${def}`;

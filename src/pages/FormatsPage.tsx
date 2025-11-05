@@ -95,7 +95,7 @@ export function FormatsPage() {
           </thead>
           <tbody className="divide-y divide-border bg-surface">
             {formats.map((format) => {
-              const listDate = formatBanlistEffectiveDate(format) ?? format.sortDate ?? '';
+              const listDate = formatBanlistEffectiveDate(format) ?? '';
               const stats = banlistStatsForFormat(format);
               const poolThrough =
                 format.poolCutoffDate ??
