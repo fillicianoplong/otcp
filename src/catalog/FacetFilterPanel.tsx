@@ -18,8 +18,8 @@ import type {
   FilterStateUpdater,
 } from './filterEngine.ts';
 import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
+import { CollapsibleFilterSection, FORMAT_FILTER_SECTION_ID } from './CollapsibleFilterSection.tsx';
 import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
-import { AllArtworksFilterGroup } from './AllArtworksFilterGroup.tsx';
 import type { FormatId } from '../format/formatCatalog.ts';
 
 const LINK_ARROW_VALUES = [
@@ -202,8 +202,6 @@ type FacetFilterPanelProps = {
   setIndex?: SetIndex | null;
   activeFormatId?: FormatId | null;
   onFormatChange?: (formatId: FormatId | null) => void;
-  allArtworks?: boolean;
-  onAllArtworksChange?: (enabled: boolean) => void;
 };
 
 export function FacetFilterPanel({
@@ -215,8 +213,6 @@ export function FacetFilterPanel({
   setIndex,
   activeFormatId = null,
   onFormatChange,
-  allArtworks = true,
-  onAllArtworksChange,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
   const countsByField = useMemo(() => {
@@ -252,18 +248,66 @@ export function FacetFilterPanel({
     return orderFacetDefinitionsForPanel(ordered);
   }, [activeFormatId, catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
 
-  const showLegalityFilter = visibleDefinitions.some((def) => def.id === 'banStatus');
+  const collapsibleSectionIds = useMemo(() => {
+    const ids: string[] = [];
+    if (onFormatChange) ids.push(FORMAT_FILTER_SECTION_ID);
+    for (const def of visibleDefinitions) ids.push(def.id);
+    return ids;
+  }, [onFormatChange, visibleDefinitions]);
+
+  const collapseAllSections = () => {
+    setCollapsedFields((current) => {
+      const next = { ...current };
+      for (const id of collapsibleSectionIds) next[id] = true;
+      return next;
+    });
+  };
+
+  const expandAllSections = () => {
+    setCollapsedFields((current) => {
+      const next = { ...current };
+      for (const id of collapsibleSectionIds) delete next[id];
+      return next;
+    });
+  };
 
   return (
     <div className={className}>
-      <h2 className="mb-3 text-base font-semibold text-heading">Filters</h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-semibold text-heading">Filters</h2>
+        {collapsibleSectionIds.length > 0 ? (
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              type="button"
+              onClick={expandAllSections}
+              className="text-text underline decoration-border underline-offset-2 hover:text-heading"
+            >
+              Expand all
+            </button>
+            <button
+              type="button"
+              onClick={collapseAllSections}
+              className="text-text underline decoration-border underline-offset-2 hover:text-heading"
+            >
+              Collapse all
+            </button>
+          </div>
+        ) : null}
+      </div>
       <div className="flex flex-col gap-3">
         {onFormatChange ? (
-          <FormatFilterGroup value={activeFormatId} onChange={onFormatChange} />
+          <CollapsibleFilterSection
+            title="Format"
+            collapsed={collapsedFields[FORMAT_FILTER_SECTION_ID] ?? false}
+            onToggleCollapse={() => toggleField(FORMAT_FILTER_SECTION_ID)}
+            className="relative overflow-visible"
+          >
+            <FormatFilterGroup value={activeFormatId} onChange={onFormatChange} />
+          </CollapsibleFilterSection>
         ) : null}
-        {visibleDefinitions.flatMap((def) => {
+        {visibleDefinitions.map((def) => {
           const collapsed = collapsedFields[def.id] ?? false;
-          const field = (
+          return (
             <FacetFieldCard
               key={def.id}
               definition={def}
@@ -276,21 +320,7 @@ export function FacetFilterPanel({
               setIndex={setIndex}
             />
           );
-          if (def.id === 'banStatus' && onAllArtworksChange) {
-            return [
-              field,
-              <AllArtworksFilterGroup
-                key="artworks-filter"
-                enabled={allArtworks}
-                onChange={onAllArtworksChange}
-              />,
-            ];
-          }
-          return [field];
         })}
-        {onAllArtworksChange && !showLegalityFilter ? (
-          <AllArtworksFilterGroup enabled={allArtworks} onChange={onAllArtworksChange} />
-        ) : null}
       </div>
     </div>
   );
@@ -316,30 +346,19 @@ function FacetFieldCard({
   setIndex?: SetIndex | null;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-border bg-surface">
-      <button
-        type="button"
-        className="flex min-h-10 w-full items-center justify-between gap-2 bg-surface-2 px-3 py-2 text-left text-sm font-medium text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
-        aria-expanded={!collapsed}
-        onClick={onToggleCollapse}
-      >
-        <span className="min-w-0 truncate">{title}</span>
-        <span aria-hidden="true" className="shrink-0 text-text-2">
-          {collapsed ? '▸' : '▾'}
-        </span>
-      </button>
-      {!collapsed ? (
-        <div className="px-3 py-3">
-          <FacetFieldBlock
-            definition={definition}
-            filterState={filterState}
-            counts={counts}
-            onChange={onChange}
-            setIndex={setIndex}
-          />
-        </div>
-      ) : null}
-    </section>
+    <CollapsibleFilterSection
+      title={title}
+      collapsed={collapsed}
+      onToggleCollapse={onToggleCollapse}
+    >
+      <FacetFieldBlock
+        definition={definition}
+        filterState={filterState}
+        counts={counts}
+        onChange={onChange}
+        setIndex={setIndex}
+      />
+    </CollapsibleFilterSection>
   );
 }
 
@@ -703,8 +722,6 @@ type PhoneFiltersSheetProps = {
   setIndex?: SetIndex | null;
   draftFormatId?: FormatId | null;
   onDraftFormatChange?: (formatId: FormatId | null) => void;
-  draftAllArtworks?: boolean;
-  onDraftAllArtworksChange?: (enabled: boolean) => void;
 };
 
 export function PhoneFiltersSheet({
@@ -720,8 +737,6 @@ export function PhoneFiltersSheet({
   setIndex,
   draftFormatId = null,
   onDraftFormatChange,
-  draftAllArtworks = true,
-  onDraftAllArtworksChange,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -779,8 +794,6 @@ export function PhoneFiltersSheet({
           setIndex={setIndex}
           activeFormatId={draftFormatId}
           onFormatChange={onDraftFormatChange}
-          allArtworks={draftAllArtworks}
-          onAllArtworksChange={onDraftAllArtworksChange}
         />
       </div>
       <footer className="border-t border-border p-4">

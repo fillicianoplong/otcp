@@ -6,6 +6,7 @@ import { queryCatalog } from './catalogQueryCache.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { expandCardsToArtTiles, catalogResultCount, type CatalogArtTile } from './cardArt.ts';
 import { useArtworkEnrichedCards } from './useArtworkEnrichedCards.ts';
+import { useCatalogArtIdWarm } from './useCatalogArtIdWarm.ts';
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
 import { CATALOG_GRID_CLASS, CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
@@ -274,7 +275,6 @@ export function CardCatalogView({
   tableColumnVisibility = DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
   tableSort = DEFAULT_CATALOG_TABLE_SORT,
   onTableSortChange,
-  allArtworks = true,
 }: {
   headingId?: string;
   searchQuery?: string;
@@ -286,7 +286,6 @@ export function CardCatalogView({
   tableColumnVisibility?: CatalogTableColumnVisibility;
   tableSort?: CatalogTableSortState;
   onTableSortChange?: (next: CatalogTableSortState) => void;
-  allArtworks?: boolean;
 }) {
   const { state, retry } = useCardCatalog();
   const trimmedQuery = searchQuery.trim();
@@ -344,12 +343,13 @@ export function CardCatalogView({
   }, [catalogDerived, filterState, formatParam, resolvedViewMode, state, tableSort, trimmedQuery]);
 
   const { visibleCards, matchCount } = queryResult;
-  const enrichedVisibleCards = useArtworkEnrichedCards(visibleCards, allArtworks);
-  const visibleTiles = useMemo(
-    () => expandCardsToArtTiles(enrichedVisibleCards, allArtworks),
-    [allArtworks, enrichedVisibleCards],
-  );
-  const displayCount = catalogResultCount(matchCount, visibleTiles, allArtworks);
+  const artCacheRevision = useCatalogArtIdWarm(state.status === 'ready' ? state.cards : null);
+  const enrichedVisibleCards = useArtworkEnrichedCards(visibleCards, artCacheRevision);
+  const visibleTiles = useMemo(() => {
+    void artCacheRevision;
+    return expandCardsToArtTiles(enrichedVisibleCards);
+  }, [artCacheRevision, enrichedVisibleCards]);
+  const displayCount = catalogResultCount(visibleTiles);
 
   const tableCards = visibleCards;
 
@@ -425,7 +425,7 @@ export function CardCatalogView({
         </CatalogMessage>
       ) : resolvedViewMode === 'list' ? (
         <CardCatalogList
-          key={`list:${trimmedQuery}:${filtersKey}:${displayCount}:${allArtworks}`}
+          key={`list:${trimmedQuery}:${filtersKey}:${displayCount}`}
           visibleTiles={visibleTiles}
           matchCount={displayCount}
           searchQuery={trimmedQuery}
@@ -450,7 +450,7 @@ export function CardCatalogView({
         />
       ) : (
         <CardCatalogGrid
-          key={`grid:${trimmedQuery}:${filtersKey}:${displayCount}:${allArtworks}`}
+          key={`grid:${trimmedQuery}:${filtersKey}:${displayCount}`}
           visibleTiles={visibleTiles}
           matchCount={displayCount}
           searchQuery={trimmedQuery}

@@ -13,7 +13,7 @@ import type { YugiohCard } from '../../src/shared/schema/card.ts';
 
 describe('listRowModel', () => {
   it('builds readable monster type lines with attribute and race', () => {
-    expect(buildListRowTypeLine(monster as YugiohCard)).toBe('DARK · Normal · Spellcaster');
+    expect(buildListRowTypeLine(monster as YugiohCard)).toBe('DARK, Normal, Spellcaster');
     expect(buildListRowLevelLine(monster as YugiohCard)).toBe('Level 7');
     expect(buildListRowStatsLine(monster as YugiohCard)).toBe('ATK 2500 / DEF 2100');
   });
@@ -27,9 +27,9 @@ describe('listRowModel', () => {
   it('uses ATK and link rating for link monsters without DEF', () => {
     const stats = buildListRowStatBadges(linkMonster as YugiohCard);
     expect(stats).toEqual({ atk: '2300', linkRating: 4 });
-    expect(buildListRowStatsLine(linkMonster as YugiohCard)).toBe('ATK 2300 · Link 4');
+    expect(buildListRowStatsLine(linkMonster as YugiohCard)).toBe('ATK 2300, Link 4');
     expect(buildListRowLevelLine(linkMonster as YugiohCard)).toBe('Link 4');
-    expect(buildListRowTypeLine(linkMonster as YugiohCard)).toBe('DARK · Link · Cyberse');
+    expect(buildListRowTypeLine(linkMonster as YugiohCard)).toBe('DARK, Link, Cyberse');
   });
 
   it('formats tuner monsters as readable subtypes', () => {
@@ -42,7 +42,7 @@ describe('listRowModel', () => {
       atk: 0,
       def: 1800,
     };
-    expect(buildListRowTypeLine(tuner)).toBe('FIRE · Tuner · Zombie');
+    expect(buildListRowTypeLine(tuner)).toBe('FIRE, Tuner, Zombie');
     expect(buildListRowLevelLine(tuner)).toBe('Level 3');
     expect(buildListRowStatsLine(tuner)).toBe('ATK 0 / DEF 1800');
   });

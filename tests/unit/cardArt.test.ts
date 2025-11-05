@@ -24,15 +24,10 @@ const multiArtCard: YugiohCard = {
 };
 
 describe('expandCardsToArtTiles', () => {
-  it('expands to one tile per artwork when All artworks is on', () => {
-    const tiles = expandCardsToArtTiles([multiArtCard], true);
+  it('expands to one tile per artwork', () => {
+    const tiles = expandCardsToArtTiles([multiArtCard]);
     expect(tiles).toHaveLength(3);
     expect(tiles.map((tile) => tile.imageId)).toEqual([46986420, 46986421, 46986414]);
-  });
-
-  it('collapses to one default tile per card when All artworks is off', () => {
-    const tiles = expandCardsToArtTiles([multiArtCard], false);
-    expect(tiles).toEqual([{ card: multiArtCard, imageId: 46986420 }]);
   });
 });
 
