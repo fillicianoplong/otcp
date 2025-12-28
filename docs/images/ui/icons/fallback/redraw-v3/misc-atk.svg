@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+
+  <defs>
+    <linearGradient id="ring" x1="0.15" y1="0.0" x2="0.85" y2="1.0">
+      <stop offset="0%" stop-color="#dfe4ea"/>
+      <stop offset="42%" stop-color="#a8b0bc"/>
+      <stop offset="100%" stop-color="#c5ccd6"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5e6a74"/>
+      <stop offset="40%" stop-color="#383f4a"/>
+      <stop offset="100%" stop-color="#0c0d10"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30.7" fill="#12141a"/>
+  <circle cx="32" cy="32" r="30.25" fill="url(#ring)"/>
+  <circle cx="32" cy="32" r="27.2" fill="url(#face)"/>
+
+  <g transform="translate(32,32) rotate(45) scale(0.90) translate(-32,-32)">
+    <!-- tip: flat end with small chamfers -->
+    <path d="
+      M 27.0,14.4
+      L 28.0,12.6
+      L 36.0,12.6
+      L 37.0,14.4
+      L 37.0,31.4
+      L 27.0,31.4
+      Z"
+      fill="#12151a" stroke="#cdd3d9" stroke-width="2.55"
+      stroke-linejoin="miter" stroke-miterlimit="2.2"/>
+    <rect x="21.8" y="30.9" width="20.4" height="3.4" fill="#cdd3d9"/>
+    <rect x="29.0" y="34.2" width="6.0" height="10.2" fill="#cdd3d9"/>
+  </g>
+</svg>

@@ -1,0 +1,168 @@
+{
+  "rowVisibleHeightCssPx": 16,
+  "detailVisibleHeightCssPx": 18,
+  "kinds": {
+    "frameMini": {
+      "file": "frame-mini/link.png",
+      "fileSize": [
+        44,
+        58
+      ],
+      "visible": [
+        0,
+        0,
+        43,
+        57
+      ],
+      "visibleSize": [
+        44,
+        58
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    },
+    "attribute": {
+      "file": "attribute/dark.png",
+      "fileSize": [
+        64,
+        64
+      ],
+      "visible": [
+        0,
+        0,
+        63,
+        63
+      ],
+      "visibleSize": [
+        64,
+        64
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    },
+    "race": {
+      "file": "race/cyberse.png",
+      "fileSize": [
+        64,
+        64
+      ],
+      "visible": [
+        0,
+        0,
+        63,
+        63
+      ],
+      "visibleSize": [
+        64,
+        64
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    },
+    "property": {
+      "file": "spell-trap/continuous.png",
+      "fileSize": [
+        64,
+        64
+      ],
+      "visible": [
+        0,
+        0,
+        63,
+        63
+      ],
+      "visibleSize": [
+        64,
+        64
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    },
+    "level": {
+      "file": "level/level.png",
+      "fileSize": [
+        20,
+        20
+      ],
+      "visible": [
+        0,
+        0,
+        19,
+        19
+      ],
+      "visibleSize": [
+        20,
+        20
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    },
+    "link": {
+      "file": "link/link-3-top-bl-br.png",
+      "fileSize": [
+        25,
+        25
+      ],
+      "visible": [
+        0,
+        0,
+        24,
+        24
+      ],
+      "visibleSize": [
+        25,
+        25
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    },
+    "atk": {
+      "file": "misc/atk.png",
+      "fileSize": [
+        64,
+        64
+      ],
+      "visible": [
+        1,
+        1,
+        62,
+        62
+      ],
+      "visibleSize": [
+        62,
+        62
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    },
+    "def": {
+      "file": "misc/def.png",
+      "fileSize": [
+        64,
+        64
+      ],
+      "visible": [
+        1,
+        1,
+        62,
+        62
+      ],
+      "visibleSize": [
+        62,
+        62
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    },
+    "ban": {
+      "file": "ban/limited.png",
+      "fileSize": [
+        64,
+        64
+      ],
+      "visible": [
+        2,
+        2,
+        61,
+        61
+      ],
+      "visibleSize": [
+        60,
+        60
+      ],
+      "note": "display height 16css; width auto (aspect from visible)"
+    }
+  }
+}
