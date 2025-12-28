@@ -2,7 +2,16 @@
 
 Fast web card lookup for trading card game players — search, formats, banlists, deck builder, Lists, and collection. Yu-Gi-Oh! first. Hosted under `/otcp/` on GitHub Pages.
 
-Foundation shell draft: pull request #1.
+## Tests and CI
+
+CI runs these checks on pull requests and on pushes to `main`.
+
+- `npm ci` installs dependencies from the lockfile.
+- `npm run typecheck` typechecks the TypeScript.
+- `npm run lint` runs ESLint.
+- `npm run format:check` checks formatting with Prettier.
+- `npm run test` runs the Vitest unit tests.
+- `npm run test:e2e` runs the Chromium Playwright smoke test.
 
 ## Documentation
 
@@ -14,4 +23,4 @@ Foundation shell draft: pull request #1.
 
 ## License
 
-MIT (when present in the shell PR).
+MIT.
