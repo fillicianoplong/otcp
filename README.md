@@ -2,6 +2,14 @@
 
 Fast web card lookup for trading card game players — search, formats, banlists, deck builder, Lists, and collection. Yu-Gi-Oh! first. Hosted under `/otcp/` on GitHub Pages.
 
+**Status:** In progress. CI is set up.
+
+The GitHub Pages source must be set to GitHub Actions in repository settings by the repository owner before the deploy workflow can publish. A pull request cannot change that setting.
+
+## Issues and pull requests
+
+Every pull request links an issue with `Closes #N` and is one commit. Issue titles are short plain descriptions. Spikes are `Spike S-NN: …`. Docs are `Docs: …`. Each issue has one priority label and one type label.
+
 ## Tests and CI
 
 CI runs these checks on pull requests and on pushes to `main`.
