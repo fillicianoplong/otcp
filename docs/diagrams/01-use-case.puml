@@ -1,0 +1,34 @@
+@startuml otcp_use_case
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam dpi 100
+left to right direction
+actor "Guest" as G
+actor "Signed-in user" as U
+actor "Owner" as O
+rectangle "OTCP" {
+  usecase "UC-01 Search\nfor a card" as UC1
+  usecase "UC-02 Filter and\ncompare in a table" as UC2
+  usecase "UC-03 Check price\nand open a store" as UC3
+  usecase "UC-04 Browse\nformat legality" as UC4
+  usecase "UC-05 Build a deck\nfor a format" as UC5
+  usecase "UC-06 Export a deck" as UC6
+  usecase "UC-07 Create account\nand save a deck" as UC7
+  usecase "UC-08 Share a\nsaved deck" as UC8
+  usecase "UC-09 Genesys deck\nunder the point cap" as UC9
+  usecase "UC-10 Speed Duel\ndeck with a Skill" as UC10
+}
+G --> UC1
+G --> UC2
+G --> UC3
+G --> UC4
+G --> UC5
+G --> UC6
+G --> UC9
+G --> UC10
+U --> UC7
+U --> UC8
+U --> UC5
+O ..> UC4 : curates formats\nand refresh
+@enduml

@@ -1,0 +1,22 @@
+@startuml otcp_screen_flow
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam dpi 100
+[*] --> Home
+Home --> Search : type query
+Search --> Detail : open card
+Home --> Table : filters
+Table --> Detail
+Home --> Formats : pick format
+Formats --> DeckBuilder : new deck
+Detail --> DeckBuilder : add card
+DeckBuilder --> Export : export
+DeckBuilder --> SignIn : save / share
+SignIn --> MyDecks : success
+MyDecks --> DeckBuilder : load
+MyDecks --> ShareLink : create / revoke
+ShareLink --> ShareView : guest opens token
+Home --> About : notices
+note right of Home : Base /otcp/\nBrowserRouter +\n404.html fallback
+@enduml

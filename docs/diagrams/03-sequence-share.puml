@@ -1,0 +1,26 @@
+@startuml otcp_sequence_share
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam dpi 100
+actor Owner
+actor Guest
+participant DeckStore as Store
+participant ShareService as Share
+participant Supabase as SB
+Owner -> Store : save deck
+Store -> SB : upsert deck (RLS)
+SB --> Store : ok
+Owner -> Share : create share
+Share -> SB : insert opaque token
+SB --> Share : token
+Share --> Owner : /otcp/share/<token>
+Guest -> Share : open token
+Share -> SB : lookup token
+SB --> Share : deck id (read-only)
+Share --> Guest : read-only deck view
+Owner -> Share : revoke
+Share -> SB : invalidate token
+Guest -> Share : reload
+Share --> Guest : not found
+@enduml

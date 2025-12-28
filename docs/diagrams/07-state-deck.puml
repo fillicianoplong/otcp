@@ -1,0 +1,22 @@
+@startuml otcp_state_deck
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam dpi 100
+[*] --> Empty : New deck
+Empty --> GuestDraft : edit (no account)
+GuestDraft --> GuestDraft : edit / validate / export
+GuestDraft --> SigningIn : Save or Share
+SigningIn --> Saved : auth ok + upsert
+SigningIn --> GuestDraft : cancel / fail
+Saved --> Saved : edit + save
+Saved --> ShareActive : create share link
+ShareActive --> Saved : revoke share
+Saved --> Empty : delete deck
+Saved --> Purging : delete account
+GuestDraft --> Purging : delete account\n(local clear)
+Purging --> [*] : hard-deleted now;\nbackups within 30 days
+GuestDraft --> [*] : clear site data
+note right of GuestDraft : browser storage only\n(FR-27)
+note right of Saved : Supabase RLS\n(ADR-006)
+@enduml

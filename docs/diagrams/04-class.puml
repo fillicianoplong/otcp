@@ -1,0 +1,52 @@
+@startuml otcp_class
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam dpi 100
+class Dataset {
+  schemaVersion
+  game
+  generatedAt
+  cards[]
+  formats[]
+}
+class CardCore {
+  id
+  name
+  images
+}
+class YgoCard {
+  type
+  ban refs
+  genesysPoints?
+  prices?
+}
+class Format {
+  id
+  name
+  rules
+  banlistRef
+}
+class Deck {
+  id
+  ownerId?
+  formatId
+  main[]
+  extra[]
+  side[]
+  skillId?
+  genesysCap?
+}
+class ShareToken {
+  token
+  deckId
+  revokedAt?
+}
+Dataset "1" *-- "*" CardCore
+CardCore <|-- YgoCard
+Dataset "1" *-- "*" Format
+Deck --> Format : formatId
+Deck --> YgoCard : card ids
+ShareToken --> Deck : deckId
+note right of Dataset : Shared core +\nYu-Gi-Oh! extension\n(ADR-002)
+@enduml
