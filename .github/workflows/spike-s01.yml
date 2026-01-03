@@ -1,0 +1,49 @@
+name: Spike S-01
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'spikes/s01/**'
+      - '.github/workflows/spike-s01.yml'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spike-s01-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    name: Search index benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run S-01 benchmark
+        run: npm run spike:s01
+
+      - name: Upload timings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s01-results
+          path: spikes/s01/results/s01-results.json
+          if-no-files-found: ignore
