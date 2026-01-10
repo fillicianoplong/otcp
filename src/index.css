@@ -1,1 +1,38 @@
 @import 'tailwindcss';
+@import './styles/tokens.css';
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-text: var(--color-text);
+  --color-text-2: var(--color-text-2);
+  --color-heading: var(--color-heading);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-accent: var(--color-accent);
+  --color-on-accent: var(--color-on-accent);
+  --color-ban-forbidden: var(--color-ban-forbidden);
+  --color-ban-limited: var(--color-ban-limited);
+  --color-ban-semi: var(--color-ban-semi);
+  --color-ban-unlimited: var(--color-ban-unlimited);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
