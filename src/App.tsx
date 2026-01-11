@@ -6,6 +6,7 @@ import { DecksPage } from './pages/DecksPage';
 import { FormatsPage } from './pages/FormatsPage';
 import { ListsPage } from './pages/ListsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { NoticesPage } from './pages/NoticesPage';
 import { SearchPage } from './pages/SearchPage';
 
 export function App() {
@@ -20,6 +21,7 @@ export function App() {
           <Route path="collection" element={<CollectionPage />} />
           <Route path="lists" element={<ListsPage />} />
           <Route path="account" element={<AccountPage />} />
+          <Route path="notices" element={<NoticesPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

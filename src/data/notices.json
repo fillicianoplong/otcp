@@ -1,0 +1,22 @@
+{
+  "dependencies": [
+    {
+      "name": "react",
+      "version": "19.3.1",
+      "license": "MIT",
+      "link": "https://www.npmjs.com/package/react"
+    },
+    {
+      "name": "react-dom",
+      "version": "19.3.1",
+      "license": "MIT",
+      "link": "https://www.npmjs.com/package/react-dom"
+    },
+    {
+      "name": "react-router",
+      "version": "7.18.5",
+      "license": "MIT",
+      "link": "https://www.npmjs.com/package/react-router"
+    }
+  ]
+}

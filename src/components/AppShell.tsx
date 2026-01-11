@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet } from 'react-router';
 import { PRIMARY_NAV } from '../nav';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -58,7 +58,7 @@ export function AppShell() {
   };
 
   return (
-    <div className="min-h-dvh bg-bg text-text">
+    <div className="flex min-h-dvh flex-col bg-bg text-text">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-heading focus:shadow-[0_0_0_2px_var(--color-border-strong)]"
@@ -98,9 +98,20 @@ export function AppShell() {
         ) : null}
       </header>
 
-      <main id="main-content" className="mx-auto max-w-6xl p-4">
+      <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 p-4">
         <Outlet />
       </main>
+
+      <footer className="border-t border-border bg-surface">
+        <div className="mx-auto flex max-w-6xl px-4 py-3">
+          <Link
+            to="/notices"
+            className="text-sm text-text underline decoration-border underline-offset-2 transition-colors hover:text-heading hover:decoration-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+          >
+            Notices
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }
