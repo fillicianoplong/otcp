@@ -1,10 +1,28 @@
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { AppShell } from './components/AppShell';
+import { AccountPage } from './pages/AccountPage';
+import { CollectionPage } from './pages/CollectionPage';
+import { DecksPage } from './pages/DecksPage';
+import { FormatsPage } from './pages/FormatsPage';
+import { ListsPage } from './pages/ListsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { SearchPage } from './pages/SearchPage';
+
 export function App() {
   return (
-    <main className="min-h-dvh bg-bg p-4">
-      <h1 className="text-2xl font-semibold text-heading">OTCP</h1>
-      <p className="mt-2 text-text-2">
-        Ink chrome with match-system light and dark via design tokens.
-      </p>
-    </main>
+    <BrowserRouter basename="/otcp">
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route index element={<Navigate to="/search" replace />} />
+          <Route path="search" element={<SearchPage />} />
+          <Route path="formats" element={<FormatsPage />} />
+          <Route path="decks" element={<DecksPage />} />
+          <Route path="collection" element={<CollectionPage />} />
+          <Route path="lists" element={<ListsPage />} />
+          <Route path="account" element={<AccountPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
