@@ -2,7 +2,23 @@
 
 Fast web card lookup for trading card game players — search, formats, banlists, deck builder, Lists, and collection. Yu-Gi-Oh! first. Hosted under `/otcp/` on GitHub Pages.
 
-**Status:** In progress. CI is set up.
+**Status:** The app shell is live at [https://fillicianoplong.github.io/otcp/](https://fillicianoplong.github.io/otcp/). CI is set up.
+
+## Getting started
+
+Requires **Node 22** (see `.nvmrc` and `package.json` `engines`).
+
+| Script | Purpose |
+|---|---|
+| `npm start` | Dev server (same as `npm run dev`) |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright smoke tests (Chromium) |
+| `npm run check` | Typecheck, lint, format check, unit tests, and license scan |
+| `npm run notices:generate` | Regenerate `src/data/notices.json` from dependencies |
+
+Pushes to **`main`** deploy the app to GitHub Pages via [`.github/workflows/pages.yml`](.github/workflows/pages.yml). The workflow runs a post-deploy smoke check against the published URL.
 
 The GitHub Pages source must be set to GitHub Actions in repository settings by the repository owner before the deploy workflow can publish. A pull request cannot change that setting.
 
@@ -28,6 +44,7 @@ CI runs these checks on pull requests and on pushes to `main`.
 - [UI design](docs/UI.md) (version 1.0; also as [Word](docs/Plong_OTCP_UI.docx) and [PDF](docs/out/Plong_OTCP_UI.pdf))
 - [Implementation plan](docs/IMPLEMENTATION_PLAN.md) (version 1.0; also as [Word](docs/Plong_OTCP_Implementation_Plan.docx) and [PDF](docs/out/Plong_OTCP_Implementation_Plan.pdf))
 - [Diagrams](docs/diagrams/) (PlantUML sources, rendered in [docs/images](docs/images/))
+- [Changelog](CHANGELOG.md)
 
 ## License
 
