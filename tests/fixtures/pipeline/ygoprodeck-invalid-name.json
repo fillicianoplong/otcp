@@ -1,0 +1,28 @@
+{
+  "data": [
+    {
+      "id": 46986420,
+      "name": "Dark Magician",
+      "desc": "The ultimate wizard in terms of attack and defense.",
+      "type": "Normal Monster",
+      "race": "Spellcaster",
+      "attribute": "DARK",
+      "level": 7,
+      "atk": 2500,
+      "def": 2100,
+      "card_sets": []
+    },
+    {
+      "id": 1,
+      "name": "",
+      "desc": "bad row",
+      "type": "Normal Monster",
+      "race": "Spellcaster",
+      "attribute": "DARK",
+      "level": 4,
+      "atk": 1000,
+      "def": 1000,
+      "card_sets": []
+    }
+  ]
+}
