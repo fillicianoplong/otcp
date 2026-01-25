@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": 83764719,
+  "name": "Monster Reborn",
+  "type": "Spell Card",
+  "text": "Target 1 monster in either GY; Special Summon it.",
+  "images": {
+    "small": "/otcp/card-images/83764719.jpg",
+    "large": "/otcp/card-images/83764719.jpg"
+  },
+  "sets": [
+    {
+      "setCode": "SDY-035",
+      "setName": "Starter Deck: Yugi",
+      "setRarity": "Common"
+    }
+  ],
+  "passcode": 83764719,
+  "race": "Normal",
+  "banlistInfo": {
+    "banTcg": "Limited"
+  }
+}

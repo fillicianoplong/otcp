@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": 44095762,
+  "name": "Mirror Force",
+  "type": "Trap Card",
+  "text": "When an opponent's monster declares an attack: Destroy all Attack Position monsters your opponent controls.",
+  "images": {
+    "small": "/otcp/card-images/44095762.jpg",
+    "large": "/otcp/card-images/44095762.jpg"
+  },
+  "sets": [
+    {
+      "setCode": "SDY-041",
+      "setName": "Starter Deck: Yugi",
+      "setRarity": "Common"
+    }
+  ],
+  "passcode": 44095762,
+  "race": "Normal"
+}
