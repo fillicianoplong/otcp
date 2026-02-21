@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - 'spikes/s01/**'
+      - 'src/search/**'
+      - 'scripts/search-index-bench.ts'
       - '.github/workflows/spike-s01.yml'
       - 'package.json'
       - 'package-lock.json'
@@ -40,10 +42,15 @@ jobs:
       - name: Run S-01 benchmark
         run: npm run spike:s01
 
+      - name: Run app SearchIndex benchmark
+        run: npm run search:bench
+
       - name: Upload timings
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: s01-results
-          path: spikes/s01/results/s01-results.json
+          path: |
+            spikes/s01/results/s01-results.json
+            src/search/results/search-bench.json
           if-no-files-found: ignore
