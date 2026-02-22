@@ -93,7 +93,7 @@ export function CardDetailPage() {
             <h1 className="text-2xl font-semibold text-heading">{card.name}</h1>
             <p className="mt-1 text-sm text-text-2">{card.type}</p>
           </header>
-          <PriceView prices={card.prices} snapshotAt={state.generatedAt} />
+          <PriceView cardName={card.name} prices={card.prices} snapshotAt={state.generatedAt} />
         </div>
       </div>
     </div>
