@@ -55,6 +55,7 @@ describe('loadCardCatalog', () => {
     if (result.status !== 'ready') return;
     expect(result.cards).toHaveLength(1);
     expect(result.cards[0]?.name).toBe('Blue-Eyes White Dragon');
+    expect(result.generatedAt).toBe('2026-10-28T12:00:00.000Z');
   });
 
   it('accepts legacy public/ datasetFile paths', async () => {

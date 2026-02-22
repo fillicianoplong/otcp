@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { Link } from 'react-router';
 
 import { buildSearchIndex } from '../search/index.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
@@ -30,11 +31,21 @@ function CardArt({ card }: { card: YugiohCard }) {
   );
 }
 
-function CardTile({ card }: { card: YugiohCard }) {
+function CardTile({ card, searchQuery }: { card: YugiohCard; searchQuery: string }) {
+  const detailPath =
+    searchQuery.length > 0
+      ? `/search/card/${card.id}?q=${encodeURIComponent(searchQuery)}`
+      : `/search/card/${card.id}`;
+
   return (
-    <li className="flex flex-col gap-2 rounded-md border border-border bg-surface p-3 shadow-sm">
-      <CardArt card={card} />
-      <p className="text-sm font-medium text-heading">{card.name}</p>
+    <li>
+      <Link
+        to={detailPath}
+        className="flex flex-col gap-2 rounded-md border border-border bg-surface p-3 shadow-sm transition-colors hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+      >
+        <CardArt card={card} />
+        <p className="text-sm font-medium text-heading">{card.name}</p>
+      </Link>
     </li>
   );
 }
@@ -139,7 +150,7 @@ export function CardCatalogView({
       ) : (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {visibleCards.map((card) => (
-            <CardTile key={card.id} card={card} />
+            <CardTile key={card.id} card={card} searchQuery={trimmedQuery} />
           ))}
         </ul>
       )}

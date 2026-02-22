@@ -40,7 +40,9 @@
         }
       ],
       "prices": {
-        "tcgplayer": 1.23
+        "tcgplayer": 1.23,
+        "coolstuffinc": 1.1,
+        "cardmarket": 0.95
       },
       "passcode": 46986420,
       "attribute": "DARK",

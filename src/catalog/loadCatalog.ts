@@ -7,7 +7,7 @@ import { CURRENT_POINTER_URL, publicDataUrl } from './paths.ts';
 export type CatalogState =
   | { status: 'loading' }
   | { status: 'empty' }
-  | { status: 'ready'; cards: YugiohCard[] }
+  | { status: 'ready'; cards: YugiohCard[]; generatedAt: string }
   | { status: 'error'; message: string };
 
 type CatalogCache = Exclude<CatalogState, { status: 'loading' }>;
@@ -64,7 +64,11 @@ export async function loadCardCatalog(fetchImpl: typeof fetch = fetch): Promise<
     return { status: 'empty' };
   }
 
-  return { status: 'ready', cards: validated.data.cards };
+  return {
+    status: 'ready',
+    cards: validated.data.cards,
+    generatedAt: validated.data.generatedAt,
+  };
 }
 
 export async function fetchCardCatalog(fetchImpl: typeof fetch = fetch): Promise<CatalogCache> {
