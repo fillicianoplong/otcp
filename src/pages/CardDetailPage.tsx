@@ -1,14 +1,22 @@
+import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 
+import { cardDetailImageFallback, cardDetailImageSrc } from '../catalog/cardArtUrl.ts';
 import { PriceView } from '../components/PriceView.tsx';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
 function CardDetailArt({ card }: { card: YugiohCard }) {
+  const [src, setSrc] = useState(() => cardDetailImageSrc(card));
+
   return (
     <img
-      src={card.images.large}
+      src={src}
       alt={card.name}
+      onError={() => {
+        const fallback = cardDetailImageFallback(card, src);
+        if (fallback) setSrc(fallback);
+      }}
       className="mx-auto w-full max-w-[280px] rounded-md bg-surface-2 object-cover shadow-sm sm:max-w-none"
     />
   );

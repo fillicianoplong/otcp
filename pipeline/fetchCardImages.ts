@@ -20,6 +20,7 @@ export type CardImageVariant = 'large' | 'small';
 export type FetchCardImagesOptions = {
   repoRoot: string;
   cardIds: number[];
+  variants?: readonly CardImageVariant[];
   fetchImpl?: typeof fetch;
   userAgent?: string;
   maxAttempts?: number;
@@ -162,10 +163,11 @@ export async function ensureCardImages(
   let downloaded = 0;
   let skipped = 0;
 
+  const variants = options.variants ?? (['large', 'small'] as const);
   const uniqueIds = [...new Set(options.cardIds)].sort((a, b) => a - b);
 
   for (const cardId of uniqueIds) {
-    for (const variant of ['large', 'small'] as const) {
+    for (const variant of variants) {
       const destPath = localImagePath(options.repoRoot, cardId, variant);
       if (imageAlreadyPresent(destPath)) {
         skipped += 1;

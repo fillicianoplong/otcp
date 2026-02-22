@@ -1,8 +1,14 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { buildSearchIndex } from '../search/index.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import {
+  gridHasMore,
+  initialGridVisibleCount,
+  nextGridVisibleCount,
+  sliceGridCards,
+} from './gridPaging.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
 
 function CardArt({ card }: { card: YugiohCard }) {
@@ -70,6 +76,51 @@ function CatalogMessage({
 
 function formatCardCount(count: number): string {
   return count === 1 ? '1 card' : `${count} cards`;
+}
+
+function CardCatalogGrid({
+  visibleCards,
+  matchCount,
+  searchQuery,
+}: {
+  visibleCards: YugiohCard[];
+  matchCount: number;
+  searchQuery: string;
+}) {
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [visibleCount, setVisibleCount] = useState(() => initialGridVisibleCount(matchCount));
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node || !gridHasMore(visibleCount, matchCount)) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisibleCount((current) => nextGridVisibleCount(current, matchCount));
+        }
+      },
+      { rootMargin: '240px 0px' },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [matchCount, visibleCount]);
+
+  const renderedCards = sliceGridCards(visibleCards, visibleCount);
+
+  return (
+    <>
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {renderedCards.map((card) => (
+          <CardTile key={card.id} card={card} searchQuery={searchQuery} />
+        ))}
+      </ul>
+      {gridHasMore(visibleCount, matchCount) ? (
+        <div ref={loadMoreRef} className="h-8" aria-hidden />
+      ) : null}
+    </>
+  );
 }
 
 export function CardCatalogView({
@@ -148,11 +199,12 @@ export function CardCatalogView({
           full passcode.
         </CatalogMessage>
       ) : (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {visibleCards.map((card) => (
-            <CardTile key={card.id} card={card} searchQuery={trimmedQuery} />
-          ))}
-        </ul>
+        <CardCatalogGrid
+          key={`${trimmedQuery}:${matchCount}`}
+          visibleCards={visibleCards}
+          matchCount={matchCount}
+          searchQuery={trimmedQuery}
+        />
       )}
     </section>
   );
