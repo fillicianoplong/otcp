@@ -21,6 +21,8 @@ jobs:
   build:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    outputs:
+      expected_dataset_file: ${{ steps.expected_pointer.outputs.dataset_file }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -56,6 +58,14 @@ jobs:
           cp -a _published_data/public/data/. dist/data/
           if [ -d _published_data/public/card-images/small ]; then
             cp -a _published_data/public/card-images/small/. dist/card-images/small/
+          fi
+
+      - name: Record expected published pointer
+        id: expected_pointer
+        run: |
+          if [ -f dist/data/current.json ]; then
+            dataset_file=$(jq -r .datasetFile dist/data/current.json)
+            echo "dataset_file=${dataset_file}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Configure Pages
@@ -96,12 +106,26 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Load published artifact paths for smoke
+        id: published_data
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: data-refresh
+          path: _published_data
+          sparse-checkout: |
+            public/data
+            public/card-images/small
+          sparse-checkout-cone-mode: false
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
       - name: Verify published catalog on Pages
         env:
           BASE_URL: ${{ needs.deploy.outputs.page_url }}
+          EXPECTED_DATASET_FILE: ${{ needs.build.outputs.expected_dataset_file }}
+          PUBLISHED_ARTIFACT_PUBLIC_DIR: ${{ steps.published_data.outcome == 'success' && '_published_data/public' || '' }}
         run: npm run pages:smoke-data
 
       - name: Smoke test against Pages URL
