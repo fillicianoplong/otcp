@@ -16,6 +16,7 @@ import {
 } from '../../pipeline/runPipeline.ts';
 import validFixture from '../fixtures/pipeline/ygoprodeck-valid-two.json';
 import invalidFixture from '../fixtures/pipeline/ygoprodeck-invalid-name.json';
+import placeholderFixture from '../fixtures/pipeline/ygoprodeck-placeholder-and-no-set.json';
 
 const CARD_IDS = [46986420, 89631139] as const;
 
@@ -139,6 +140,32 @@ describe('DataPipeline', () => {
 
     const datasets = readdirSync(paths.datasetsDir);
     expect(datasets.some((name) => name.startsWith('cards-2026-11-01'))).toBe(true);
+  });
+
+  it('excludes placeholder rows and keeps no-set cards in the published pointer count', async () => {
+    const root = makeTempRoot();
+    roots.push(root);
+    seedPointer(root);
+
+    const result = await runPipeline(root, {
+      now: () => new Date('2026-11-01T12:00:00.000Z'),
+      fetch: {
+        fetchImpl: createMockFetch({ cardDump: placeholderFixture }),
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.dropped).toEqual({ unsupported: 0, placeholder: 1 });
+    expect(result.pointer.cardCount).toBe(1);
+
+    const pointer = loadPublishedPointer(root);
+    expect(pointer?.cardCount).toBe(1);
+
+    const datasetPath = resolveDatasetPath(root, pointer!);
+    const datasetText = readFileSync(datasetPath, 'utf8');
+    expect(datasetText).toContain('Obelisk the Tormentor');
+    expect(datasetText).not.toContain('"???"');
   });
 
   it('keeps the prior pointer and dataset when a record fails validation', async () => {

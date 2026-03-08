@@ -16,7 +16,11 @@ import {
 import { fetchCardDump, type FetchCardDumpOptions } from './fetchCardDump.ts';
 import { ensureCardImages } from './fetchCardImages.ts';
 import { sha256HexFile } from './hash.ts';
-import { buildDatasetEnvelope, mapYgoprodeckResponse } from './mapYgoprodeck.ts';
+import {
+  buildDatasetEnvelope,
+  mapYgoprodeckResponse,
+  type YgoprodeckDropCounts,
+} from './mapYgoprodeck.ts';
 import {
   type PublishedPointer,
   resolveDatasetRepoPath,
@@ -36,7 +40,12 @@ export type RunPipelineOptions = {
 };
 
 export type RunPipelineResult =
-  | { ok: true; pointer: PublishedPointer; datasetPath: string }
+  | {
+      ok: true;
+      pointer: PublishedPointer;
+      datasetPath: string;
+      dropped: YgoprodeckDropCounts;
+    }
   | {
       ok: false;
       reason: 'fetch' | 'validation' | 'images';
@@ -86,7 +95,7 @@ export async function runPipeline(
   }
 
   const generatedAt = (options.now?.() ?? new Date()).toISOString();
-  const { cards } = mapYgoprodeckResponse(response.data);
+  const { cards, dropped } = mapYgoprodeckResponse(response.data);
 
   const imageResult = await ensureCardImages({
     repoRoot,
@@ -146,7 +155,7 @@ export async function runPipeline(
 
   atomicWriteJson(paths.pointerPath, pointer);
 
-  return { ok: true, pointer, datasetPath };
+  return { ok: true, pointer, datasetPath, dropped };
 }
 
 export function loadPublishedPointer(repoRoot: string): PublishedPointer | null {

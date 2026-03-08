@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "id": 149694341,
+      "name": "???",
+      "desc": "This card is used as a placeholder in tournament deck profiles for unrevealed cards.",
+      "type": "Spell Card",
+      "race": "Normal",
+      "card_sets": []
+    },
+    {
+      "id": 10000010,
+      "name": "Obelisk the Tormentor",
+      "desc": "Requires 3 Tributes to Normal Summon (cannot be Set).",
+      "type": "Effect Monster",
+      "race": "Divine-Beast",
+      "attribute": "DIVINE",
+      "level": 10,
+      "atk": 4000,
+      "def": 4000,
+      "card_sets": []
+    }
+  ]
+}

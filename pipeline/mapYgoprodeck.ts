@@ -8,7 +8,13 @@ import {
 } from '../src/shared/schema/index.ts';
 import { YGOPRODECK_CARDINFO_URL } from './constants.ts';
 import { sameOriginImagePaths } from './imagePaths.ts';
+import { isYgoprodeckPlaceholderRow } from './placeholderFilter.ts';
 import type { YgoApiCard, YgoBanlistInfo } from './ygoprodeckTypes.ts';
+
+export type YgoprodeckDropCounts = {
+  unsupported: number;
+  placeholder: number;
+};
 
 const BAN_VALUES = new Set(['Forbidden', 'Limited', 'Semi-Limited']);
 
@@ -138,16 +144,20 @@ export function buildDatasetEnvelope(cards: YugiohCard[], generatedAt: string): 
 
 export function mapYgoprodeckResponse(rows: YgoApiCard[]): {
   cards: YugiohCard[];
-  skipped: number;
+  dropped: YgoprodeckDropCounts;
 } {
   const cards: YugiohCard[] = [];
-  let skipped = 0;
+  const dropped: YgoprodeckDropCounts = { unsupported: 0, placeholder: 0 };
   for (const row of rows) {
     if (!isSupportedYugiohRow(row)) {
-      skipped += 1;
+      dropped.unsupported += 1;
+      continue;
+    }
+    if (isYgoprodeckPlaceholderRow(row)) {
+      dropped.placeholder += 1;
       continue;
     }
     cards.push(mapYgoprodeckCard(row));
   }
-  return { cards, skipped };
+  return { cards, dropped };
 }
