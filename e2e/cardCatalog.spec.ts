@@ -5,9 +5,11 @@ test.describe('CardCatalog on Search', () => {
     await page.goto('/otcp/');
     await expect(page).toHaveURL(/\/otcp\/search$/);
 
-    await expect(page.getByText('Dark Magician')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText('Blue-Eyes White Dragon')).toBeVisible();
-    await expect(page.getByText('Monster Reborn')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Dark Magician' })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole('link', { name: 'Blue-Eyes White Dragon' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Monster Reborn' })).toBeVisible();
   });
 
   test('shows an error state with retry when the dataset fails', async ({ page }) => {
