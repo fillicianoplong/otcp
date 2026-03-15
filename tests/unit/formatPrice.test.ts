@@ -15,8 +15,9 @@ describe('formatStorePrice', () => {
     expect(formatStorePrice(undefined, 'USD')).toBe('—');
   });
 
-  it('formats zero as a currency amount', () => {
-    expect(formatStorePrice(0, 'USD')).toBe('$0.00');
+  it('shows an em dash when the value is zero', () => {
+    expect(formatStorePrice(0, 'USD')).toBe('—');
+    expect(formatStorePrice(0, 'EUR')).toBe('—');
   });
 });
 

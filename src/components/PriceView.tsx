@@ -21,10 +21,10 @@ function StoreOutboundLink({ store, cardName }: { store: StoreKey; cardName: str
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex min-h-[var(--touch-min)] items-center gap-1 text-sm font-medium text-heading underline decoration-border underline-offset-2 transition-colors hover:decoration-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+      aria-label={label}
+      className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] shrink-0 items-center justify-center rounded-sm text-heading transition-colors hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
     >
-      {label}
-      <span aria-hidden="true" className="text-xs text-text-2">
+      <span aria-hidden="true" className="text-sm leading-none">
         ↗
       </span>
       <span className="sr-only"> (opens in new tab)</span>
@@ -46,14 +46,14 @@ export function PriceView({
       <h2 id="card-prices-heading" className="text-base font-semibold text-heading">
         Prices
       </h2>
-      <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 text-sm">
+      <dl className="flex flex-col gap-2 text-sm">
         {STORE_ROWS.map(({ label, key, currency }) => (
-          <div key={key} className="contents">
-            <dt className="text-text-2">{label}</dt>
-            <dd className="text-right font-medium tabular-nums text-heading">
+          <div key={key} className="flex min-w-0 items-center gap-3">
+            <dt className="min-w-0 flex-1 truncate text-text-2">{label}</dt>
+            <dd className="shrink-0 font-medium tabular-nums text-heading">
               {formatStorePrice(prices?.[key], currency)}
             </dd>
-            <dd className="col-start-2 flex justify-end pb-2 last:pb-0">
+            <dd className="shrink-0">
               <StoreOutboundLink store={key} cardName={cardName} />
             </dd>
           </div>
