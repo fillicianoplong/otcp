@@ -26,12 +26,24 @@ test.describe('Card detail prices', () => {
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
 
     const stores = [
-      { name: 'Open on TCGplayer', host: 'www.tcgplayer.com' },
-      { name: 'Open on CoolStuffInc', host: 'www.coolstuffinc.com' },
-      { name: 'Open on Cardmarket', host: 'www.cardmarket.com' },
+      {
+        name: 'Open on TCGplayer',
+        host: 'www.tcgplayer.com',
+        cardNameInHref: encodeURIComponent('Dark Magician'),
+      },
+      {
+        name: 'Open on CoolStuffInc',
+        host: 'www.coolstuffinc.com',
+        cardNameInHref: 'main_search.php?pa=searchOnName&page=1&resultsPerPage=25&q=Dark+Magician',
+      },
+      {
+        name: 'Open on Cardmarket',
+        host: 'www.cardmarket.com',
+        cardNameInHref: encodeURIComponent('Dark Magician'),
+      },
     ] as const;
 
-    for (const { name, host } of stores) {
+    for (const { name, host, cardNameInHref } of stores) {
       const link = page.getByRole('link', { name: new RegExp(`^${name}`) });
       await expect(link).toBeVisible();
       await expect(link).toHaveAttribute('target', '_blank');
@@ -39,7 +51,7 @@ test.describe('Card detail prices', () => {
       const href = await link.getAttribute('href');
       expect(href, `${name} href`).toBeTruthy();
       expect(new URL(href!).host, `${name} host`).toBe(host);
-      expect(href, `${name} encodes card name`).toContain(encodeURIComponent('Dark Magician'));
+      expect(href, `${name} encodes card name`).toContain(cardNameInHref);
     }
   });
 });
