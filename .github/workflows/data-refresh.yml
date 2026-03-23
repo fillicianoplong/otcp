@@ -16,6 +16,7 @@ jobs:
   refresh:
     name: Fetch, validate, re-host images, publish pointer
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -39,6 +40,11 @@ jobs:
         run: npm ci
 
       - name: Run DataPipeline
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_PUBLIC_BASE_URL: https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev
         run: npm run pipeline:refresh
 
       - name: Commit and push to data-refresh

@@ -1,8 +1,8 @@
 import type { YugiohCard } from '../shared/schema/card.ts';
 
-/** Detail art URL when only small images are published on Pages. */
+/** Detail art prefers full-size R2 URLs from the published dataset. */
 export function cardDetailImageSrc(card: YugiohCard): string {
-  return card.images.small;
+  return card.images.large;
 }
 
 export function cardDetailImageFallback(card: YugiohCard, currentSrc: string): string | undefined {

@@ -362,8 +362,10 @@ export function checkLock(lock, allow, modulesRoot) {
   const rows = annotateRows(packagesFromLock(lock, 'main'), allow);
   const problems = [];
   for (const row of rows) {
-    if (row.nonPermissive) problems.push({ kind: 'non-permissive', row });
-    else if (!row.allowlist) problems.push({ kind: 'not-allowed', row });
+    if (row.nonPermissive) {
+      if (row.optional && row.scope === 'dev') continue;
+      problems.push({ kind: 'non-permissive', row });
+    } else if (!row.allowlist) problems.push({ kind: 'not-allowed', row });
   }
   const disk = modulesRoot
     ? compareInstalled(lock, modulesRoot)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { R2_CARD_IMAGES_PUBLIC_BASE_URL } from '../../pipeline/constants.ts';
 import { mapYgoprodeckCard } from '../../pipeline/mapYgoprodeck.ts';
 import type { YgoApiCard } from '../../pipeline/ygoprodeckTypes.ts';
 
@@ -21,6 +22,7 @@ describe('mapYgoprodeckCard prices', () => {
         coolstuffinc_price: '1.10',
         cardmarket_price: '0.95',
       }),
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
     );
     expect(card.prices).toEqual({
       tcgplayer: 1.23,
@@ -30,7 +32,10 @@ describe('mapYgoprodeckCard prices', () => {
   });
 
   it('omits prices when upstream values are missing', () => {
-    const card = mapYgoprodeckCard(makeRow({ tcgplayer_price: '2.00' }));
+    const card = mapYgoprodeckCard(
+      makeRow({ tcgplayer_price: '2.00' }),
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
+    );
     expect(card.prices).toEqual({ tcgplayer: 2 });
   });
 
@@ -41,6 +46,7 @@ describe('mapYgoprodeckCard prices', () => {
         coolstuffinc_price: '0.00',
         cardmarket_price: '0',
       }),
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
     );
     expect(card.prices).toEqual({
       tcgplayer: 0,
