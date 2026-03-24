@@ -1,7 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-
-import { resolveDatasetRepoPath, type PublishedPointer } from '../pipeline/pointer.ts';
+import { type PublishedPointer } from '../pipeline/pointer.ts';
 import { validateDatasetEnvelope } from '../src/shared/schema/validate.ts';
 
 export type SmokeFetch = typeof fetch;
@@ -23,7 +20,7 @@ export function siteUrl(base: string, path: string): string {
   return new URL(withoutLeadingSlash, base).href;
 }
 
-export function isSamplePointer(pointer: PublishedPointer): boolean {
+export function isSamplePointer(pointer: { datasetFile: string; cardCount: number }): boolean {
   return (
     pointer.datasetFile.includes('sample-dev') ||
     pointer.cardCount <= 4 ||
@@ -37,7 +34,10 @@ export function withCacheBust(url: string, nonce: number): string {
   return parsed.href;
 }
 
-export function pointersMatch(pointer: PublishedPointer, expectedDatasetFile: string): boolean {
+export function pointersMatch(
+  pointer: { datasetFile: string },
+  expectedDatasetFile: string,
+): boolean {
   return pointer.datasetFile === expectedDatasetFile;
 }
 
@@ -49,53 +49,15 @@ export function nextPointerRetryBackoffMs(
   return Math.min(initialBackoffMs * attempt, maxBackoffMs);
 }
 
-export function imageBasenameFromSitePath(sitePath: string): string {
-  const normalized = sitePath.replace(/^\/otcp\//, '');
-  const parts = normalized.split('/');
-  return parts[parts.length - 1] ?? sitePath;
-}
-
-export function pickCardWithArtifactSmallImage(
+export function pickCardWithRemoteSmallImage(
   cards: Array<{ images?: { small?: string } }>,
-  artifactSmallBasenames: Set<string> | null,
 ): { images: { small: string } } | null {
   for (const card of cards) {
     const small = card.images?.small;
-    if (!small) continue;
-    const basename = imageBasenameFromSitePath(small);
-    if (artifactSmallBasenames === null || artifactSmallBasenames.has(basename)) {
-      return { images: { small } };
-    }
+    if (!small || !/^https?:\/\//.test(small)) continue;
+    return { images: { small } };
   }
   return null;
-}
-
-export function loadArtifactSmallImageBasenames(publicDir: string | undefined): Set<string> | null {
-  if (!publicDir?.trim()) {
-    return null;
-  }
-  const smallDir = join(publicDir, 'card-images/small');
-  if (!existsSync(smallDir)) {
-    return new Set();
-  }
-  return new Set(readdirSync(smallDir));
-}
-
-export function loadArtifactDatasetCards(
-  publicDir: string | undefined,
-  datasetFile: string,
-): Array<{ images?: { small?: string } }> | null {
-  if (!publicDir?.trim()) {
-    return null;
-  }
-  const repoRoot = dirname(publicDir);
-  const datasetPath = resolveDatasetRepoPath(repoRoot, datasetFile);
-  const raw = JSON.parse(readFileSync(datasetPath, 'utf8')) as unknown;
-  const validated = validateDatasetEnvelope(raw);
-  if (!validated.ok) {
-    throw new Error('Expected dataset in the deploy artifact failed schema validation.');
-  }
-  return validated.data.cards;
 }
 
 export async function fetchPublishedJson(
@@ -177,7 +139,6 @@ export async function runPagesPublishedDataSmoke(options: {
   baseUrl: string;
   fetchImpl?: SmokeFetch;
   expectedDatasetFile?: string;
-  publishedArtifactPublicDir?: string;
   now?: () => number;
   sleep?: (ms: number) => Promise<void>;
   log?: (message: string) => void;
@@ -225,24 +186,23 @@ export async function runPagesPublishedDataSmoke(options: {
     );
   }
 
-  const artifactBasenames = loadArtifactSmallImageBasenames(options.publishedArtifactPublicDir);
-  const artifactCards =
-    expectedDatasetFile && expectedDatasetFile.length > 0
-      ? loadArtifactDatasetCards(options.publishedArtifactPublicDir, expectedDatasetFile)
-      : null;
-  const cardsForImagePick = artifactCards ?? validated.data.cards;
-
-  const cardWithArt = pickCardWithArtifactSmallImage(cardsForImagePick, artifactBasenames);
+  const cardWithArt = pickCardWithRemoteSmallImage(validated.data.cards);
   if (!cardWithArt?.images?.small) {
-    throw new Error('No re-hosted card image found in the deploy artifact to verify.');
+    throw new Error('No R2 small image URL found in the published dataset to verify.');
   }
 
-  const imagePath = cardWithArt.images.small.replace(/^\/otcp\//, '');
-  const imageUrl = siteUrl(base, imagePath);
+  const imageUrl = cardWithArt.images.small;
   const imageResponse = await fetchPublishedHead(imageUrl, fetchImpl, now());
   if (!imageResponse.ok) {
     throw new Error(`Card image HEAD ${imageUrl} failed (${imageResponse.status}).`);
   }
 
   log(`Card image OK (${imageUrl}).`);
+}
+
+/** @deprecated Artifact small images are no longer deployed to Pages. */
+export function pickCardWithArtifactSmallImage(
+  cards: Array<{ images?: { small?: string } }>,
+): { images: { small: string } } | null {
+  return pickCardWithRemoteSmallImage(cards);
 }

@@ -11,7 +11,7 @@ const sampleCard: YugiohCard = {
   type: 'Normal Monster',
   text: 'test',
   images: {
-    small: '/otcp/card-images/small/46986420.jpg',
+    small: `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/small/46986420.webp`,
     large: `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/46986420.webp`,
   },
   sets: [],

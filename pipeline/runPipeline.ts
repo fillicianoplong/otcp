@@ -14,12 +14,8 @@ import {
   YGOPRODECK_CARDINFO_URL,
 } from './constants.ts';
 import { fetchCardDump, type FetchCardDumpOptions } from './fetchCardDump.ts';
-import { ensureCardImages } from './fetchCardImages.ts';
 import { resolveR2PublicBaseUrl } from './imagePaths.ts';
-import {
-  uploadLargeCardImagesR2,
-  type UploadLargeCardImagesR2Options,
-} from './uploadLargeCardImagesR2.ts';
+import { uploadCardImagesR2, type UploadCardImagesR2Options } from './uploadLargeCardImagesR2.ts';
 import { sha256HexFile } from './hash.ts';
 import {
   buildDatasetEnvelope,
@@ -42,7 +38,7 @@ export type RunPipelineOptions = {
   paths?: Partial<PipelinePaths>;
   fetch?: FetchCardDumpOptions;
   now?: () => Date;
-  r2?: Pick<UploadLargeCardImagesR2Options, 'env' | 's3Client' | 'fetchImpl' | 'concurrency'>;
+  r2?: Pick<UploadCardImagesR2Options, 'env' | 's3Client' | 'fetchImpl' | 'concurrency'>;
 };
 
 export type RunPipelineResult =
@@ -105,26 +101,9 @@ export async function runPipeline(
   const publicBaseUrl = resolveR2PublicBaseUrl(r2Env);
   const { cards, dropped } = mapYgoprodeckResponse(response.data, publicBaseUrl);
 
-  const imageResult = await ensureCardImages({
-    repoRoot,
+  const r2Result = await uploadCardImagesR2({
     cardIds: cards.map((card) => card.id),
-    variants: ['small'],
-    fetchImpl: options.fetch?.fetchImpl,
-    userAgent: options.fetch?.userAgent,
-    maxAttempts: options.fetch?.maxAttempts,
-    initialBackoffMs: options.fetch?.initialBackoffMs,
-    delayMs: 0,
-  });
-  if (!imageResult.ok) {
-    return {
-      ok: false,
-      reason: 'images',
-      error: imageResult.error,
-    };
-  }
-
-  const r2Result = await uploadLargeCardImagesR2({
-    cardIds: cards.map((card) => card.id),
+    variants: ['large', 'small'],
     env: r2Env,
     s3Client: options.r2?.s3Client,
     fetchImpl: options.fetch?.fetchImpl ?? options.r2?.fetchImpl,
@@ -135,7 +114,7 @@ export async function runPipeline(
   });
   if (r2Result.ok && r2Result.skippedStep) {
     console.log(
-      'Skipping R2 large image upload: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, or R2_SECRET_ACCESS_KEY is not set.',
+      'Skipping R2 card image upload: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, or R2_SECRET_ACCESS_KEY is not set.',
     );
   } else if (!r2Result.ok) {
     return {
