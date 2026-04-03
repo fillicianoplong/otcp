@@ -19,6 +19,22 @@ test.describe('Card detail prices', () => {
     await expect(page.getByText(/as of Oct 28, 2026/)).toBeVisible();
   });
 
+  test('card artwork zoom viewer opens and closes', async ({ page }) => {
+    await page.goto('/otcp/search');
+    await expect(page.getByText('Dark Magician')).toBeVisible({ timeout: 15_000 });
+    await page.getByRole('link', { name: 'Dark Magician' }).click();
+    await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
+
+    const trigger = page.getByRole('button', { name: 'View larger artwork for Dark Magician' });
+    await trigger.click();
+    const dialog = page.getByRole('dialog', { name: 'Zoomed artwork for Dark Magician' });
+    await expect(dialog).toBeVisible();
+
+    await page.getByRole('button', { name: 'Close' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
+
   test('store links open vendor search pages in a new tab', async ({ page }) => {
     await page.goto('/otcp/search');
     await expect(page.getByText('Dark Magician')).toBeVisible({ timeout: 15_000 });
