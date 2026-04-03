@@ -13,9 +13,20 @@ export type CardImageZoomViewerProps = {
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
-/** Tailwind classes that keep fit mode inside the viewport with a small margin. */
+/** Minimum inset between the card and the viewport edge in fit and actual modes. */
+export const CARD_IMAGE_VIEWER_STAGE_PADDING_CLASS = 'p-4 md:p-12';
+
+/** Actual-size stage: at least fills the scrollport so narrow art can center with auto margins. */
+export const CARD_IMAGE_VIEWER_ACTUAL_STAGE_CLASS = `box-border flex min-h-full min-w-full items-center ${CARD_IMAGE_VIEWER_STAGE_PADDING_CLASS}`;
+
+/** Fit mode stage fills the viewport-sized scroll area so child max sizes resolve. */
+export const CARD_IMAGE_VIEWER_FIT_STAGE_CLASS = `box-border flex h-full w-full min-h-0 items-center justify-center ${CARD_IMAGE_VIEWER_STAGE_PADDING_CLASS}`;
+
+/** Viewport-bounded fit image (16px margin mobile, 48px desktop). */
 export const CARD_IMAGE_VIEWER_FIT_IMAGE_CLASS =
-  'mx-auto block max-h-[calc(100vh-4rem)] max-w-[calc(100vw-4rem)] object-contain';
+  'mx-auto block max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] object-contain md:max-h-[calc(100dvh-6rem)] md:max-w-[calc(100vw-6rem)]';
+
+export const CARD_IMAGE_VIEWER_CLOSE_INSET_CLASS = 'top-4 right-4 md:top-6 md:right-6';
 
 type TouchLike = { clientX: number; clientY: number };
 
@@ -170,25 +181,26 @@ export function CardImageZoomViewer({ src, alt, onClose, triggerRef }: CardImage
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="fixed inset-0 z-50 flex flex-col bg-[rgb(0_0_0/0.88)] text-text"
+      className="fixed inset-0 z-50 bg-black/90 text-text"
     >
       <p id={titleId} className="sr-only">
         {`Zoomed artwork for ${alt}`}
       </p>
-      <div className="flex shrink-0 justify-end p-3">
-        <button
-          ref={closeRef}
-          type="button"
-          onClick={handleClose}
-          className="inline-flex min-h-[var(--touch-min)] items-center rounded-md border border-border-strong bg-surface px-4 text-sm font-medium text-heading hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-        >
-          Close
-        </button>
-      </div>
+      <button
+        ref={closeRef}
+        type="button"
+        onClick={handleClose}
+        className={[
+          'fixed z-[60] inline-flex min-h-[var(--touch-min)] items-center rounded-md border border-border-strong bg-surface px-4 text-sm font-medium text-heading hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong',
+          CARD_IMAGE_VIEWER_CLOSE_INSET_CLASS,
+        ].join(' ')}
+      >
+        Close
+      </button>
       <div
         ref={scrollRef}
         className={[
-          'relative min-h-0 flex-1 touch-none',
+          'absolute inset-0 touch-none',
           mode === 'actual'
             ? 'cursor-grab overflow-auto active:cursor-grabbing'
             : 'overflow-hidden',
@@ -203,10 +215,11 @@ export function CardImageZoomViewer({ src, alt, onClose, triggerRef }: CardImage
         onTouchCancel={onTouchEnd}
       >
         <div
+          data-viewer-stage=""
           className={
             mode === 'fit'
-              ? 'flex h-full min-h-0 w-full items-center justify-center p-4'
-              : 'inline-flex min-h-min min-w-min p-4'
+              ? CARD_IMAGE_VIEWER_FIT_STAGE_CLASS
+              : CARD_IMAGE_VIEWER_ACTUAL_STAGE_CLASS
           }
           onPointerDown={onBackdropPointerDown}
         >
@@ -217,7 +230,7 @@ export function CardImageZoomViewer({ src, alt, onClose, triggerRef }: CardImage
               toggleMode();
             }}
             className={[
-              'border-0 bg-transparent p-0',
+              'm-auto border-0 bg-transparent p-0',
               mode === 'actual' ? 'cursor-zoom-out' : 'cursor-zoom-in',
             ].join(' ')}
             aria-label={mode === 'fit' ? 'Show artwork at actual size' : 'Fit artwork to screen'}
