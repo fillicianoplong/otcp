@@ -1,9 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 import { CardCatalogView } from '../catalog/CardCatalogView';
+import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
+import { FilterChips } from '../catalog/FilterChips.tsx';
+import { buildFilterEngine, emptyFilterState, type FilterState } from '../catalog/filterEngine.ts';
+import {
+  countActiveFacetSelections,
+  filterStateToChips,
+  readFilterStateFromParams,
+  writeFilterStateToParams,
+} from '../catalog/filterUrlState.ts';
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
+import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { buildSearchIndex } from '../search/index.ts';
 
 const SEARCH_DEBOUNCE_MS = 180;
 
@@ -14,9 +25,51 @@ export function SearchPage() {
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
+  const filterState = useMemo(() => readFilterStateFromParams(searchParams), [searchParams]);
+  const { state: catalogState } = useCardCatalog();
+  const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
+  const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
+
+  const trimmedQuery = debouncedQuery.trim();
+
+  const searchIndex = useMemo(() => {
+    if (catalogState.status !== 'ready') return null;
+    return buildSearchIndex(catalogState.cards);
+  }, [catalogState]);
+
+  const filterEngine = useMemo(() => {
+    if (catalogState.status !== 'ready') return null;
+    return buildFilterEngine(catalogState.cards);
+  }, [catalogState]);
+
+  const searchIds = useMemo(() => {
+    if (!trimmedQuery || !searchIndex) return undefined;
+    return searchIndex.query(trimmedQuery).ids;
+  }, [searchIndex, trimmedQuery]);
+
+  const draftMatchCount = useMemo(() => {
+    if (!filterEngine) return 0;
+    return filterEngine.apply(phoneDraft, searchIds ? { searchIds } : {}).count;
+  }, [filterEngine, phoneDraft, searchIds]);
+
+  const activeFilterCount = countActiveFacetSelections(filterState);
+  const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
+
+  const commitFilterState = useCallback(
+    (next: FilterState) => {
+      const params = new URLSearchParams(searchParams);
+      writeFilterStateToParams(params, next);
+      const search = params.toString();
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : '' },
+        { replace: true, state: withoutSearchScrollRestore(location.state) },
+      );
+    },
+    [location.pathname, location.state, navigate, searchParams],
+  );
 
   useEffect(() => {
-    const next = debouncedQuery.trim();
+    const next = trimmedQuery;
     const current = searchParams.get('q') ?? '';
     if (next === current) return;
 
@@ -31,7 +84,12 @@ export function SearchPage() {
       { pathname: location.pathname, search: search ? `?${search}` : '' },
       { replace: true, state: withoutSearchScrollRestore(location.state) },
     );
-  }, [debouncedQuery, location.pathname, location.state, navigate, searchParams]);
+  }, [trimmedQuery, location.pathname, location.state, navigate, searchParams]);
+
+  const openPhoneFilters = () => {
+    setPhoneDraft(filterState);
+    setPhoneFiltersOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -52,7 +110,63 @@ export function SearchPage() {
           className="min-h-[var(--touch-min)] w-full rounded-md border border-border bg-surface px-3 text-base text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
         />
       </label>
-      <CardCatalogView headingId={headingId} searchQuery={debouncedQuery} />
+
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
+        {filterEngine ? (
+          <aside aria-label="Filter sidebar" className="hidden w-64 shrink-0 lg:block">
+            <div className="sticky top-[calc(var(--touch-min)+1rem)] max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-md border border-border bg-surface px-3 py-4">
+              <FacetFilterPanel
+                engine={filterEngine}
+                filterState={filterState}
+                onChange={commitFilterState}
+                searchIds={searchIds}
+              />
+            </div>
+          </aside>
+        ) : null}
+
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-3 lg:hidden">
+            <button
+              type="button"
+              onClick={openPhoneFilters}
+              className="inline-flex min-h-[var(--touch-min)] items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+            >
+              Filters
+              {activeFilterCount > 0 ? (
+                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-surface-2 px-1.5 text-xs font-semibold tabular-nums">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </button>
+          </div>
+
+          <FilterChips filterState={filterState} chips={chips} onChange={commitFilterState} />
+
+          <CardCatalogView
+            headingId={headingId}
+            searchQuery={debouncedQuery}
+            filterState={filterState}
+          />
+        </div>
+      </div>
+
+      {filterEngine ? (
+        <PhoneFiltersSheet
+          open={phoneFiltersOpen}
+          onClose={() => setPhoneFiltersOpen(false)}
+          draftState={phoneDraft}
+          onDraftChange={setPhoneDraft}
+          onReset={() => setPhoneDraft(emptyFilterState())}
+          onApply={() => {
+            commitFilterState(phoneDraft);
+            setPhoneFiltersOpen(false);
+          }}
+          resultCount={draftMatchCount}
+          engine={filterEngine}
+          searchIds={searchIds}
+        />
+      ) : null}
     </div>
   );
 }
