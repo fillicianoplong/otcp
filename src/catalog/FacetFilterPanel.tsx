@@ -2,8 +2,14 @@ import type { ReactNode } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { facetDefinitionsForGame, type FacetDefinition, type FacetFieldId } from './facets.ts';
-import type { FacetGroupCounts, FilterEngine, FilterState } from './filterEngine.ts';
-import { setFacetMatchMode, toggleExcludeValue, toggleIncludeValue } from './filterSelection.ts';
+import { formatFacetOptionLabel, sortFacetOptionsForDisplay } from './facetOptionOrdering.ts';
+import type {
+  FacetGroupCounts,
+  FacetNumericRange,
+  FilterState,
+  FilterStateUpdater,
+} from './filterEngine.ts';
+import { cycleFacetValue, setFacetMatchMode, setFacetRange } from './filterSelection.ts';
 
 const LINK_ARROW_VALUES = [
   'Top',
@@ -16,88 +22,216 @@ const LINK_ARROW_VALUES = [
   'Bottom-Right',
 ] as const;
 
-const COLLAPSED_OPTION_LIMIT = 10;
+const FACET_OPTIONS_INITIAL = 10;
+const FACET_OPTIONS_PAGE = 20;
+const FACET_OPTIONS_MAX = 50;
 
-function groupDefinitions(definitions: readonly FacetDefinition[]): Map<string, FacetDefinition[]> {
-  const map = new Map<string, FacetDefinition[]>();
-  for (const def of definitions) {
-    const list = map.get(def.group) ?? [];
-    list.push(def);
-    map.set(def.group, list);
-  }
-  return map;
+function facetCardTitle(definition: FacetDefinition): string {
+  const layerLabel = definition.layer === 'core' ? 'Core' : 'Yu-Gi-Oh';
+  const label = definition.id === 'cardType' ? 'Category' : definition.label.replace(' / type', '');
+  return `${layerLabel} · ${label}`;
 }
 
 function selectionForField(state: FilterState, fieldId: FacetFieldId) {
   return state.facets[fieldId];
 }
 
+function optionCountForValue(counts: FacetGroupCounts | undefined, value: string): number {
+  return counts?.options.find((opt) => opt.value === value)?.count ?? 0;
+}
+
+function facetHasActiveSelection(definition: FacetDefinition, filterState: FilterState): boolean {
+  const selection = filterState.facets[definition.id];
+  if (!selection) return false;
+  return (
+    (selection.include?.length ?? 0) > 0 ||
+    (selection.exclude?.length ?? 0) > 0 ||
+    selection.range?.min != null ||
+    selection.range?.max != null ||
+    (selection.mode === 'and' && definition.allowAndOr)
+  );
+}
+
+function facetHasVisibleOptions(
+  definition: FacetDefinition,
+  counts: FacetGroupCounts | undefined,
+  filterState: FilterState,
+): boolean {
+  if (facetHasActiveSelection(definition, filterState)) return true;
+
+  if (definition.control === 'linkArrows') {
+    return LINK_ARROW_VALUES.some((value) => optionCountForValue(counts, value) > 0);
+  }
+
+  const selection = filterState.facets[definition.id];
+  const includeSet = new Set(selection?.include ?? []);
+  const excludeSet = new Set(selection?.exclude ?? []);
+  const options =
+    counts?.options.filter(
+      (opt) => opt.count > 0 || includeSet.has(opt.value) || excludeSet.has(opt.value),
+    ) ?? [];
+  return options.length > 0;
+}
+
+function rangeBucketLabel(value: string): string {
+  if (value === '?') return '?';
+  if (value === '0') return '0';
+  if (value === '3001+') return '3001+';
+  return value.replace('-', '–');
+}
+
+function parseRangeInput(raw: string, allowDecimals: boolean): number | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  const n = allowDecimals ? Number(trimmed) : Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(n)) return undefined;
+  return n;
+}
+
+function FacetCustomRangeInputs({
+  fieldId,
+  range,
+  allowDecimals,
+  onApply,
+}: {
+  fieldId: FacetFieldId;
+  range: FacetNumericRange | undefined;
+  allowDecimals: boolean;
+  onApply: (range: FacetNumericRange | undefined) => void;
+}) {
+  const [minDraft, setMinDraft] = useState(() => (range?.min != null ? String(range.min) : ''));
+  const [maxDraft, setMaxDraft] = useState(() => (range?.max != null ? String(range.max) : ''));
+
+  const commit = () => {
+    const min = parseRangeInput(minDraft, allowDecimals);
+    const max = parseRangeInput(maxDraft, allowDecimals);
+    if (min != null && max != null && min > max) {
+      onApply({ min: max, max: min });
+      setMinDraft(String(Math.min(min, max)));
+      setMaxDraft(String(Math.max(min, max)));
+      return;
+    }
+    if (min == null && max == null) {
+      onApply(undefined);
+      return;
+    }
+    onApply({ min, max });
+  };
+
+  const inputClassName =
+    'w-full min-w-0 rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
+
+  return (
+    <div className="mb-3 flex flex-col gap-2">
+      <span className="text-xs text-text-2">Custom range</span>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="flex flex-col gap-1 text-xs text-text-2">
+          Min
+          <input
+            type="number"
+            inputMode={allowDecimals ? 'decimal' : 'numeric'}
+            step={allowDecimals ? '0.01' : '1'}
+            value={minDraft}
+            onChange={(event) => setMinDraft(event.target.value)}
+            onBlur={commit}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                commit();
+              }
+            }}
+            aria-label={`${fieldId} minimum`}
+            className={inputClassName}
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-text-2">
+          Max
+          <input
+            type="number"
+            inputMode={allowDecimals ? 'decimal' : 'numeric'}
+            step={allowDecimals ? '0.01' : '1'}
+            value={maxDraft}
+            onChange={(event) => setMaxDraft(event.target.value)}
+            onBlur={commit}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                commit();
+              }
+            }}
+            aria-label={`${fieldId} maximum`}
+            className={inputClassName}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
 type FacetFilterPanelProps = {
-  engine: FilterEngine;
   filterState: FilterState;
-  onChange: (next: FilterState) => void;
-  searchIds?: readonly number[];
+  groupCounts: readonly FacetGroupCounts[];
+  catalogFieldIds: readonly FacetFieldId[];
+  onChange: (next: FilterStateUpdater) => void;
   className?: string;
 };
 
 export function FacetFilterPanel({
-  engine,
   filterState,
+  groupCounts,
+  catalogFieldIds,
   onChange,
-  searchIds,
   className,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
-  const grouped = useMemo(() => groupDefinitions(definitions), [definitions]);
-  const groupCounts = useMemo(
-    () => engine.recount(filterState, searchIds ? { searchIds } : {}),
-    [engine, filterState, searchIds],
-  );
   const countsByField = useMemo(() => {
     const map = new Map<FacetFieldId, FacetGroupCounts>();
     for (const group of groupCounts) map.set(group.fieldId, group);
     return map;
   }, [groupCounts]);
 
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
-  const toggleGroup = (name: string) => {
-    setCollapsedGroups((current) => ({ ...current, [name]: !current[name] }));
+  const [collapsedFields, setCollapsedFields] = useState<Record<string, boolean>>({});
+  const toggleField = (fieldId: string) => {
+    setCollapsedFields((current) => ({ ...current, [fieldId]: !current[fieldId] }));
   };
+
+  const catalogIdSet = useMemo(() => new Set(catalogFieldIds), [catalogFieldIds]);
+
+  const visibleDefinitions = useMemo(() => {
+    const byId = new Map(definitions.map((def) => [def.id, def]));
+    const ordered: FacetDefinition[] = [];
+    for (const id of catalogFieldIds) {
+      const def = byId.get(id);
+      if (def) ordered.push(def);
+    }
+    for (const def of definitions) {
+      if (
+        !catalogIdSet.has(def.id) &&
+        facetHasVisibleOptions(def, countsByField.get(def.id), filterState)
+      ) {
+        ordered.push(def);
+      }
+    }
+    return ordered;
+  }, [catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
 
   return (
     <div className={className}>
-      <p className="mb-3 text-xs font-medium uppercase tracking-wide text-text-2">Filters</p>
-      <div className="flex flex-col gap-4">
-        {[...grouped.entries()].map(([groupName, fields]) => {
-          const collapsed = collapsedGroups[groupName] ?? false;
+      <h2 className="mb-3 text-base font-semibold text-heading">Filters</h2>
+      <div className="flex flex-col gap-3">
+        {visibleDefinitions.map((def) => {
+          const collapsed = collapsedFields[def.id] ?? false;
           return (
-            <section key={groupName} className="border-b border-border pb-4 last:border-b-0">
-              <button
-                type="button"
-                className="flex w-full min-h-[var(--touch-min)] items-center justify-between text-left text-sm font-semibold text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-                aria-expanded={!collapsed}
-                onClick={() => toggleGroup(groupName)}
-              >
-                {groupName}
-                <span aria-hidden="true" className="text-text-2">
-                  {collapsed ? '+' : '−'}
-                </span>
-              </button>
-              {!collapsed ? (
-                <div className="mt-2 flex flex-col gap-4">
-                  {fields.map((def) => (
-                    <FacetFieldBlock
-                      key={def.id}
-                      definition={def}
-                      filterState={filterState}
-                      counts={countsByField.get(def.id)}
-                      engine={engine}
-                      onChange={onChange}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </section>
+            <FacetFieldCard
+              key={def.id}
+              definition={def}
+              title={facetCardTitle(def)}
+              collapsed={collapsed}
+              onToggleCollapse={() => toggleField(def.id)}
+              filterState={filterState}
+              counts={countsByField.get(def.id)}
+              onChange={onChange}
+            />
           );
         })}
       </div>
@@ -105,29 +239,89 @@ export function FacetFilterPanel({
   );
 }
 
+function FacetFieldCard({
+  definition,
+  title,
+  collapsed,
+  onToggleCollapse,
+  filterState,
+  counts,
+  onChange,
+}: {
+  definition: FacetDefinition;
+  title: string;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  filterState: FilterState;
+  counts: FacetGroupCounts | undefined;
+  onChange: (next: FilterStateUpdater) => void;
+}) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-border bg-surface">
+      <button
+        type="button"
+        className="flex w-full min-h-10 items-center justify-between gap-2 bg-surface-2 px-3 py-2 text-left text-sm font-medium text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
+        aria-expanded={!collapsed}
+        onClick={onToggleCollapse}
+      >
+        <span>{title}</span>
+        <span aria-hidden="true" className="text-text-2">
+          {collapsed ? '▸' : '▾'}
+        </span>
+      </button>
+      {!collapsed ? (
+        <div className="px-3 py-3">
+          <FacetFieldBlock
+            definition={definition}
+            filterState={filterState}
+            counts={counts}
+            onChange={onChange}
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function FacetFieldBlock({
   definition,
   filterState,
   counts,
-  engine,
   onChange,
 }: {
   definition: FacetDefinition;
   filterState: FilterState;
   counts: FacetGroupCounts | undefined;
-  engine: FilterEngine;
-  onChange: (next: FilterState) => void;
+  onChange: (next: FilterStateUpdater) => void;
 }) {
   const selection = selectionForField(filterState, definition.id);
   const includeSet = new Set(selection?.include ?? []);
   const excludeSet = new Set(selection?.exclude ?? []);
   const mode = selection?.mode ?? 'or';
 
+  if (definition.control === 'priceRange') {
+    return (
+      <FacetCustomRangeInputs
+        key={`${selection?.range?.min ?? 'x'}-${selection?.range?.max ?? 'x'}`}
+        fieldId={definition.id}
+        range={selection?.range}
+        allowDecimals
+        onApply={(nextRange) => onChange((state) => setFacetRange(state, definition.id, nextRange))}
+      />
+    );
+  }
+
   if (definition.control === 'linkArrows') {
     const options = LINK_ARROW_VALUES.map((value) => ({
       value,
-      count: counts ? engine.optionCount([counts], definition.id, value) : 0,
+      count: optionCountForValue(counts, value),
     }));
+    const hasAny =
+      options.some((opt) => opt.count > 0) ||
+      LINK_ARROW_VALUES.some((value) => includeSet.has(value) || excludeSet.has(value));
+    if (!hasAny) {
+      return <p className="text-sm text-text-2">No values</p>;
+    }
     return (
       <FieldShell
         definition={definition}
@@ -140,11 +334,10 @@ function FacetFieldBlock({
           options={options}
           includeSet={includeSet}
           excludeSet={excludeSet}
-          onToggleInclude={(value) =>
-            onChange(toggleIncludeValue(filterState, definition.id, value))
-          }
-          onToggleExclude={(value) =>
-            onChange(toggleExcludeValue(filterState, definition.id, value))
+          onCycle={(value) =>
+            onChange((state) =>
+              cycleFacetValue(state, definition.id, value, definition.includeExclude),
+            )
           }
         />
       </FieldShell>
@@ -152,16 +345,20 @@ function FacetFieldBlock({
   }
 
   const options =
-    counts?.options
-      .filter((opt) => opt.count > 0 || includeSet.has(opt.value) || excludeSet.has(opt.value))
-      .sort((a, b) => a.value.localeCompare(b.value) || b.count - a.count) ?? [];
+    counts?.options.filter(
+      (opt) => opt.count > 0 || includeSet.has(opt.value) || excludeSet.has(opt.value),
+    ) ?? [];
+
+  if (options.length === 0 && definition.control !== 'range') {
+    return <p className="text-sm text-text-2">No values</p>;
+  }
 
   if (definition.control === 'toggle') {
     const yes = options.find((opt) => opt.value === 'yes');
     const no = options.find((opt) => opt.value === 'no');
     return (
       <FieldShell definition={definition}>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           {[yes, no].filter(Boolean).map((opt) => (
             <OptionRow
               key={opt!.value}
@@ -170,13 +367,53 @@ function FacetFieldBlock({
               included={includeSet.has(opt!.value)}
               excluded={false}
               allowExclude={false}
-              onToggleInclude={() =>
-                onChange(toggleIncludeValue(filterState, definition.id, opt!.value))
+              onCycle={() =>
+                onChange((state) => cycleFacetValue(state, definition.id, opt!.value, false))
               }
             />
           ))}
         </div>
       </FieldShell>
+    );
+  }
+
+  const displayOptions = sortFacetOptionsForDisplay(
+    definition.id,
+    options.map((opt) => ({
+      value: opt.value,
+      count: opt.count,
+      label:
+        definition.control === 'range'
+          ? definition.id === 'level'
+            ? formatFacetOptionLabel(definition.id, opt.value)
+            : rangeBucketLabel(opt.value)
+          : undefined,
+    })),
+  );
+
+  const preserveOptionOrder =
+    definition.control === 'range' ||
+    definition.id === 'level' ||
+    definition.id === 'atk' ||
+    definition.id === 'def';
+
+  const rangeBlock =
+    definition.control === 'range' ? (
+      <FacetCustomRangeInputs
+        key={`${selection?.range?.min ?? 'x'}-${selection?.range?.max ?? 'x'}`}
+        fieldId={definition.id}
+        range={selection?.range}
+        allowDecimals={definition.id === 'price'}
+        onApply={(nextRange) => onChange((state) => setFacetRange(state, definition.id, nextRange))}
+      />
+    ) : null;
+
+  if (definition.control === 'range' && displayOptions.length === 0) {
+    return (
+      <>
+        {rangeBlock}
+        <p className="text-sm text-text-2">No values</p>
+      </>
     );
   }
 
@@ -187,13 +424,18 @@ function FacetFieldBlock({
       onModeChange={onChange}
       filterState={filterState}
     >
+      {rangeBlock}
       <OptionList
         definition={definition}
-        options={options.map((opt) => ({ value: opt.value, count: opt.count }))}
+        options={displayOptions}
         includeSet={includeSet}
         excludeSet={excludeSet}
-        onToggleInclude={(value) => onChange(toggleIncludeValue(filterState, definition.id, value))}
-        onToggleExclude={(value) => onChange(toggleExcludeValue(filterState, definition.id, value))}
+        preserveOptionOrder={preserveOptionOrder}
+        onCycle={(value) =>
+          onChange((state) =>
+            cycleFacetValue(state, definition.id, value, definition.includeExclude),
+          )
+        }
       />
     </FieldShell>
   );
@@ -209,33 +451,35 @@ function FieldShell({
   definition: FacetDefinition;
   children: ReactNode;
   mode?: 'or' | 'and';
-  onModeChange?: (next: FilterState) => void;
+  onModeChange?: (next: FilterStateUpdater) => void;
   filterState?: FilterState;
 }) {
+  const showAndOr = definition.allowAndOr && onModeChange && filterState;
+  if (!showAndOr) {
+    return <div>{children}</div>;
+  }
+
   return (
     <div>
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium text-heading">{definition.label}</p>
-        {definition.allowAndOr && onModeChange && filterState ? (
-          <div className="flex rounded-md border border-border text-xs">
-            <button
-              type="button"
-              aria-pressed={mode !== 'and'}
-              onClick={() => onModeChange(setFacetMatchMode(filterState, definition.id, 'or'))}
-              className={`px-2 py-1 ${mode !== 'and' ? 'bg-surface-2 font-semibold text-heading' : 'text-text-2'}`}
-            >
-              OR
-            </button>
-            <button
-              type="button"
-              aria-pressed={mode === 'and'}
-              onClick={() => onModeChange(setFacetMatchMode(filterState, definition.id, 'and'))}
-              className={`px-2 py-1 ${mode === 'and' ? 'bg-surface-2 font-semibold text-heading' : 'text-text-2'}`}
-            >
-              AND
-            </button>
-          </div>
-        ) : null}
+      <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
+        <div className="flex rounded-md border border-border text-xs">
+          <button
+            type="button"
+            aria-pressed={mode !== 'and'}
+            onClick={() => onModeChange((state) => setFacetMatchMode(state, definition.id, 'or'))}
+            className={`px-2 py-1 ${mode !== 'and' ? 'bg-surface-2 font-semibold text-heading' : 'text-text-2'}`}
+          >
+            OR
+          </button>
+          <button
+            type="button"
+            aria-pressed={mode === 'and'}
+            onClick={() => onModeChange((state) => setFacetMatchMode(state, definition.id, 'and'))}
+            className={`px-2 py-1 ${mode === 'and' ? 'bg-surface-2 font-semibold text-heading' : 'text-text-2'}`}
+          >
+            AND
+          </button>
+        </div>
       </div>
       {children}
     </div>
@@ -247,69 +491,102 @@ function OptionList({
   options,
   includeSet,
   excludeSet,
-  onToggleInclude,
-  onToggleExclude,
+  preserveOptionOrder,
+  onCycle,
 }: {
   definition: FacetDefinition;
-  options: readonly { value: string; count: number }[];
+  options: readonly { value: string; count: number; label?: string }[];
   includeSet: Set<string>;
   excludeSet: Set<string>;
-  onToggleInclude: (value: string) => void;
-  onToggleExclude: (value: string) => void;
+  preserveOptionOrder?: boolean;
+  onCycle: (value: string) => void;
 }) {
   const [query, setQuery] = useState('');
-  const [expanded, setExpanded] = useState(false);
-  const needsSearch = options.length > COLLAPSED_OPTION_LIMIT;
+  const [visibleLimit, setVisibleLimit] = useState(FACET_OPTIONS_INITIAL);
+  const needsPaging = options.length > FACET_OPTIONS_INITIAL;
+  const searchPlaceholder =
+    definition.id === 'set' ? 'Search within…' : `Search ${definition.label}…`;
+
+  const sortedOptions = useMemo(() => {
+    if (preserveOptionOrder) return options;
+    return [...options].sort(
+      (a, b) => b.count - a.count || (a.label ?? a.value).localeCompare(b.label ?? b.value),
+    );
+  }, [options, preserveOptionOrder]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return options;
-    return options.filter((opt) => opt.value.toLowerCase().includes(q));
-  }, [options, query]);
-  const visible = expanded || !needsSearch ? filtered : filtered.slice(0, COLLAPSED_OPTION_LIMIT);
+    if (!q) return sortedOptions;
+    return sortedOptions.filter((opt) => {
+      const label = (opt.label ?? opt.value).toLowerCase();
+      return label.includes(q) || opt.value.toLowerCase().includes(q);
+    });
+  }, [query, sortedOptions]);
+
+  const displayCap = Math.min(filtered.length, FACET_OPTIONS_MAX);
+  const visibleCount = needsPaging ? Math.min(visibleLimit, displayCap) : filtered.length;
+  const visible = filtered.slice(0, visibleCount);
+  const canShowMore = needsPaging && visibleCount < displayCap;
+
+  const listScrollable = needsPaging || visible.length > FACET_OPTIONS_INITIAL;
 
   return (
     <div className="flex flex-col gap-2">
-      {needsSearch ? (
-        <label className="sr-only" htmlFor={`facet-search-${definition.id}`}>
-          Search {definition.label}
-        </label>
+      {needsPaging ? (
+        <>
+          <label className="sr-only" htmlFor={`facet-search-${definition.id}`}>
+            Search {definition.label}
+          </label>
+          <input
+            id={`facet-search-${definition.id}`}
+            type="search"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setVisibleLimit(FACET_OPTIONS_INITIAL);
+            }}
+            placeholder={searchPlaceholder}
+            className="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+          />
+        </>
       ) : null}
-      {needsSearch ? (
-        <input
-          id={`facet-search-${definition.id}`}
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search…"
-          className="w-full rounded-md border border-border bg-surface px-2 py-1 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-        />
-      ) : null}
-      <ul className="flex flex-col gap-1">
-        {visible.map((opt) => (
-          <li key={opt.value}>
-            <OptionRow
-              label={opt.value}
-              count={opt.count}
-              included={includeSet.has(opt.value)}
-              excluded={excludeSet.has(opt.value)}
-              allowExclude={definition.includeExclude}
-              onToggleInclude={() => onToggleInclude(opt.value)}
-              onToggleExclude={() => onToggleExclude(opt.value)}
-            />
-          </li>
-        ))}
-      </ul>
-      {needsSearch && !expanded && filtered.length > COLLAPSED_OPTION_LIMIT ? (
+      <div className={listScrollable ? 'max-h-[320px] overflow-y-auto pr-1' : undefined}>
+        <ul className="flex flex-col gap-0.5">
+          {visible.map((opt) => (
+            <li key={opt.value}>
+              <OptionRow
+                label={opt.label ?? opt.value}
+                count={opt.count}
+                included={includeSet.has(opt.value)}
+                excluded={excludeSet.has(opt.value)}
+                allowExclude={definition.includeExclude}
+                onCycle={() => onCycle(opt.value)}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+      {canShowMore ? (
         <button
           type="button"
-          onClick={() => setExpanded(true)}
+          onClick={() =>
+            setVisibleLimit((current) =>
+              Math.min(current + FACET_OPTIONS_PAGE, FACET_OPTIONS_MAX, filtered.length),
+            )
+          }
           className="text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
         >
-          Show more ({filtered.length - COLLAPSED_OPTION_LIMIT})
+          Show more
         </button>
       ) : null}
     </div>
   );
+}
+
+function triStateLabel(label: string, included: boolean, excluded: boolean): string {
+  if (included) return `Include ${label}`;
+  if (excluded) return `Exclude ${label}`;
+  return `Include ${label}`;
 }
 
 function OptionRow({
@@ -318,47 +595,65 @@ function OptionRow({
   included,
   excluded,
   allowExclude,
-  onToggleInclude,
-  onToggleExclude,
+  onCycle,
 }: {
   label: string;
   count: number;
   included: boolean;
   excluded: boolean;
   allowExclude: boolean;
-  onToggleInclude: () => void;
-  onToggleExclude?: () => void;
+  onCycle: () => void;
 }) {
+  const ariaChecked = included ? true : excluded ? 'mixed' : false;
+  const ariaLabel = triStateLabel(label, included, excluded);
+
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <label className="flex min-h-8 flex-1 cursor-pointer items-center gap-2">
-        <input
-          type="checkbox"
-          checked={included}
-          onChange={() => onToggleInclude()}
-          className="size-4 shrink-0 rounded border-border"
-        />
-        <span className={`truncate ${excluded ? 'line-through text-text-2' : 'text-text'}`}>
-          {label}
-        </span>
-        <span className="ml-auto shrink-0 tabular-nums text-text-2">{count}</span>
-      </label>
-      {allowExclude && onToggleExclude ? (
-        <button
-          type="button"
-          aria-pressed={excluded}
-          title="Exclude"
-          onClick={onToggleExclude}
-          className={`inline-flex size-8 shrink-0 items-center justify-center rounded-md border text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong ${
-            excluded
-              ? 'border-border-strong bg-surface-2 font-semibold text-heading'
-              : 'border-border text-text-2 hover:text-text'
-          }`}
-        >
-          Not
-        </button>
-      ) : null}
-    </div>
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={ariaChecked}
+      aria-label={ariaLabel}
+      onClick={onCycle}
+      className={`flex min-h-8 w-full items-center gap-2 rounded-sm text-left text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong ${
+        excluded ? 'text-text-2' : 'text-text'
+      }`}
+    >
+      <span
+        aria-hidden="true"
+        className={`inline-flex size-4 shrink-0 items-center justify-center rounded border ${
+          excluded
+            ? 'border-border-strong bg-surface-2 text-heading'
+            : included
+              ? 'border-border-strong bg-heading text-on-accent'
+              : 'border-border bg-surface'
+        }`}
+      >
+        {included ? (
+          <svg viewBox="0 0 12 12" className="size-3">
+            <path
+              d="M2 6.5 4.5 9 10 3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : excluded && allowExclude ? (
+          <svg viewBox="0 0 12 12" className="size-3">
+            <path
+              d="M3 6h6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : null}
+      </span>
+      <span className={`truncate ${excluded ? 'line-through' : ''}`}>{label}</span>
+      <span className="ml-auto shrink-0 tabular-nums text-text-2">{count}</span>
+    </button>
   );
 }
 
@@ -366,12 +661,12 @@ type PhoneFiltersSheetProps = {
   open: boolean;
   onClose: () => void;
   draftState: FilterState;
-  onDraftChange: (next: FilterState) => void;
+  onDraftChange: (next: FilterStateUpdater) => void;
   onApply: () => void;
   onReset: () => void;
   resultCount: number;
-  engine: FilterEngine;
-  searchIds?: readonly number[];
+  draftGroupCounts: readonly FacetGroupCounts[];
+  catalogFieldIds: readonly FacetFieldId[];
 };
 
 export function PhoneFiltersSheet({
@@ -382,8 +677,8 @@ export function PhoneFiltersSheet({
   onApply,
   onReset,
   resultCount,
-  engine,
-  searchIds,
+  draftGroupCounts,
+  catalogFieldIds,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -402,7 +697,7 @@ export function PhoneFiltersSheet({
 
   if (!open) return null;
 
-  const resultLabel = resultCount === 1 ? '1 result' : `${resultCount} results`;
+  const resultLabel = resultCount === 1 ? '1 result' : `${resultCount.toLocaleString()} results`;
 
   return (
     <div
@@ -434,10 +729,10 @@ export function PhoneFiltersSheet({
       </header>
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <FacetFilterPanel
-          engine={engine}
           filterState={draftState}
+          groupCounts={draftGroupCounts}
+          catalogFieldIds={catalogFieldIds}
           onChange={onDraftChange}
-          searchIds={searchIds}
         />
       </div>
       <footer className="border-t border-border p-4">

@@ -2,6 +2,7 @@ import type { FacetFieldId } from './facets.ts';
 import {
   emptyFilterState,
   type FacetMatchMode,
+  type FacetNumericRange,
   type FacetValueSelection,
   type FilterState,
 } from './filterEngine.ts';
@@ -14,6 +15,7 @@ function cloneState(state: FilterState): FilterState {
       include: selection.include ? [...selection.include] : undefined,
       exclude: selection.exclude ? [...selection.exclude] : undefined,
       mode: selection.mode,
+      range: selection.range ? { ...selection.range } : undefined,
     };
   }
   return { version: state.version, facets };
@@ -26,6 +28,7 @@ function ensureSelection(state: FilterState, fieldId: FacetFieldId): FacetValueS
       include: existing.include ? [...existing.include] : undefined,
       exclude: existing.exclude ? [...existing.exclude] : undefined,
       mode: existing.mode,
+      range: existing.range ? { ...existing.range } : undefined,
     };
   }
   return {};
@@ -40,7 +43,8 @@ function commitSelection(
   const hasInclude = (selection.include?.length ?? 0) > 0;
   const hasExclude = (selection.exclude?.length ?? 0) > 0;
   const hasMode = selection.mode === 'and';
-  if (!hasInclude && !hasExclude && !hasMode) {
+  const hasRange = selection.range?.min != null || selection.range?.max != null;
+  if (!hasInclude && !hasExclude && !hasMode && !hasRange) {
     delete next.facets[fieldId];
     return next;
   }
@@ -58,6 +62,31 @@ export function toggleIncludeValue(
   const exclude = new Set(selection.exclude ?? []);
   if (include.has(value)) {
     include.delete(value);
+  } else {
+    include.add(value);
+    exclude.delete(value);
+  }
+  selection.include = include.size > 0 ? [...include] : undefined;
+  selection.exclude = exclude.size > 0 ? [...exclude] : undefined;
+  return commitSelection(state, fieldId, selection);
+}
+
+export function cycleFacetValue(
+  state: FilterState,
+  fieldId: FacetFieldId,
+  value: string,
+  allowExclude: boolean,
+): FilterState {
+  const selection = ensureSelection(state, fieldId);
+  const include = new Set(selection.include ?? []);
+  const exclude = new Set(selection.exclude ?? []);
+  if (include.has(value)) {
+    include.delete(value);
+    if (allowExclude) {
+      exclude.add(value);
+    }
+  } else if (exclude.has(value)) {
+    exclude.delete(value);
   } else {
     include.add(value);
     exclude.delete(value);
@@ -96,15 +125,36 @@ export function setFacetMatchMode(
   return commitSelection(state, fieldId, selection);
 }
 
+export function setFacetRange(
+  state: FilterState,
+  fieldId: FacetFieldId,
+  range: FacetNumericRange | undefined,
+): FilterState {
+  const selection = ensureSelection(state, fieldId);
+  if (!range || (range.min == null && range.max == null)) {
+    selection.range = undefined;
+  } else {
+    selection.range = {
+      min: range.min,
+      max: range.max,
+    };
+  }
+  return commitSelection(state, fieldId, selection);
+}
+
 export function removeFilterChip(
   state: FilterState,
   chip: {
     fieldId: FacetFieldId;
-    kind: 'include' | 'exclude' | 'mode';
+    kind: 'include' | 'exclude' | 'mode' | 'range';
     value?: string;
   },
 ): FilterState {
   const selection = ensureSelection(state, chip.fieldId);
+  if (chip.kind === 'range') {
+    selection.range = undefined;
+    return commitSelection(state, chip.fieldId, selection);
+  }
   if (chip.kind === 'mode') {
     selection.mode = undefined;
     return commitSelection(state, chip.fieldId, selection);

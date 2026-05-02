@@ -32,7 +32,7 @@ test.describe('Search on Search page', () => {
 
   test('returning from a card restores scroll position and loaded batches', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('4 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('link', { name: 'Monster Reborn' })).not.toBeVisible();
 
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

@@ -28,7 +28,7 @@ export type FacetFieldId = (typeof FACET_FIELDS)[number];
 
 export type FacetLayer = 'core' | 'yugioh';
 
-export type FacetControlKind = 'multi' | 'range' | 'toggle' | 'linkArrows';
+export type FacetControlKind = 'multi' | 'range' | 'priceRange' | 'toggle' | 'linkArrows';
 
 export type FacetDefinition = {
   id: FacetFieldId;
@@ -84,7 +84,7 @@ export const CORE_FACET_DEFINITIONS: readonly FacetDefinition[] = [
     layer: 'core',
     group: 'Market',
     label: 'Price range',
-    control: 'range',
+    control: 'priceRange',
     includeExclude: false,
     allowAndOr: false,
   },

@@ -1,14 +1,13 @@
 import type { FilterChip } from './filterUrlState.ts';
 import { removeFilterChip, clearAllFilters } from './filterSelection.ts';
-import type { FilterState } from './filterEngine.ts';
+import type { FilterStateUpdater } from './filterEngine.ts';
 
 type FilterChipsProps = {
-  filterState: FilterState;
   chips: readonly FilterChip[];
-  onChange: (next: FilterState) => void;
+  onChange: (next: FilterStateUpdater) => void;
 };
 
-export function FilterChips({ filterState, chips, onChange }: FilterChipsProps) {
+export function FilterChips({ chips, onChange }: FilterChipsProps) {
   if (chips.length === 0) return null;
 
   return (
@@ -19,8 +18,8 @@ export function FilterChips({ filterState, chips, onChange }: FilterChipsProps) 
             <button
               type="button"
               onClick={() =>
-                onChange(
-                  removeFilterChip(filterState, {
+                onChange((state) =>
+                  removeFilterChip(state, {
                     fieldId: chip.fieldId,
                     kind: chip.kind,
                     value: chip.value,

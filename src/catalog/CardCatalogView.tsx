@@ -17,6 +17,7 @@ import {
   SEARCH_SCROLL_STATE_KEY,
   withoutSearchScrollRestore,
 } from './searchScrollRestore.ts';
+import { formatCardCount } from './formatCardCount.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
 
 function CardArt({ card }: { card: YugiohCard }) {
@@ -88,10 +89,6 @@ function CatalogMessage({
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
-}
-
-function formatCardCount(count: number): string {
-  return count === 1 ? '1 card' : `${count} cards`;
 }
 
 function CardCatalogGrid({
@@ -168,10 +165,12 @@ export function CardCatalogView({
   headingId,
   searchQuery = '',
   filterState = emptyFilterState(),
+  showResultCount = true,
 }: {
   headingId?: string;
   searchQuery?: string;
   filterState?: FilterState;
+  showResultCount?: boolean;
 }) {
   const { state, retry } = useCardCatalog();
   const trimmedQuery = searchQuery.trim();
@@ -287,9 +286,11 @@ export function CardCatalogView({
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-4">
-      <p className="text-sm text-text-2" aria-live="polite">
-        {formatCardCount(matchCount)}
-      </p>
+      {showResultCount ? (
+        <p className="text-sm text-text-2" aria-live="polite">
+          {formatCardCount(matchCount)}
+        </p>
+      ) : null}
       {trimmedQuery && matchCount === 0 ? (
         <CatalogMessage title="No matching cards">
           Nothing in the catalog matched &ldquo;{trimmedQuery}&rdquo;. Try a shorter name or the
