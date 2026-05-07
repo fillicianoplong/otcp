@@ -18,6 +18,7 @@ import {
 import validFixture from '../fixtures/pipeline/ygoprodeck-valid-two.json';
 import invalidFixture from '../fixtures/pipeline/ygoprodeck-invalid-name.json';
 import placeholderFixture from '../fixtures/pipeline/ygoprodeck-placeholder-and-no-set.json';
+import cardsetsFixture from '../fixtures/pipeline/ygoprodeck-cardsets-snippet.json';
 
 const CARD_IDS = [46986420, 89631139] as const;
 
@@ -40,16 +41,24 @@ function imageResponse(body = Buffer.from([0xff, 0xd8, 0xff, 0xd9])): Response {
 
 type MockFetchOptions = {
   cardDump?: unknown;
+  cardsets?: unknown;
   failImageUrl?: (url: string) => boolean;
   onImageFetch?: (url: string) => void;
 };
 
 function createMockFetch(options: MockFetchOptions = {}): typeof fetch {
   const cardDump = options.cardDump ?? validFixture;
+  const cardsets = options.cardsets ?? cardsetsFixture;
   return (async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.includes('cardinfo.php')) {
       return new Response(JSON.stringify(cardDump), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (url.includes('cardsets.php')) {
+      return new Response(JSON.stringify(cardsets), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -158,6 +167,14 @@ describe('DataPipeline', () => {
     expect(datasetText).toContain(`${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/small/46986420.webp`);
     expect(datasetText).toContain(`${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/46986420.webp`);
     expect(readFileSync(paths.pointerPath, 'utf8')).toContain(pointer!.datasetFile);
+
+    const datasetJson = JSON.parse(datasetText) as {
+      setIndex?: Record<string, { tcgDate?: string; numOfCards?: number }>;
+    };
+    expect(datasetJson.setIndex?.['Starter Deck: Yugi']).toEqual({
+      tcgDate: '2002-03-08',
+      numOfCards: 50,
+    });
 
     const datasets = readdirSync(paths.datasetsDir);
     expect(datasets.some((name) => name.startsWith('cards-2026-11-01'))).toBe(true);

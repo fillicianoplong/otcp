@@ -12,6 +12,12 @@ export {
 export { yugiohCardSchema, type YugiohCard } from './card.ts';
 export { datasetEnvelopeSchema, type DatasetEnvelope } from './dataset.ts';
 export {
+  setIndexEntrySchema,
+  setIndexSchema,
+  type SetIndex,
+  type SetIndexEntry,
+} from './setIndex.ts';
+export {
   yugiohBanlistInfoSchema,
   yugiohCardExtensionSchema,
   type YugiohBanlistInfo,

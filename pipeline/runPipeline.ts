@@ -14,6 +14,8 @@ import {
   YGOPRODECK_CARDINFO_URL,
 } from './constants.ts';
 import { fetchCardDump, type FetchCardDumpOptions } from './fetchCardDump.ts';
+import { fetchCardsets } from './fetchCardsets.ts';
+import { buildSetIndex } from './buildSetIndex.ts';
 import { resolveR2PublicBaseUrl } from './imagePaths.ts';
 import { uploadCardImagesR2, type UploadCardImagesR2Options } from './uploadLargeCardImagesR2.ts';
 import { sha256HexFile } from './hash.ts';
@@ -96,6 +98,18 @@ export async function runPipeline(
     };
   }
 
+  let setIndexRows;
+  try {
+    setIndexRows = await fetchCardsets(options.fetch);
+  } catch (error) {
+    return {
+      ok: false,
+      reason: 'fetch',
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+  const setIndex = buildSetIndex(setIndexRows);
+
   const generatedAt = (options.now?.() ?? new Date()).toISOString();
   const r2Env = options.r2?.env ?? {};
   const publicBaseUrl = resolveR2PublicBaseUrl(r2Env);
@@ -141,7 +155,7 @@ export async function runPipeline(
     return { ok: false, reason: 'validation', issues: cardIssues };
   }
 
-  const envelope = buildDatasetEnvelope(cards, generatedAt);
+  const envelope = buildDatasetEnvelope(cards, generatedAt, setIndex);
   const envelopeResult = validateDatasetEnvelope(envelope);
   if (!envelopeResult.ok) {
     return { ok: false, reason: 'validation', issues: envelopeResult.errors };

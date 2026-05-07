@@ -19,6 +19,8 @@ import {
   writeFilterStateToParams,
 } from '../catalog/filterUrlState.ts';
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
+import { readSetFacetSortMode, writeSetFacetSortMode } from '../catalog/setFacetSort.ts';
+import type { SetFacetSortMode } from '../catalog/facetOptionOrdering.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { buildSearchIndex } from '../search/index.ts';
@@ -40,6 +42,14 @@ export function SearchPage() {
   const { state: catalogState } = useCardCatalog();
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
+  const [setSortMode, setSetSortMode] = useState<SetFacetSortMode>(() => readSetFacetSortMode());
+
+  const catalogSetIndex = catalogState.status === 'ready' ? catalogState.setIndex : undefined;
+
+  const handleSetSortModeChange = useCallback((mode: SetFacetSortMode) => {
+    setSetSortMode(mode);
+    writeSetFacetSortMode(mode);
+  }, []);
 
   const trimmedQuery = debouncedQuery.trim();
 
@@ -155,6 +165,9 @@ export function SearchPage() {
                 groupCounts={facetGroupCounts}
                 catalogFieldIds={catalogFieldIds}
                 onChange={commitFilterState}
+                setIndex={catalogSetIndex}
+                setSortMode={setSortMode}
+                onSetSortModeChange={handleSetSortModeChange}
               />
             </div>
           </aside>
@@ -214,6 +227,9 @@ export function SearchPage() {
           resultCount={draftMatchCount}
           draftGroupCounts={draftFacetGroupCounts}
           catalogFieldIds={catalogFieldIds}
+          setIndex={catalogSetIndex}
+          setSortMode={setSortMode}
+          onSetSortModeChange={handleSetSortModeChange}
         />
       ) : null}
     </div>
