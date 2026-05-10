@@ -1,6 +1,6 @@
 import { formatFacetRangeChipLabel } from './facetRangeLabels.ts';
 import { formatFacetOptionLabel } from './facetOptionOrdering.ts';
-import { facetDefinitionById, type FacetFieldId } from './facets.ts';
+import { facetDefinitionById, facetDisplayLabel, type FacetFieldId } from './facets.ts';
 import {
   emptyFilterState,
   parseFilterState,
@@ -74,7 +74,7 @@ export function filterStateToChips(state: FilterState): FilterChip[] {
   ][]) {
     if (!selection) continue;
     const def = facetDefinitionById(fieldId);
-    const fieldLabel = def?.label ?? fieldId;
+    const fieldLabel = def ? facetDisplayLabel(def) : fieldId;
     for (const value of selection.include ?? []) {
       chips.push({
         id: `${fieldId}:include:${value}`,

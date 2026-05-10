@@ -64,7 +64,7 @@ describe('facetOptionOrdering', () => {
         { value: 'Maximum Crisis', count: 2 },
         { value: 'Phantom Nightmare', count: 1 },
       ],
-      { setIndex: sampleIndex, setSortMode: 'newest' },
+      { setIndex: sampleIndex },
     );
     expect(options.map((opt) => opt.value)).toEqual([
       'Phantom Nightmare',
@@ -81,25 +81,13 @@ describe('facetOptionOrdering', () => {
         { value: 'Metal Raiders', count: 2 },
         { value: 'ZZZ Undated', count: 1 },
       ],
-      { setIndex: sampleIndex, setSortMode: 'newest' },
+      { setIndex: sampleIndex },
     );
     expect(options.map((opt) => opt.value)).toEqual([
       'Metal Raiders',
       'Undated Promo',
       'ZZZ Undated',
     ]);
-  });
-
-  it('sorts set facet options A–Z when mode is alpha', () => {
-    const options = sortFacetOptionsForDisplay(
-      'set',
-      [
-        { value: 'Metal Raiders', count: 3 },
-        { value: 'Maximum Crisis', count: 2 },
-      ],
-      { setIndex: sampleIndex, setSortMode: 'alpha' },
-    );
-    expect(options.map((opt) => opt.value)).toEqual(['Maximum Crisis', 'Metal Raiders']);
   });
 
   it('falls back to A–Z when no set index is published', () => {
@@ -109,22 +97,17 @@ describe('facetOptionOrdering', () => {
         { value: 'Metal Raiders', count: 3 },
         { value: 'Maximum Crisis', count: 2 },
       ],
-      { setIndex: null, setSortMode: 'newest' },
+      { setIndex: null },
     );
     expect(options.map((opt) => opt.value)).toEqual(['Maximum Crisis', 'Metal Raiders']);
   });
 
   it('compareSetFacetOptionValues breaks ties on set name', () => {
     expect(
-      compareSetFacetOptionValues(
-        'Starter Deck: Yugi',
-        'Starter Deck: Yugi',
-        sampleIndex,
-        'newest',
-      ),
+      compareSetFacetOptionValues('Starter Deck: Yugi', 'Starter Deck: Yugi', sampleIndex),
     ).toBe(0);
     expect(
-      compareSetFacetOptionValues('Metal Raiders', 'Maximum Crisis', sampleIndex, 'newest'),
+      compareSetFacetOptionValues('Metal Raiders', 'Maximum Crisis', sampleIndex),
     ).toBeGreaterThan(0);
   });
 });
