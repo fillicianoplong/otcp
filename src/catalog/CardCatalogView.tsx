@@ -19,8 +19,18 @@ import {
   withoutSearchScrollRestore,
 } from './searchScrollRestore.ts';
 import { BanThumbMarker } from './BanThumbMarker.tsx';
+import { CardCatalogTable } from './CardCatalogTable.tsx';
 import { CardListRow } from './CardListRow.tsx';
 import { type CatalogViewMode, effectiveCatalogViewMode } from './catalogViewMode.ts';
+import {
+  DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
+  type CatalogTableColumnVisibility,
+} from './catalogTableColumns.ts';
+import {
+  DEFAULT_CATALOG_TABLE_SORT,
+  sortCatalogTableRows,
+  type CatalogTableSortState,
+} from './catalogTableSort.ts';
 import { resolveCardBanForFormat } from './formatBanContext.ts';
 import { formatCardCount } from './formatCardCount.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
@@ -256,6 +266,10 @@ export function CardCatalogView({
   showResultCount = true,
   viewMode = 'grid',
   formatParam = null,
+  tableAvailable = true,
+  tableColumnVisibility = DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
+  tableSort = DEFAULT_CATALOG_TABLE_SORT,
+  onTableSortChange,
 }: {
   headingId?: string;
   searchQuery?: string;
@@ -263,6 +277,10 @@ export function CardCatalogView({
   showResultCount?: boolean;
   viewMode?: CatalogViewMode;
   formatParam?: string | null;
+  tableAvailable?: boolean;
+  tableColumnVisibility?: CatalogTableColumnVisibility;
+  tableSort?: CatalogTableSortState;
+  onTableSortChange?: (next: CatalogTableSortState) => void;
 }) {
   const { state, retry } = useCardCatalog();
   const trimmedQuery = searchQuery.trim();
@@ -325,6 +343,17 @@ export function CardCatalogView({
       .filter((card): card is YugiohCard => card !== undefined);
     return { visibleCards, matchCount: filtered.count };
   }, [filterEngine, filterState, searchIndex, state, trimmedQuery]);
+
+  const resolvedViewMode = effectiveCatalogViewMode(viewMode, { tableAvailable });
+
+  const tableCards = useMemo(() => {
+    if (resolvedViewMode !== 'table') return visibleCards;
+    return sortCatalogTableRows(visibleCards, tableSort, formatParam);
+  }, [formatParam, resolvedViewMode, tableSort, visibleCards]);
+
+  const handleTableSortChange = (next: CatalogTableSortState) => {
+    onTableSortChange?.(next);
+  };
 
   const persistScrollRestore = (loadedCount: number) => {
     navigate(
@@ -392,13 +421,27 @@ export function CardCatalogView({
         <CatalogMessage title="No matching cards">
           No cards match the current filters. Try removing a filter or choose Clear all.
         </CatalogMessage>
-      ) : effectiveCatalogViewMode(viewMode) === 'list' ? (
+      ) : resolvedViewMode === 'list' ? (
         <CardCatalogList
           key={`list:${trimmedQuery}:${filtersKey}:${matchCount}`}
           visibleCards={visibleCards}
           matchCount={matchCount}
           searchQuery={trimmedQuery}
           formatParam={formatParam}
+          initialVisibleCount={scrollRestore?.loadedCount}
+          restoreScrollY={scrollRestore?.scrollY ?? null}
+          onBeforeNavigate={persistScrollRestore}
+        />
+      ) : resolvedViewMode === 'table' ? (
+        <CardCatalogTable
+          key={`table:${trimmedQuery}:${filtersKey}:${matchCount}:${tableSort.column}:${tableSort.direction}`}
+          visibleCards={tableCards}
+          matchCount={matchCount}
+          searchQuery={trimmedQuery}
+          formatParam={formatParam}
+          columnVisibility={tableColumnVisibility}
+          sort={tableSort}
+          onSortChange={handleTableSortChange}
           initialVisibleCount={scrollRestore?.loadedCount}
           restoreScrollY={scrollRestore?.scrollY ?? null}
           onBeforeNavigate={persistScrollRestore}
