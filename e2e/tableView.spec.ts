@@ -44,4 +44,21 @@ test.describe('Table view on Search page', () => {
       );
     }
   });
+
+  test('reload keeps Table view after choosing it on desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/otcp/search');
+    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+
+    await page.getByRole('button', { name: 'Table view' }).click();
+    await expect(page.getByRole('table')).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('button', { name: 'Table view' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.getByRole('table')).toBeVisible();
+  });
 });
