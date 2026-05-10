@@ -5,6 +5,7 @@ import { buildSearchIndex } from '../search/index.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { buildFilterEngine, emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
+import { CATALOG_GRID_CLASS } from './catalogGridLayout.ts';
 import {
   gridHasMore,
   initialGridVisibleCount,
@@ -230,7 +231,7 @@ function CardCatalogGrid({
 
   return (
     <>
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <ul className={CATALOG_GRID_CLASS}>
         {renderedCards.map((card) => (
           <CardTile
             key={card.id}
