@@ -17,10 +17,14 @@ import {
   SEARCH_SCROLL_STATE_KEY,
   withoutSearchScrollRestore,
 } from './searchScrollRestore.ts';
+import { BanThumbMarker } from './BanThumbMarker.tsx';
+import { CardListRow } from './CardListRow.tsx';
+import { type CatalogViewMode, effectiveCatalogViewMode } from './catalogViewMode.ts';
+import { resolveCardBanForFormat } from './formatBanContext.ts';
 import { formatCardCount } from './formatCardCount.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
 
-function CardArt({ card }: { card: YugiohCard }) {
+function CardArt({ card, formatParam }: { card: YugiohCard; formatParam?: string | null }) {
   const [missing, setMissing] = useState(false);
 
   if (missing) {
@@ -32,25 +36,32 @@ function CardArt({ card }: { card: YugiohCard }) {
     );
   }
 
+  const banStatus = resolveCardBanForFormat(card, formatParam);
+
   return (
-    <img
-      src={card.images.small}
-      alt={card.name}
-      loading="lazy"
-      decoding="async"
-      onError={() => setMissing(true)}
-      className="aspect-[59/86] w-full object-cover"
-    />
+    <div className="relative w-full overflow-hidden">
+      <img
+        src={card.images.small}
+        alt={card.name}
+        loading="lazy"
+        decoding="async"
+        onError={() => setMissing(true)}
+        className="aspect-[59/86] w-full object-cover"
+      />
+      {banStatus ? <BanThumbMarker status={banStatus} /> : null}
+    </div>
   );
 }
 
 function CardTile({
   card,
   searchQuery,
+  formatParam,
   onBeforeNavigate,
 }: {
   card: YugiohCard;
   searchQuery: string;
+  formatParam?: string | null;
   onBeforeNavigate: () => void;
 }) {
   const detailPath =
@@ -67,7 +78,7 @@ function CardTile({
         aria-label={card.name}
         className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
       >
-        <CardArt card={card} />
+        <CardArt card={card} formatParam={formatParam} />
       </Link>
     </li>
   );
@@ -91,10 +102,11 @@ function CatalogMessage({
   );
 }
 
-function CardCatalogGrid({
+function CardCatalogList({
   visibleCards,
   matchCount,
   searchQuery,
+  formatParam,
   initialVisibleCount,
   restoreScrollY,
   onBeforeNavigate,
@@ -102,6 +114,80 @@ function CardCatalogGrid({
   visibleCards: YugiohCard[];
   matchCount: number;
   searchQuery: string;
+  formatParam?: string | null;
+  initialVisibleCount?: number;
+  restoreScrollY?: number | null;
+  onBeforeNavigate: (loadedCount: number) => void;
+}) {
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [visibleCount, setVisibleCount] = useState(() => {
+    if (initialVisibleCount !== undefined) {
+      return Math.min(Math.max(0, initialVisibleCount), matchCount);
+    }
+    return initialGridVisibleCount(matchCount);
+  });
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node || !gridHasMore(visibleCount, matchCount)) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisibleCount((current) => nextGridVisibleCount(current, matchCount));
+        }
+      },
+      { rootMargin: '240px 0px' },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [matchCount, visibleCount]);
+
+  useLayoutEffect(() => {
+    if (restoreScrollY == null) return;
+    window.scrollTo(0, restoreScrollY);
+  }, [restoreScrollY, visibleCount]);
+
+  const saveScrollState = () => {
+    onBeforeNavigate(visibleCount);
+  };
+
+  const renderedCards = sliceGridCards(visibleCards, visibleCount);
+
+  return (
+    <>
+      <ul className="flex flex-col gap-2">
+        {renderedCards.map((card) => (
+          <CardListRow
+            key={card.id}
+            card={card}
+            searchQuery={searchQuery}
+            formatParam={formatParam}
+            onBeforeNavigate={saveScrollState}
+          />
+        ))}
+      </ul>
+      {gridHasMore(visibleCount, matchCount) ? (
+        <div ref={loadMoreRef} className="h-8" aria-hidden />
+      ) : null}
+    </>
+  );
+}
+
+function CardCatalogGrid({
+  visibleCards,
+  matchCount,
+  searchQuery,
+  formatParam,
+  initialVisibleCount,
+  restoreScrollY,
+  onBeforeNavigate,
+}: {
+  visibleCards: YugiohCard[];
+  matchCount: number;
+  searchQuery: string;
+  formatParam?: string | null;
   initialVisibleCount?: number;
   restoreScrollY?: number | null;
   onBeforeNavigate: (loadedCount: number) => void;
@@ -150,6 +236,7 @@ function CardCatalogGrid({
             key={card.id}
             card={card}
             searchQuery={searchQuery}
+            formatParam={formatParam}
             onBeforeNavigate={saveScrollState}
           />
         ))}
@@ -166,11 +253,15 @@ export function CardCatalogView({
   searchQuery = '',
   filterState = emptyFilterState(),
   showResultCount = true,
+  viewMode = 'grid',
+  formatParam = null,
 }: {
   headingId?: string;
   searchQuery?: string;
   filterState?: FilterState;
   showResultCount?: boolean;
+  viewMode?: CatalogViewMode;
+  formatParam?: string | null;
 }) {
   const { state, retry } = useCardCatalog();
   const trimmedQuery = searchQuery.trim();
@@ -300,12 +391,24 @@ export function CardCatalogView({
         <CatalogMessage title="No matching cards">
           No cards match the current filters. Try removing a filter or choose Clear all.
         </CatalogMessage>
-      ) : (
-        <CardCatalogGrid
-          key={`${trimmedQuery}:${filtersKey}:${matchCount}`}
+      ) : effectiveCatalogViewMode(viewMode) === 'list' ? (
+        <CardCatalogList
+          key={`list:${trimmedQuery}:${filtersKey}:${matchCount}`}
           visibleCards={visibleCards}
           matchCount={matchCount}
           searchQuery={trimmedQuery}
+          formatParam={formatParam}
+          initialVisibleCount={scrollRestore?.loadedCount}
+          restoreScrollY={scrollRestore?.scrollY ?? null}
+          onBeforeNavigate={persistScrollRestore}
+        />
+      ) : (
+        <CardCatalogGrid
+          key={`grid:${trimmedQuery}:${filtersKey}:${matchCount}`}
+          visibleCards={visibleCards}
+          matchCount={matchCount}
+          searchQuery={trimmedQuery}
+          formatParam={formatParam}
           initialVisibleCount={scrollRestore?.loadedCount}
           restoreScrollY={scrollRestore?.scrollY ?? null}
           onBeforeNavigate={persistScrollRestore}

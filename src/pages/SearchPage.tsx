@@ -2,6 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 import { CardCatalogView } from '../catalog/CardCatalogView';
+import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
+import {
+  CATALOG_VIEW_QUERY_KEY,
+  parseCatalogViewMode,
+  type CatalogViewMode,
+} from '../catalog/catalogViewMode.ts';
+import { FORMAT_QUERY_KEY } from '../catalog/formatBanContext.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
 import {
@@ -35,6 +42,11 @@ export function SearchPage() {
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const filterState = useMemo(() => readFilterStateFromParams(searchParams), [searchParams]);
+  const viewMode = useMemo(
+    () => parseCatalogViewMode(searchParams.get(CATALOG_VIEW_QUERY_KEY)),
+    [searchParams],
+  );
+  const formatParam = searchParams.get(FORMAT_QUERY_KEY);
   const filterStateRef = useRef(filterState);
   useEffect(() => {
     filterStateRef.current = filterState;
@@ -104,6 +116,23 @@ export function SearchPage() {
       filterStateRef.current = resolved;
       const params = new URLSearchParams(searchParams);
       writeFilterStateToParams(params, resolved);
+      const search = params.toString();
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : '' },
+        { replace: true, state: withoutSearchScrollRestore(location.state) },
+      );
+    },
+    [location.pathname, location.state, navigate, searchParams],
+  );
+
+  const setViewMode = useCallback(
+    (mode: CatalogViewMode) => {
+      const params = new URLSearchParams(searchParams);
+      if (mode === 'grid') {
+        params.delete(CATALOG_VIEW_QUERY_KEY);
+      } else {
+        params.set(CATALOG_VIEW_QUERY_KEY, mode);
+      }
       const search = params.toString();
       navigate(
         { pathname: location.pathname, search: search ? `?${search}` : '' },
@@ -190,18 +219,13 @@ export function SearchPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            {chips.length > 0 ? (
-              <>
-                <p className="text-sm text-text-2" aria-live="polite">
-                  {formatCardCount(matchCount)}
-                </p>
-                <FilterChips chips={chips} onChange={commitFilterState} />
-              </>
-            ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-text-2" aria-live="polite">
                 {formatCardCount(matchCount)}
               </p>
-            )}
+              <CatalogViewToggle value={viewMode} onChange={setViewMode} />
+            </div>
+            {chips.length > 0 ? <FilterChips chips={chips} onChange={commitFilterState} /> : null}
           </div>
 
           <CardCatalogView
@@ -209,6 +233,8 @@ export function SearchPage() {
             searchQuery={debouncedQuery}
             filterState={filterState}
             showResultCount={false}
+            viewMode={viewMode}
+            formatParam={formatParam}
           />
         </div>
       </div>
