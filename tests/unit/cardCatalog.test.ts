@@ -139,4 +139,29 @@ describe('getCardCatalog session cache', () => {
 
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
+
+  it('validates the dataset envelope only once per cached load', async () => {
+    const validateSpy = vi.spyOn(
+      await import('../../src/shared/schema/validate.ts'),
+      'validateDatasetEnvelope',
+    );
+    const fetchImpl = mockFetch({
+      'data/current.json': () =>
+        jsonResponse({
+          schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+          datasetFile: 'data/datasets/sample-dev.json',
+          sha256: 'abc',
+          publishedAt: '2026-10-28T12:00:00.000Z',
+          cardCount: 1,
+        }),
+      'data/datasets/sample-dev.json': () => jsonResponse(validDataset),
+    });
+    vi.stubGlobal('fetch', fetchImpl);
+
+    await getCardCatalog();
+    await getCardCatalog();
+
+    expect(validateSpy).toHaveBeenCalledTimes(1);
+    validateSpy.mockRestore();
+  });
 });

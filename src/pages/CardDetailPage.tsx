@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import { cardDetailImageFallback, cardDetailImageSrc } from '../catalog/cardArtUrl.ts';
+import { getCatalogDerived } from '../catalog/catalogDerived.ts';
 import { CardImageZoomViewer } from '../components/CardImageZoomViewer.tsx';
 import { PriceView } from '../components/PriceView.tsx';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
@@ -115,7 +116,7 @@ export function CardDetailPage() {
     );
   }
 
-  const card = state.cards.find((entry) => entry.id === cardId);
+  const card = getCatalogDerived(state.cards).cardById.get(cardId);
   if (!card) {
     return (
       <div className="flex flex-col gap-4">
