@@ -28,9 +28,14 @@ const LINK_ARROW_VALUES = [
   'Bottom-Right',
 ] as const;
 
-const FACET_OPTIONS_INITIAL = 10;
-const FACET_OPTIONS_PAGE = 20;
-const FACET_OPTIONS_MAX = 50;
+import {
+  FACET_OPTION_LIST_SCROLL_CAP_PX,
+  facetOptionListShowsSearch,
+  facetOptionListUsesInnerScroll,
+  facetOptionShowMoreLess,
+  facetOptionVisibleCount,
+  isLongFacetOptionList,
+} from './facetOptionListLayout.ts';
 
 function selectionForField(state: FilterState, fieldId: FacetFieldId) {
   return state.facets[fieldId];
@@ -512,8 +517,9 @@ function OptionList({
   onCycle: (value: string) => void;
 }) {
   const [query, setQuery] = useState('');
-  const [visibleLimit, setVisibleLimit] = useState(FACET_OPTIONS_INITIAL);
-  const needsPaging = options.length > FACET_OPTIONS_INITIAL;
+  const [listExpanded, setListExpanded] = useState(false);
+  const isLongGroup = isLongFacetOptionList(definition.id, options.length);
+  const showSearch = facetOptionListShowsSearch(isLongGroup);
   const facetLabel = facetDisplayLabel(definition);
   const searchPlaceholder = definition.id === 'set' ? 'Search within…' : `Search ${facetLabel}…`;
 
@@ -533,16 +539,14 @@ function OptionList({
     });
   }, [query, sortedOptions]);
 
-  const displayCap = Math.min(filtered.length, FACET_OPTIONS_MAX);
-  const visibleCount = needsPaging ? Math.min(visibleLimit, displayCap) : filtered.length;
+  const visibleCount = facetOptionVisibleCount(filtered.length, listExpanded);
   const visible = filtered.slice(0, visibleCount);
-  const canShowMore = needsPaging && visibleCount < displayCap;
-
-  const listScrollable = needsPaging || visible.length > FACET_OPTIONS_INITIAL;
+  const showMoreLess = facetOptionShowMoreLess(filtered.length, listExpanded);
+  const listScrollable = facetOptionListUsesInnerScroll(isLongGroup, listExpanded);
 
   return (
     <div className="flex flex-col gap-2">
-      {needsPaging ? (
+      {showSearch ? (
         <>
           <label className="sr-only" htmlFor={`facet-search-${definition.id}`}>
             Search {facetLabel}
@@ -553,14 +557,18 @@ function OptionList({
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
-              setVisibleLimit(FACET_OPTIONS_INITIAL);
+              setListExpanded(false);
             }}
             placeholder={searchPlaceholder}
             className="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
           />
         </>
       ) : null}
-      <div className={listScrollable ? 'max-h-[320px] overflow-y-auto pr-1' : undefined}>
+      <div
+        data-facet-options={definition.id}
+        className={listScrollable ? 'overflow-y-auto pr-1' : undefined}
+        style={listScrollable ? { maxHeight: `${FACET_OPTION_LIST_SCROLL_CAP_PX}px` } : undefined}
+      >
         <ul className="flex flex-col gap-0.5">
           {visible.map((opt) => (
             <li key={opt.value}>
@@ -576,17 +584,22 @@ function OptionList({
           ))}
         </ul>
       </div>
-      {canShowMore ? (
+      {showMoreLess === 'more' ? (
         <button
           type="button"
-          onClick={() =>
-            setVisibleLimit((current) =>
-              Math.min(current + FACET_OPTIONS_PAGE, FACET_OPTIONS_MAX, filtered.length),
-            )
-          }
+          onClick={() => setListExpanded(true)}
           className="text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
         >
           Show more
+        </button>
+      ) : null}
+      {showMoreLess === 'less' ? (
+        <button
+          type="button"
+          onClick={() => setListExpanded(false)}
+          className="text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
+        >
+          Show less
         </button>
       ) : null}
     </div>

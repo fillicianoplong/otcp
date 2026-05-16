@@ -46,7 +46,7 @@ export function CatalogViewToggle({
     <div
       role="group"
       aria-label="Result view"
-      className="inline-flex overflow-hidden rounded-md shadow-sm"
+      className="inline-flex overflow-hidden rounded-md border border-border"
     >
       <button
         type="button"
