@@ -24,6 +24,8 @@ export type YgoApiCard = {
   id: number;
   name: string;
   desc?: string;
+  pend_desc?: string;
+  monster_desc?: string;
   type?: string;
   race?: string;
   attribute?: string;

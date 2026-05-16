@@ -4,6 +4,8 @@
   "name": "Odd-Eyes Pendulum Dragon",
   "type": "Pendulum Effect Monster",
   "text": "Pendulum Effect: You can reduce the battle damage you take from an attack involving a Pendulum Monster you control to 0.\nMonster Effect: If this card battles an opponent's monster, any battle damage this card inflicts to your opponent is doubled unless this card battled a Pendulum Monster.",
+  "pendDesc": "You can reduce the battle damage you take from an attack involving a Pendulum Monster you control to 0.",
+  "monsterDesc": "If this card battles an opponent's monster, any battle damage this card inflicts to your opponent is doubled unless this card battled a Pendulum Monster.",
   "images": {
     "small": "/otcp/card-images/small/16178681.jpg",
     "large": "/otcp/card-images/16178681.jpg"
