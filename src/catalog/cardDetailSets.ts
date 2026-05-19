@@ -43,8 +43,50 @@ export function cardDetailSetsShowCollapseButton(totalCount: number, expanded: b
   return totalCount > CARD_DETAIL_SETS_INITIAL_VISIBLE && expanded;
 }
 
-export function cardDetailSetRowSubtitle(setCode: string, setRarity: string): string {
-  return `${setCode} · ${setRarity}`;
+const setReleaseDateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+function tcgDateForSetName(setName: string, setIndex: SetIndex | null | undefined): string | null {
+  const raw = setIndex?.[setName]?.tcgDate?.trim();
+  if (!raw) {
+    return null;
+  }
+  const time = Date.parse(raw);
+  if (!Number.isFinite(time)) {
+    return null;
+  }
+  return raw;
+}
+
+export function formatCardDetailSetReleaseDate(tcgDate: string): string | null {
+  const time = Date.parse(tcgDate.trim());
+  if (!Number.isFinite(time)) {
+    return null;
+  }
+  return setReleaseDateFormatter.format(new Date(time));
+}
+
+export function cardDetailSetRowSubtitle(
+  setCode: string,
+  setRarity: string,
+  setName?: string,
+  setIndex?: SetIndex | null,
+): string {
+  const parts = [`${setCode} · ${setRarity}`];
+  if (setName != null) {
+    const tcgDate = tcgDateForSetName(setName, setIndex);
+    if (tcgDate != null) {
+      const formatted = formatCardDetailSetReleaseDate(tcgDate);
+      if (formatted != null) {
+        parts.push(formatted);
+      }
+    }
+  }
+  return parts.join(' · ');
 }
 
 export function buildCardDetailSetSearchHref(setName: string): string {

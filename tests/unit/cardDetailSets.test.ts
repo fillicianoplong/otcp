@@ -41,6 +41,37 @@ describe('cardDetailSets printing helpers', () => {
     expect(cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare')).toBe('PHNI-EN001 · Ultra Rare');
   });
 
+  it('appends a formatted TCG release date when setIndex has tcgDate', () => {
+    const setIndex = {
+      'Phantom Nightmare': { tcgDate: '2024-02-09' },
+    };
+    expect(
+      cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare', 'Phantom Nightmare', setIndex),
+    ).toBe('PHNI-EN001 · Ultra Rare · Feb 9, 2024');
+  });
+
+  it('omits the release date when setIndex has no tcgDate for that set', () => {
+    const setIndex = {
+      'Other Set': { tcgDate: '2024-02-09' },
+    };
+    expect(
+      cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare', 'Phantom Nightmare', setIndex),
+    ).toBe('PHNI-EN001 · Ultra Rare');
+  });
+
+  it('omits the release date when tcgDate is missing or not parseable', () => {
+    expect(
+      cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare', 'Phantom Nightmare', {
+        'Phantom Nightmare': {},
+      }),
+    ).toBe('PHNI-EN001 · Ultra Rare');
+    expect(
+      cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare', 'Phantom Nightmare', {
+        'Phantom Nightmare': { tcgDate: 'not-a-date' },
+      }),
+    ).toBe('PHNI-EN001 · Ultra Rare');
+  });
+
   it('builds search URLs with the set facet include filter', () => {
     const href = buildCardDetailSetSearchHref('Phantom Nightmare');
     expect(href.startsWith('/search?')).toBe(true);

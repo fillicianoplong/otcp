@@ -217,7 +217,12 @@ function CardDetailSets({ card, setIndex }: { card: YugiohCard; setIndex?: SetIn
                 <span className="min-w-0">
                   <span className="block font-medium text-heading">{entry.setName}</span>
                   <span className="block text-xs text-text-2">
-                    {cardDetailSetRowSubtitle(entry.setCode, entry.setRarity)}
+                    {cardDetailSetRowSubtitle(
+                      entry.setCode,
+                      entry.setRarity,
+                      entry.setName,
+                      setIndex,
+                    )}
                   </span>
                 </span>
                 <span aria-hidden="true" className="shrink-0 text-xs leading-none text-text-2">
