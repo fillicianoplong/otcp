@@ -33,6 +33,10 @@ function TableIcon() {
 const toggleButtonClass =
   'min-h-9 min-w-9 items-center justify-center border border-border bg-surface text-text-2 hover:border-border-strong hover:text-heading focus-visible:z-[1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
 
+/** Selected segment stacks above neighbors so overlapping borders stay visible. */
+export const catalogViewToggleSelectedClass =
+  'relative z-[1] border-border-strong bg-surface-2 text-heading';
+
 export function CatalogViewToggle({
   value,
   onChange,
@@ -48,7 +52,7 @@ export function CatalogViewToggle({
     >
       <button
         type="button"
-        className={`${toggleButtonClass} inline-flex rounded-l-md ${value === 'grid' ? 'border-border-strong bg-surface-2 text-heading' : ''}`}
+        className={`${toggleButtonClass} inline-flex rounded-l-md ${value === 'grid' ? catalogViewToggleSelectedClass : ''}`}
         aria-pressed={value === 'grid'}
         aria-label="Grid view"
         onClick={() => onChange('grid')}
@@ -57,7 +61,7 @@ export function CatalogViewToggle({
       </button>
       <button
         type="button"
-        className={`${toggleButtonClass} inline-flex -ml-px max-md:rounded-r-md md:hidden ${value === 'list' ? 'border-border-strong bg-surface-2 text-heading' : ''}`}
+        className={`${toggleButtonClass} inline-flex -ml-px max-md:rounded-r-md md:hidden ${value === 'list' ? catalogViewToggleSelectedClass : ''}`}
         aria-pressed={value === 'list'}
         aria-label="List view"
         onClick={() => onChange('list')}
@@ -66,7 +70,7 @@ export function CatalogViewToggle({
       </button>
       <button
         type="button"
-        className={`${toggleButtonClass} -ml-px hidden md:inline-flex md:rounded-r-md ${value === 'table' ? 'border-border-strong bg-surface-2 text-heading' : ''}`}
+        className={`${toggleButtonClass} -ml-px hidden md:inline-flex md:rounded-r-md ${value === 'table' ? catalogViewToggleSelectedClass : ''}`}
         aria-pressed={value === 'table'}
         aria-label="Table view"
         onClick={() => onChange('table')}
