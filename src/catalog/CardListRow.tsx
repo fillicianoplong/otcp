@@ -8,11 +8,14 @@ import {
   isFormatBanContextActive,
   resolveCardBanForFormat,
 } from './formatBanContext.ts';
+import { resolveYgoBanStatusIconPath } from './cardIcons.ts';
 import {
   buildListRowLevelLine,
   buildListRowStatsLine,
   buildListRowTypeLine,
 } from './listRowModel.ts';
+import { ListRowCompactIcons } from './ListRowCompactIcons.tsx';
+import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
 
 function ListRowNoImageThumb({ compact }: { compact?: boolean }) {
   return (
@@ -38,7 +41,7 @@ function ListRowThumbnail({
   const banStatus = resolveCardBanForFormat(card, formatParam);
 
   return (
-    <div className="relative w-9 shrink-0 overflow-hidden rounded-sm bg-surface-2 sm:w-9">
+    <div className="relative w-9 shrink-0 overflow-hidden rounded-sm bg-surface-2 md:w-9">
       {missing ? (
         <ListRowNoImageThumb compact />
       ) : (
@@ -52,7 +55,7 @@ function ListRowThumbnail({
         />
       )}
       {formatActive && banStatus ? (
-        <BanThumbMarker status={banStatus} className="sm:hidden" />
+        <BanThumbMarker status={banStatus} className="md:hidden" />
       ) : null}
     </div>
   );
@@ -67,7 +70,7 @@ function ListRowBanCell({
 }) {
   if (!isFormatBanContextActive(formatParam)) {
     return (
-      <span className="hidden text-xs text-text-2 sm:block" aria-hidden>
+      <span className="max-md:hidden text-xs text-text-2" aria-hidden>
         —
       </span>
     );
@@ -76,35 +79,22 @@ function ListRowBanCell({
   const status = resolveCardBanForFormat(card, formatParam);
   if (!status) {
     return (
-      <span className="hidden text-xs text-text-2 sm:block" aria-hidden>
+      <span className="max-md:hidden text-xs text-text-2" aria-hidden>
         —
       </span>
     );
   }
 
-  const { glyph, label, colorClass } = banMarkerForStatus(status);
+  const { label } = banMarkerForStatus(status);
   return (
-    <span
-      className={`hidden text-base font-bold leading-none sm:block ${colorClass}`}
-      title={label}
-      aria-label={label}
-    >
-      {glyph}
+    <span className="max-md:hidden" title={label}>
+      <YgoCardIcon
+        src={resolveYgoBanStatusIconPath(status, 'row')}
+        label={label}
+        tier="row"
+        iconOnly
+      />
     </span>
-  );
-}
-
-function ListRowMobileMeta({ card }: { card: YugiohCard }) {
-  const typeLine = buildListRowTypeLine(card);
-  const levelLine = buildListRowLevelLine(card);
-  const statsLine = buildListRowStatsLine(card);
-
-  return (
-    <div className="mt-0.5 space-y-0.5 text-xs leading-snug text-text-2 sm:hidden">
-      <p>{typeLine}</p>
-      {levelLine ? <p>{levelLine}</p> : null}
-      {statsLine ? <p>{statsLine}</p> : null}
-    </div>
   );
 }
 
@@ -134,20 +124,20 @@ export function CardListRow({
         to={detailPath}
         state={{ fromSearch: true }}
         onClick={onBeforeNavigate}
-        className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3 rounded-md border border-border bg-surface px-2 py-2 transition-colors hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong sm:grid-cols-[2.25rem_minmax(10rem,1.6fr)_minmax(9rem,1.2fr)_5.75rem_minmax(8.5rem,1fr)_2.25rem] sm:items-center"
+        className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3 rounded-md border border-border bg-surface px-2 py-2 transition-colors hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong md:grid-cols-[2.25rem_minmax(10rem,1.6fr)_minmax(9rem,1.2fr)_5.75rem_minmax(8.5rem,1fr)_2.25rem] md:items-center"
       >
         <ListRowThumbnail card={card} formatParam={formatParam} />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-heading">{card.name}</p>
-          <ListRowMobileMeta card={card} />
+          <ListRowCompactIcons card={card} />
         </div>
-        <span className="hidden min-w-0 truncate text-left text-xs text-text-2 sm:block">
+        <span className="max-md:hidden min-w-0 truncate text-left text-xs text-text-2">
           {typeLine}
         </span>
-        <span className="hidden text-left text-xs tabular-nums text-text-2 sm:block">
+        <span className="max-md:hidden text-left text-xs tabular-nums text-text-2">
           {levelLine ?? '—'}
         </span>
-        <span className="hidden text-left text-xs tabular-nums text-text-2 sm:block">
+        <span className="max-md:hidden text-left text-xs tabular-nums text-text-2">
           {statsLine ?? '—'}
         </span>
         <ListRowBanCell card={card} formatParam={formatParam} />

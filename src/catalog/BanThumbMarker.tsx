@@ -1,4 +1,6 @@
 import { banMarkerForStatus, type BanDisplayStatus } from './formatBanContext.ts';
+import { resolveYgoBanStatusIconPath } from './cardIcons.ts';
+import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
 
 export function BanThumbMarker({
   status,
@@ -7,15 +9,20 @@ export function BanThumbMarker({
   status: BanDisplayStatus;
   className?: string;
 }) {
-  const { glyph, label, colorClass } = banMarkerForStatus(status);
+  const { label } = banMarkerForStatus(status);
   return (
     <span
-      className={`pointer-events-none absolute left-0.5 top-0.5 z-[1] text-base font-bold leading-none drop-shadow-[0_0_2px_rgba(0,0,0,0.45)] ${colorClass} ${className}`.trim()}
+      className={`pointer-events-none absolute left-0.5 top-0.5 z-[1] drop-shadow-[0_0_2px_rgba(0,0,0,0.45)] ${className}`.trim()}
       title={label}
       aria-hidden
     >
       <span className="sr-only">{label}</span>
-      {glyph}
+      <YgoCardIcon
+        src={resolveYgoBanStatusIconPath(status, 'row')}
+        label={label}
+        tier="row"
+        iconOnly
+      />
     </span>
   );
 }

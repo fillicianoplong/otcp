@@ -2,6 +2,9 @@ import { readLocalStorageString, writeLocalStorageString } from '../shared/safeL
 
 export const CATALOG_VIEW_QUERY_KEY = 'view';
 
+/** Viewport width (px) at which Table is offered and List is mapped to Table. Matches Tailwind `md`. */
+export const CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX = 768;
+
 /** Per-page keys so Lists and Collection can add their own later. */
 export const CATALOG_VIEW_STORAGE_KEY_SEARCH = 'otcp:view:search';
 
@@ -17,12 +20,17 @@ export function isCatalogViewMode(value: string): value is CatalogViewMode {
   return value === 'grid' || value === 'list' || value === 'table';
 }
 
-/** When Table is unavailable (narrow viewport), fall back to List. */
+/** Maps stored preference to the view rendered at the current viewport without mutating storage. */
 export function effectiveCatalogViewMode(
   mode: CatalogViewMode,
   options?: { tableAvailable?: boolean },
 ): CatalogViewMode {
-  if (mode === 'table' && options?.tableAvailable === false) return 'list';
+  const tableAvailable = options?.tableAvailable !== false;
+  if (!tableAvailable) {
+    if (mode === 'table') return 'list';
+    return mode;
+  }
+  if (mode === 'list') return 'table';
   return mode;
 }
 

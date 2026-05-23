@@ -1,4 +1,4 @@
-/** Swappable row chip: readable text now; issue #32 can render icon assets by iconKey. */
+/** @deprecated Prefer YgoCardIcon with paths from cardIcons.ts */
 export function YgoListIcon({
   iconKey,
   label,

@@ -64,6 +64,20 @@ test.describe('Card detail prices', () => {
     expect(headingBox).toBeTruthy();
     expect(artBox!.y + artBox!.height).toBeLessThanOrEqual(headingBox!.y + 2);
     await expect(page.getByText('Attribute', { exact: true })).toBeVisible();
+    const attributeValue = page.locator('dd').filter({ hasText: 'DARK' });
+    await expect(attributeValue.locator('img[src*="attr-dark"]')).toBeVisible();
+  });
+
+  test('detail chips show the monster type icon beside the race value', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/otcp/search/card/46986420');
+    await expect(page.getByRole('heading', { name: 'Dark Magician', level: 1 })).toBeVisible({
+      timeout: 15_000,
+    });
+    const typeChip = page.locator('div').filter({
+      has: page.getByText('Type', { exact: true }),
+    });
+    await expect(typeChip.locator('img[src*="race-spellcaster"]')).toBeVisible();
   });
 
   test('uses a two-column layout on desktop viewport', async ({ page }) => {
