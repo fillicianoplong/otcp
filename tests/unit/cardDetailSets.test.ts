@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildCardDetailSetSearchHref,
-  cardDetailSetRowSubtitle,
+  cardDetailSetRowCodeRarity,
+  cardDetailSetRowReleaseDate,
   CARD_DETAIL_SETS_INITIAL_VISIBLE,
   cardDetailSetsExpandButtonLabel,
   cardDetailSetsHeadingCount,
@@ -37,39 +38,35 @@ describe('cardDetailSets collapse UI', () => {
 });
 
 describe('cardDetailSets printing helpers', () => {
-  it('formats set row subtitles as code and rarity', () => {
-    expect(cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare')).toBe('PHNI-EN001 · Ultra Rare');
+  it('formats set row code and rarity on the second line', () => {
+    expect(cardDetailSetRowCodeRarity('PHNI-EN001', 'Ultra Rare')).toBe('PHNI-EN001 · Ultra Rare');
   });
 
-  it('appends a formatted TCG release date when setIndex has tcgDate', () => {
+  it('formats a TCG release date for the first line when setIndex has tcgDate', () => {
     const setIndex = {
       'Phantom Nightmare': { tcgDate: '2024-02-09' },
     };
-    expect(
-      cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare', 'Phantom Nightmare', setIndex),
-    ).toBe('PHNI-EN001 · Ultra Rare · Feb 9, 2024');
+    expect(cardDetailSetRowReleaseDate('Phantom Nightmare', setIndex)).toBe('Feb 9, 2024');
   });
 
   it('omits the release date when setIndex has no tcgDate for that set', () => {
     const setIndex = {
       'Other Set': { tcgDate: '2024-02-09' },
     };
-    expect(
-      cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare', 'Phantom Nightmare', setIndex),
-    ).toBe('PHNI-EN001 · Ultra Rare');
+    expect(cardDetailSetRowReleaseDate('Phantom Nightmare', setIndex)).toBeNull();
   });
 
   it('omits the release date when tcgDate is missing or not parseable', () => {
     expect(
-      cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare', 'Phantom Nightmare', {
+      cardDetailSetRowReleaseDate('Phantom Nightmare', {
         'Phantom Nightmare': {},
       }),
-    ).toBe('PHNI-EN001 · Ultra Rare');
+    ).toBeNull();
     expect(
-      cardDetailSetRowSubtitle('PHNI-EN001', 'Ultra Rare', 'Phantom Nightmare', {
+      cardDetailSetRowReleaseDate('Phantom Nightmare', {
         'Phantom Nightmare': { tcgDate: 'not-a-date' },
       }),
-    ).toBe('PHNI-EN001 · Ultra Rare');
+    ).toBeNull();
   });
 
   it('builds search URLs with the set facet include filter', () => {

@@ -1,7 +1,6 @@
 import type { FacetFieldId } from './facets.ts';
 import {
   emptyFilterState,
-  type FacetMatchMode,
   type FacetNumericRange,
   type FacetValueSelection,
   type FilterState,
@@ -14,7 +13,6 @@ function cloneState(state: FilterState): FilterState {
     facets[key as FacetFieldId] = {
       include: selection.include ? [...selection.include] : undefined,
       exclude: selection.exclude ? [...selection.exclude] : undefined,
-      mode: selection.mode,
       range: selection.range ? { ...selection.range } : undefined,
     };
   }
@@ -27,7 +25,6 @@ function ensureSelection(state: FilterState, fieldId: FacetFieldId): FacetValueS
     return {
       include: existing.include ? [...existing.include] : undefined,
       exclude: existing.exclude ? [...existing.exclude] : undefined,
-      mode: existing.mode,
       range: existing.range ? { ...existing.range } : undefined,
     };
   }
@@ -42,9 +39,8 @@ function commitSelection(
   const next = cloneState(state);
   const hasInclude = (selection.include?.length ?? 0) > 0;
   const hasExclude = (selection.exclude?.length ?? 0) > 0;
-  const hasMode = selection.mode === 'and';
   const hasRange = selection.range?.min != null || selection.range?.max != null;
-  if (!hasInclude && !hasExclude && !hasMode && !hasRange) {
+  if (!hasInclude && !hasExclude && !hasRange) {
     delete next.facets[fieldId];
     return next;
   }
@@ -115,16 +111,6 @@ export function toggleExcludeValue(
   return commitSelection(state, fieldId, selection);
 }
 
-export function setFacetMatchMode(
-  state: FilterState,
-  fieldId: FacetFieldId,
-  mode: FacetMatchMode,
-): FilterState {
-  const selection = ensureSelection(state, fieldId);
-  selection.mode = mode === 'or' ? undefined : mode;
-  return commitSelection(state, fieldId, selection);
-}
-
 export function setFacetRange(
   state: FilterState,
   fieldId: FacetFieldId,
@@ -156,7 +142,6 @@ export function removeFilterChip(
     return commitSelection(state, chip.fieldId, selection);
   }
   if (chip.kind === 'mode') {
-    selection.mode = undefined;
     return commitSelection(state, chip.fieldId, selection);
   }
   if (chip.kind === 'include' && chip.value) {

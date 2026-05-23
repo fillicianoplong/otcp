@@ -69,7 +69,21 @@ describe('FilterEngine', () => {
     expect(result.count).toBeGreaterThanOrEqual(2);
   });
 
-  it('ANDs multiple included monster frame tokens', () => {
+  it('ORs multiple included monster frame tokens', () => {
+    const engine = new FilterEngine([
+      card({ ...sampleCards[0], id: 1, name: 'Fusion Effect', type: 'Fusion Effect Monster' }),
+      card({ ...sampleCards[0], id: 2, name: 'Effect Only', type: 'Effect Monster' }),
+    ]);
+    const result = engine.apply({
+      version: 1,
+      facets: {
+        monsterFrame: { include: ['Fusion', 'Effect'] },
+      },
+    });
+    expect(result.ids.sort((a, b) => a - b)).toEqual([1, 2]);
+  });
+
+  it('ignores legacy AND mode in URLs and applies OR within monster frame', () => {
     const engine = new FilterEngine([
       card({ ...sampleCards[0], id: 1, name: 'Fusion Effect', type: 'Fusion Effect Monster' }),
       card({ ...sampleCards[0], id: 2, name: 'Effect Only', type: 'Effect Monster' }),
@@ -80,7 +94,7 @@ describe('FilterEngine', () => {
         monsterFrame: { include: ['Fusion', 'Effect'], mode: 'and' },
       },
     });
-    expect(result.ids).toEqual([1]);
+    expect(result.ids.sort((a, b) => a - b)).toEqual([1, 2]);
   });
 
   it('supports include Effect and exclude Fusion on monster frames', () => {
@@ -152,7 +166,29 @@ describe('FilterEngine', () => {
     expect(lightCount).toBe(engine.optionCount(baseline, 'attribute', 'LIGHT'));
   });
 
-  it('uses AND-style facet counts that shrink as more values are required', () => {
+  it('keeps sibling monster frame counts when another frame value is selected', () => {
+    const engine = new FilterEngine(sampleCards);
+    const baseline = engine.recount(emptyFilterState());
+    const baselineNormal = engine.optionCount(baseline, 'monsterFrame', 'Normal');
+    const groups = engine.recount({
+      version: 1,
+      facets: { monsterFrame: { include: ['Effect'] } },
+    });
+    expect(engine.optionCount(groups, 'monsterFrame', 'Normal')).toBe(baselineNormal);
+  });
+
+  it('updates counts in other groups when a facet selection is active', () => {
+    const engine = new FilterEngine(sampleCards);
+    const baseline = engine.recount(emptyFilterState());
+    const baselineEffect = engine.optionCount(baseline, 'monsterFrame', 'Effect');
+    const filtered = engine.recount({
+      version: 1,
+      facets: { attribute: { include: ['LIGHT'] } },
+    });
+    expect(engine.optionCount(filtered, 'monsterFrame', 'Effect')).not.toBe(baselineEffect);
+  });
+
+  it('uses disjunctive facet counts within every group including link arrows', () => {
     const cards: YugiohCard[] = [
       card({
         ...sampleCards[0],
@@ -178,15 +214,17 @@ describe('FilterEngine', () => {
       version: 1 as const,
       facets: {
         linkMarker: {
-          include: ['Top', 'Bottom', 'Left', 'Top-Left'],
-          mode: 'and' as const,
+          include: ['Top', 'Bottom'],
         },
       },
     };
-    expect(engine.apply(state).count).toBe(1);
+    expect(engine.apply(state).ids.sort((a, b) => a - b)).toEqual([1, 2, 3]);
     const groups = engine.recount(state);
-    expect(engine.optionCount(groups, 'linkMarker', 'Top-Left')).toBe(1);
     expect(engine.optionCount(groups, 'linkMarker', 'Right')).toBe(0);
+    const baseline = engine.recount(emptyFilterState());
+    expect(engine.optionCount(groups, 'linkMarker', 'Bottom')).toBe(
+      engine.optionCount(baseline, 'linkMarker', 'Bottom'),
+    );
   });
 
   it('excludes cards without a stat when a custom range is set', () => {

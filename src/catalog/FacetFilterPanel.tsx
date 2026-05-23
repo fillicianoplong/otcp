@@ -15,7 +15,7 @@ import type {
   FilterState,
   FilterStateUpdater,
 } from './filterEngine.ts';
-import { cycleFacetValue, setFacetMatchMode, setFacetRange } from './filterSelection.ts';
+import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
 
 const LINK_ARROW_VALUES = [
   'Top',
@@ -52,8 +52,7 @@ function facetHasActiveSelection(definition: FacetDefinition, filterState: Filte
     (selection.include?.length ?? 0) > 0 ||
     (selection.exclude?.length ?? 0) > 0 ||
     selection.range?.min != null ||
-    selection.range?.max != null ||
-    (selection.mode === 'and' && definition.allowAndOr)
+    selection.range?.max != null
   );
 }
 
@@ -310,7 +309,6 @@ function FacetFieldBlock({
   const selection = selectionForField(filterState, definition.id);
   const includeSet = new Set(selection?.include ?? []);
   const excludeSet = new Set(selection?.exclude ?? []);
-  const mode = selection?.mode ?? 'or';
 
   if (definition.control === 'priceRange') {
     return (
@@ -336,12 +334,7 @@ function FacetFieldBlock({
       return <p className="text-sm text-text-2">No values</p>;
     }
     return (
-      <FieldShell
-        definition={definition}
-        mode={mode}
-        onModeChange={onChange}
-        filterState={filterState}
-      >
+      <FieldShell>
         <OptionList
           definition={definition}
           options={options}
@@ -370,7 +363,7 @@ function FacetFieldBlock({
     const yes = options.find((opt) => opt.value === 'yes');
     const no = options.find((opt) => opt.value === 'no');
     return (
-      <FieldShell definition={definition}>
+      <FieldShell>
         <div className="flex flex-col gap-0.5">
           {[yes, no].filter(Boolean).map((opt) => (
             <OptionRow
@@ -433,12 +426,7 @@ function FacetFieldBlock({
   }
 
   return (
-    <FieldShell
-      definition={definition}
-      mode={mode}
-      onModeChange={onChange}
-      filterState={filterState}
-    >
+    <FieldShell>
       {rangeBlock}
       <OptionList
         definition={definition}
@@ -456,49 +444,8 @@ function FacetFieldBlock({
   );
 }
 
-function FieldShell({
-  definition,
-  children,
-  mode,
-  onModeChange,
-  filterState,
-}: {
-  definition: FacetDefinition;
-  children: ReactNode;
-  mode?: 'or' | 'and';
-  onModeChange?: (next: FilterStateUpdater) => void;
-  filterState?: FilterState;
-}) {
-  const showAndOr = definition.allowAndOr && onModeChange && filterState;
-  if (!showAndOr) {
-    return <div>{children}</div>;
-  }
-
-  return (
-    <div>
-      <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
-        <div className="flex rounded-md border border-border text-xs">
-          <button
-            type="button"
-            aria-pressed={mode !== 'and'}
-            onClick={() => onModeChange((state) => setFacetMatchMode(state, definition.id, 'or'))}
-            className={`px-2 py-1 ${mode !== 'and' ? 'bg-surface-2 font-semibold text-heading' : 'text-text-2'}`}
-          >
-            OR
-          </button>
-          <button
-            type="button"
-            aria-pressed={mode === 'and'}
-            onClick={() => onModeChange((state) => setFacetMatchMode(state, definition.id, 'and'))}
-            className={`px-2 py-1 ${mode === 'and' ? 'bg-surface-2 font-semibold text-heading' : 'text-text-2'}`}
-          >
-            AND
-          </button>
-        </div>
-      </div>
-      {children}
-    </div>
-  );
+function FieldShell({ children }: { children: ReactNode }) {
+  return <div>{children}</div>;
 }
 
 function OptionList({

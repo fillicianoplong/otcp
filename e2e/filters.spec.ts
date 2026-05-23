@@ -76,6 +76,28 @@ test.describe('Facet filters on Search page', () => {
     );
   });
 
+  test('updates facet counts in other groups when attribute is filtered', async ({ page }) => {
+    await page.goto('/otcp/search');
+    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+
+    const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
+    const frameHeading = sidebar.getByRole('button', { name: 'Monster card type', exact: true });
+    if ((await frameHeading.getAttribute('aria-expanded')) === 'false') {
+      await frameHeading.click();
+    }
+    const frameSection = frameHeading.locator('xpath=ancestor::section[1]');
+    const effectRow = frameSection.getByRole('checkbox', { name: 'Include Effect', exact: true });
+    const effectCountBefore = await effectRow.locator('span.tabular-nums').innerText();
+
+    const lightCheckbox = sidebar.getByRole('checkbox', { name: 'Include LIGHT', exact: true });
+    await lightCheckbox.click();
+    await expect(page.getByText('5 cards')).toBeVisible();
+
+    const effectCountAfter = await effectRow.locator('span.tabular-nums').innerText();
+    expect(effectCountAfter).not.toBe(effectCountBefore);
+    await expect(frameSection.getByRole('button', { name: 'Match any' })).toHaveCount(0);
+  });
+
   test('short facet groups avoid inner scroll and expand with Show more', async ({ page }) => {
     await page.goto('/otcp/search');
     await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });

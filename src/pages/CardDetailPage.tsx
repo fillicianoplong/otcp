@@ -10,12 +10,14 @@ import {
 import { buildCardDetailDescriptionBlocks } from '../catalog/cardDetailDescriptions.ts';
 import {
   CARD_DETAIL_MARKET_PRICE_ROWS,
+  CARD_DETAIL_MARKET_PRICE_SUBTITLE,
   cardDetailMarketPriceDisplay,
   cardDetailMarketPriceValue,
 } from '../catalog/cardDetailMarketPrices.ts';
 import {
   buildCardDetailSetSearchHref,
-  cardDetailSetRowSubtitle,
+  cardDetailSetRowCodeRarity,
+  cardDetailSetRowReleaseDate,
   cardDetailSetsExpandButtonLabel,
   cardDetailSetsHeadingCount,
   cardDetailSetsShowCollapseButton,
@@ -172,13 +174,13 @@ function CardDetailMarketPrices({
               aria-label={STORE_LINK_LABELS[row.key]}
               className={`${cardDetailLinkedRowClassName}${index > 0 ? ' border-t border-border' : ''}`}
             >
-              <span className="min-w-0">
-                <span className="block font-medium text-heading">{row.label}</span>
-                <span className="block text-xs text-text-2">{row.subtitle}</span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="truncate font-medium text-heading">{row.label}</span>
+                <span className="text-xs text-text-2">{CARD_DETAIL_MARKET_PRICE_SUBTITLE}</span>
               </span>
               <span className="flex shrink-0 items-center gap-1.5">
                 {formatted ? (
-                  <span className="text-base font-semibold tabular-nums text-heading">
+                  <span className="text-sm font-semibold tabular-nums text-heading">
                     {formatted}
                   </span>
                 ) : (
@@ -215,33 +217,36 @@ function CardDetailSets({ card, setIndex }: { card: YugiohCard; setIndex?: SetIn
       </h2>
       <div className="overflow-hidden rounded-md border border-border bg-surface text-sm">
         <ul className="m-0 list-none p-0">
-          {visibleSets.map((entry, index) => (
-            <li
-              key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}
-              className={index > 0 ? 'border-t border-border' : undefined}
-            >
-              <Link
-                to={buildCardDetailSetSearchHref(entry.setName)}
-                className={cardDetailLinkedRowClassName}
-                aria-label={`Search for cards in ${entry.setName}`}
+          {visibleSets.map((entry, index) => {
+            const releaseDate = cardDetailSetRowReleaseDate(entry.setName, setIndex);
+            return (
+              <li
+                key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}
+                className={index > 0 ? 'border-t border-border' : undefined}
               >
-                <span className="min-w-0">
-                  <span className="block font-medium text-heading">{entry.setName}</span>
-                  <span className="block text-xs text-text-2">
-                    {cardDetailSetRowSubtitle(
-                      entry.setCode,
-                      entry.setRarity,
-                      entry.setName,
-                      setIndex,
-                    )}
+                <Link
+                  to={buildCardDetailSetSearchHref(entry.setName)}
+                  className={cardDetailLinkedRowClassName}
+                  aria-label={`Search for cards in ${entry.setName}`}
+                >
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="truncate font-medium text-heading">{entry.setName}</span>
+                    <span className="text-xs text-text-2">
+                      {cardDetailSetRowCodeRarity(entry.setCode, entry.setRarity)}
+                    </span>
                   </span>
-                </span>
-                <span aria-hidden="true" className="shrink-0 text-xs leading-none text-text-2">
-                  ↗
-                </span>
-              </Link>
-            </li>
-          ))}
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    {releaseDate ? (
+                      <span className="text-xs text-text-2 tabular-nums">{releaseDate}</span>
+                    ) : null}
+                    <span aria-hidden="true" className="text-xs leading-none text-text-2">
+                      ↗
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </div>
       {expandLabel && !expanded ? (
