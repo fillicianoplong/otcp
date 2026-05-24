@@ -74,10 +74,24 @@ test.describe('Card detail prices', () => {
     await expect(page.getByRole('heading', { name: 'Dark Magician', level: 1 })).toBeVisible({
       timeout: 15_000,
     });
-    const typeChip = page.locator('div').filter({
-      has: page.getByText('Type', { exact: true }),
-    });
+    const typeChip = page.getByRole('link', { name: 'Search for cards with Type Spellcaster' });
     await expect(typeChip.locator('img[src*="race-spellcaster"]')).toBeVisible();
+  });
+
+  test('archetype chip opens Search with the archetype filter applied', async ({ page }) => {
+    await page.goto('/otcp/search/card/46986420');
+    await expect(page.getByRole('heading', { name: 'Dark Magician', level: 1 })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.getByRole('link', { name: 'Search for cards with Archetype Dark Magician' }).click();
+    await expect(page).toHaveURL(/\/otcp\/search\?.*f=/);
+    await expect(page.getByText('1 card')).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page
+        .getByRole('list', { name: 'Active filters' })
+        .getByRole('button', { name: /Dark Magician/ }),
+    ).toBeVisible();
   });
 
   test('uses a two-column layout on desktop viewport', async ({ page }) => {
