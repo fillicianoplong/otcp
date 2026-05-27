@@ -104,14 +104,81 @@ describe('buildCardDetailChipSearchHref', () => {
     ).toEqual(['Link-4']);
   });
 
-  it('returns null for ATK, DEF, and chips without a facet value', () => {
+  it('maps ATK and DEF chips to exact range search URLs', () => {
     const card = monsterNormal as YugiohCard;
     const chips = buildCardDetailChips(card);
     const atk = chips.find((chip) => chip.label === 'ATK')!;
     const def = chips.find((chip) => chip.label === 'DEF')!;
-    expect(buildCardDetailChipSearchHref(atk, card)).toBeNull();
-    expect(buildCardDetailChipSearchHref(def, card)).toBeNull();
 
+    const atkState = readFilterStateFromParams(
+      new URLSearchParams(buildCardDetailChipSearchHref(atk, card)!.slice('/search?'.length)),
+    );
+    expect(atkState.facets.atk?.range).toEqual({ min: 2500, max: 2500 });
+
+    const defState = readFilterStateFromParams(
+      new URLSearchParams(buildCardDetailChipSearchHref(def, card)!.slice('/search?'.length)),
+    );
+    expect(defState.facets.def?.range).toEqual({ min: 2100, max: 2100 });
+
+    const zeroAtkCard = { ...(monsterNormal as YugiohCard), atk: 0, def: 0 };
+    const zeroAtk = buildCardDetailChips(zeroAtkCard).find((chip) => chip.label === 'ATK')!;
+    expect(
+      readFilterStateFromParams(
+        new URLSearchParams(
+          buildCardDetailChipSearchHref(zeroAtk, zeroAtkCard)!.slice('/search?'.length),
+        ),
+      ).facets.atk?.range,
+    ).toEqual({ min: 0, max: 0 });
+  });
+
+  it('maps ATK and DEF ? chips to the facet ? bucket', () => {
+    const questionAtkCard = { ...(monsterNormal as YugiohCard), atk: -1 };
+    const questionChip = buildCardDetailChips(questionAtkCard).find(
+      (chip) => chip.label === 'ATK',
+    )!;
+    expect(questionChip.value).toBe('?');
+    expect(
+      readFilterStateFromParams(
+        new URLSearchParams(
+          buildCardDetailChipSearchHref(questionChip, questionAtkCard)!.slice('/search?'.length),
+        ),
+      ).facets.atk?.include,
+    ).toEqual(['?']);
+
+    const card = monsterNormal as YugiohCard;
+    const atk = buildCardDetailChips(card).find((chip) => chip.label === 'ATK')!;
+    expect(
+      readFilterStateFromParams(
+        new URLSearchParams(
+          buildCardDetailChipSearchHref({ ...atk, value: '?' }, { ...card, atk: -1 })!.slice(
+            '/search?'.length,
+          ),
+        ),
+      ).facets.atk?.include,
+    ).toEqual(['?']);
+  });
+
+  it('returns null for missing ATK and DEF stats and link monsters without DEF', () => {
+    const card = monsterNormal as YugiohCard;
+    const atk = buildCardDetailChips(card).find((chip) => chip.label === 'ATK')!;
+
+    expect(
+      buildCardDetailChipSearchHref({ ...atk, value: '?' }, { ...card, atk: undefined }),
+    ).toBeNull();
+
+    const linkAtk = buildCardDetailChips(linkMonster as YugiohCard).find(
+      (chip) => chip.label === 'ATK',
+    )!;
+    expect(buildCardDetailChipSearchHref(linkAtk, linkMonster as YugiohCard)).not.toBeNull();
+    expect(
+      buildCardDetailChipSearchHref(
+        { label: catalogTableColumnLabel('def'), value: '—' },
+        linkMonster as YugiohCard,
+      ),
+    ).toBeNull();
+  });
+
+  it('returns null for chips without a facet value', () => {
     const noArchetype = { ...(monsterNormal as YugiohCard), archetype: undefined };
     expect(
       buildCardDetailChipSearchHref(
