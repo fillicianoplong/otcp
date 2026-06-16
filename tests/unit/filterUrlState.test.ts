@@ -63,4 +63,16 @@ describe('filter URL state', () => {
   it('uses an empty signature when no filters are active', () => {
     expect(filterStateSignature(emptyFilterState())).toBe('');
   });
+
+  it('maps legacy level facet tokens to plain numbers and dedupes', () => {
+    const legacy = {
+      version: 1 as const,
+      facets: {
+        level: { include: ['Level-4', 'Rank-4', 'Link-4'] },
+      },
+    };
+    const params = new URLSearchParams();
+    params.set(FILTER_QUERY_KEY, serializeFilterState(legacy));
+    expect(readFilterStateFromParams(params).facets.level?.include).toEqual(['4']);
+  });
 });

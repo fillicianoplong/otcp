@@ -11,11 +11,45 @@ import {
 
 export const FILTER_QUERY_KEY = 'f';
 
+/** Maps legacy Level-N / Rank-N / Link-N facet tokens to plain numbers (issue #157). */
+export function normalizeLegacyLevelFacetValue(value: string): string {
+  const legacy = /^(?:Level|Rank|Link)-(\d+)$/.exec(value);
+  return legacy ? legacy[1]! : value;
+}
+
+function normalizeLevelFacetSelection(
+  selection: NonNullable<FilterState['facets']['level']>,
+): NonNullable<FilterState['facets']['level']> {
+  const mapList = (values: readonly string[] | undefined): string[] | undefined => {
+    if (!values || values.length === 0) return undefined;
+    return [...new Set(values.map(normalizeLegacyLevelFacetValue))];
+  };
+  const include = mapList(selection.include);
+  const exclude = mapList(selection.exclude);
+  return {
+    ...(include?.length ? { include } : {}),
+    ...(exclude?.length ? { exclude } : {}),
+    ...(selection.range ? { range: { ...selection.range } } : {}),
+  };
+}
+
+function normalizeLevelFacetState(state: FilterState): FilterState {
+  const level = state.facets.level;
+  if (!level) return state;
+  return {
+    ...state,
+    facets: {
+      ...state.facets,
+      level: normalizeLevelFacetSelection(level),
+    },
+  };
+}
+
 export function readFilterStateFromParams(params: URLSearchParams): FilterState {
   const raw = params.get(FILTER_QUERY_KEY);
   if (!raw) return emptyFilterState();
   try {
-    return parseFilterState(raw);
+    return normalizeLevelFacetState(parseFilterState(raw));
   } catch {
     return emptyFilterState();
   }

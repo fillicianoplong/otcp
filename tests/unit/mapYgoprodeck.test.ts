@@ -71,4 +71,52 @@ describe('mapYgoprodeckCard prices', () => {
       cardmarket: 0,
     });
   });
+
+  it('maps Xyz level to rank without level', () => {
+    const card = mapYgoprodeckCard(
+      {
+        id: 123,
+        name: 'Number 39',
+        type: 'Xyz Monster',
+        desc: 'x',
+        level: 4,
+      },
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
+    );
+    expect(card.rank).toBe(4);
+    expect(card.level).toBeUndefined();
+  });
+
+  it('maps Link monsters to linkRating without level or rank', () => {
+    const card = mapYgoprodeckCard(
+      {
+        id: 456,
+        name: 'Test Link',
+        type: 'Link Monster',
+        desc: 'x',
+        level: 0,
+        linkval: 1,
+      },
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
+    );
+    expect(card.linkRating).toBe(1);
+    expect(card.level).toBeUndefined();
+    expect(card.rank).toBeUndefined();
+  });
+
+  it('keeps Level 0 on Synchro monsters', () => {
+    const card = mapYgoprodeckCard(
+      {
+        id: 789,
+        name: 'Ultimaya Tzolkin',
+        type: 'Synchro Monster',
+        desc: 'x',
+        level: 0,
+      },
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
+    );
+    expect(card.level).toBe(0);
+    expect(card.rank).toBeUndefined();
+    expect(card.linkRating).toBeUndefined();
+  });
 });

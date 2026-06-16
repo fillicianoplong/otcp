@@ -71,7 +71,7 @@ describe('buildCardDetailChipSearchHref', () => {
       readFilterStateFromParams(
         new URLSearchParams(buildCardDetailChipSearchHref(level, card)!.slice('/search?'.length)),
       ).facets.level?.include,
-    ).toEqual(['Level-7']);
+    ).toEqual(['7']);
   });
 
   it('uses Rank and Link tokens for xyz and link monsters', () => {
@@ -88,7 +88,7 @@ describe('buildCardDetailChipSearchHref', () => {
           buildCardDetailChipSearchHref(rankChip, rankCard)!.slice('/search?'.length),
         ),
       ).facets.level?.include,
-    ).toEqual(['Rank-4']);
+    ).toEqual(['4']);
 
     const linkChip = buildCardDetailChips(linkMonster as YugiohCard).find(
       (chip) => chip.label === 'Link',
@@ -101,7 +101,7 @@ describe('buildCardDetailChipSearchHref', () => {
           ),
         ),
       ).facets.level?.include,
-    ).toEqual(['Link-4']);
+    ).toEqual(['4']);
   });
 
   it('maps ATK and DEF chips to exact range search URLs', () => {

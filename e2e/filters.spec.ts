@@ -6,14 +6,14 @@ import { serializeFilterState } from '../src/catalog/filterEngine.ts';
 test.describe('Facet filters on Search page', () => {
   test('toggling an attribute facet changes the result count', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
 
     const darkCheckbox = page
       .getByRole('complementary', { name: 'Filter sidebar' })
       .getByRole('checkbox', { name: 'Include DARK', exact: true });
     await darkCheckbox.click();
 
-    await expect(page.getByText('5 cards')).toBeVisible();
+    await expect(page.getByText('6 cards')).toBeVisible();
     await expect(
       page.getByRole('list', { name: 'Active filters' }).getByRole('button', { name: /DARK/ }),
     ).toBeVisible();
@@ -21,7 +21,7 @@ test.describe('Facet filters on Search page', () => {
 
   test('cycles include, exclude, and off on tri-state checkboxes', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
     const darkOption = () =>
@@ -60,7 +60,7 @@ test.describe('Facet filters on Search page', () => {
 
   test('lists set facet options newest first in the filter panel', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
     const setHeading = sidebar.getByRole('button', { name: 'Set', exact: true });
@@ -78,7 +78,7 @@ test.describe('Facet filters on Search page', () => {
 
   test('updates facet counts in other groups when attribute is filtered', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
     const frameHeading = sidebar.getByRole('button', { name: 'Monster card type', exact: true });
@@ -91,7 +91,7 @@ test.describe('Facet filters on Search page', () => {
 
     const lightCheckbox = sidebar.getByRole('checkbox', { name: 'Include LIGHT', exact: true });
     await lightCheckbox.click();
-    await expect(page.getByText('5 cards')).toBeVisible();
+    await expect(page.getByText('5 cards', { exact: true })).toBeVisible();
 
     const effectCountAfter = await effectRow.locator('span.tabular-nums').innerText();
     expect(effectCountAfter).not.toBe(effectCountBefore);
@@ -100,7 +100,7 @@ test.describe('Facet filters on Search page', () => {
 
   test('short facet groups avoid inner scroll and expand with Show more', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
     const frameHeading = sidebar.getByRole('button', { name: 'Monster card type', exact: true });
@@ -117,10 +117,25 @@ test.describe('Facet filters on Search page', () => {
     const frameSection = frameHeading.locator('xpath=ancestor::section[1]');
     await expect(frameSection.getByRole('checkbox')).toHaveCount(8);
     await frameSection.getByRole('button', { name: 'Show more' }).click();
-    await expect(frameSection.getByRole('checkbox')).toHaveCount(9);
+    await expect(frameSection.getByRole('checkbox')).toHaveCount(10);
 
     const overflowAfterExpand = await optionList.evaluate((el) => getComputedStyle(el).overflowY);
     expect(overflowAfterExpand).not.toBe('auto');
     expect(overflowAfterExpand).not.toBe('scroll');
+  });
+
+  test('returns no cards when Level 0 and Link Monster are both selected', async ({ page }) => {
+    const state = {
+      version: 1 as const,
+      facets: {
+        level: { include: ['0'] },
+        cardType: { include: ['Link Monster'] },
+      },
+    };
+    const params = new URLSearchParams();
+    params.set(FILTER_QUERY_KEY, serializeFilterState(state));
+    await page.goto(`/otcp/search?${params.toString()}`);
+
+    await expect(page.getByText('0 cards', { exact: true })).toBeVisible({ timeout: 15_000 });
   });
 });
