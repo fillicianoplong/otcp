@@ -125,7 +125,7 @@ function CardDetailBanStatus({
 
 const cardDetailChipFlexClassName = 'min-w-0 flex-[1_1_120px]';
 
-const cardDetailChipClassName = `${cardDetailChipFlexClassName} flex flex-col gap-0.5 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm`;
+const cardDetailChipClassName = `${cardDetailChipFlexClassName} flex flex-col gap-0.5 rounded-md border border-border bg-surface px-3 py-2 text-sm`;
 
 const cardDetailLinkedChipClassName = `${cardDetailChipClassName} no-underline text-inherit transition-colors hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong`;
 
