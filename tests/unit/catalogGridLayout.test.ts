@@ -16,6 +16,10 @@ describe('catalogGridLayout', () => {
     expect(catalogGridColumnCount(768)).toBe(5);
     expect(catalogGridColumnCount(1023)).toBe(5);
     expect(catalogGridColumnCount(1024)).toBe(6);
-    expect(catalogGridColumnCount(1440)).toBe(6);
+    expect(catalogGridColumnCount(1199)).toBe(6);
+    expect(catalogGridColumnCount(1200)).toBe(7);
+    expect(catalogGridColumnCount(1399)).toBe(7);
+    expect(catalogGridColumnCount(1400)).toBe(8);
+    expect(catalogGridColumnCount(1920)).toBe(8);
   });
 });
