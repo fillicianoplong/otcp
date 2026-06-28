@@ -10,5 +10,6 @@ export const PRIMARY_NAV: NavItem[] = [
   { label: 'Decks', to: '/decks' },
   { label: 'Collection', to: '/collection' },
   { label: 'Lists', to: '/lists' },
+  { label: 'About', to: '/about' },
   { label: 'Account', to: '/account' },
 ];

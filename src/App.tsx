@@ -7,7 +7,7 @@ import { DecksPage } from './pages/DecksPage';
 import { FormatsPage } from './pages/FormatsPage';
 import { ListsPage } from './pages/ListsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { NoticesPage } from './pages/NoticesPage';
+import { AboutPage } from './pages/AboutPage';
 import { CardDetailPage } from './pages/CardDetailPage';
 import { SearchPage } from './pages/SearchPage';
 
@@ -24,8 +24,9 @@ export function App() {
             <Route path="decks" element={<DecksPage />} />
             <Route path="collection" element={<CollectionPage />} />
             <Route path="lists" element={<ListsPage />} />
+            <Route path="about" element={<AboutPage />} />
             <Route path="account" element={<AccountPage />} />
-            <Route path="notices" element={<NoticesPage />} />
+            <Route path="notices" element={<Navigate to="/about" replace />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
