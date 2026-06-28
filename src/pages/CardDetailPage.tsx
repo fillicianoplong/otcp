@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 
-import { cardDetailImageFallback, cardDetailImageSrc } from '../catalog/cardArtUrl.ts';
+import {
+  cardDetailImageFallback,
+  cardDetailImageSrc,
+  YGO_CARD_ART_ASPECT_CLASS,
+} from '../catalog/cardArtUrl.ts';
 import {
   buildCardDetailChips,
   buildCardDetailChipSearchHref,
@@ -63,7 +67,9 @@ function CardDetailArt({ card }: { card: YugiohCard }) {
         className="block w-full cursor-zoom-in rounded-md p-0 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
         aria-label={`View larger artwork for ${card.name}`}
       >
-        <div className="relative mx-auto aspect-[63/88] w-full max-w-full overflow-hidden rounded-md border border-border bg-surface-2 md:max-w-[435px] xl:max-w-[520px]">
+        <div
+          className={`relative mx-auto ${YGO_CARD_ART_ASPECT_CLASS} w-full max-w-full overflow-hidden rounded-md border border-border bg-surface-2 md:max-w-[435px] xl:max-w-[520px]`}
+        >
           {artMissing ? (
             <span className="sr-only">Artwork unavailable for {card.name}</span>
           ) : (

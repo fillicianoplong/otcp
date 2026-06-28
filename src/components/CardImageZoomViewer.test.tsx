@@ -62,12 +62,14 @@ describe('CardImageZoomViewer', () => {
     for (const token of CARD_IMAGE_VIEWER_FIT_IMAGE_CLASS.split(/\s+/)) {
       expect(img.className).toContain(token);
     }
+    expect(img.className).toContain('max-h-[calc(100dvh-2rem)]');
 
     const stage = document.querySelector('[data-viewer-stage]');
     expect(stage).toBeTruthy();
     for (const token of CARD_IMAGE_VIEWER_FIT_STAGE_CLASS.split(/\s+/)) {
       expect(stage!.className).toContain(token);
     }
+    expect(stage!.className).toContain('h-dvh');
   });
 
   it('centers artwork in actual-size mode with a full-size stage and auto margins', async () => {
