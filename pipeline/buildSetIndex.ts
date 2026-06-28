@@ -1,5 +1,6 @@
 import type { SetIndex } from '../src/shared/schema/setIndex.ts';
 import type { YgoCardsetRow } from './fetchCardsets.ts';
+import { setDateOverrides } from './setDateOverrides.ts';
 
 export function buildSetIndex(rows: readonly YgoCardsetRow[]): SetIndex {
   const index: SetIndex = {};
@@ -11,6 +12,13 @@ export function buildSetIndex(rows: readonly YgoCardsetRow[]): SetIndex {
       ...(tcgDate ? { tcgDate } : {}),
       numOfCards: row.num_of_cards,
     };
+  }
+  for (const [setName, overrideDate] of Object.entries(setDateOverrides)) {
+    const existing = index[setName];
+    if (existing?.tcgDate) continue;
+    const tcgDate = overrideDate.trim();
+    if (!tcgDate) continue;
+    index[setName] = existing ? { ...existing, tcgDate } : { tcgDate };
   }
   return index;
 }
