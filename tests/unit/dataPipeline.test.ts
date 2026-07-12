@@ -5,10 +5,17 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { atomicWriteUtf8 } from '../../src/shared/fs/atomicWrite.ts';
-import { OTCP_DATASET_SCHEMA_VERSION } from '../../src/shared/schema/constants.ts';
+import { OTCP_DATASET_SCHEMA_VERSION_LEGACY } from '../../src/shared/schema/constants.ts';
+import { decodeCompactSearchIndex } from '../../src/shared/schema/compactSearchIndex.ts';
+import { validateCompactSearchIndexEnvelope } from '../../src/shared/schema/validate.ts';
 import { R2_CARD_IMAGES_PUBLIC_BASE_URL } from '../../pipeline/constants.ts';
 import { r2LargeObjectKey, r2SmallObjectKey } from '../../pipeline/imagePaths.ts';
-import { datasetFileToRepoRelative, type PublishedPointer } from '../../pipeline/pointer.ts';
+import {
+  datasetFileToRepoRelative,
+  isPublishedPointerLegacy,
+  isPublishedPointerSplit,
+  type PublishedPointerLegacy,
+} from '../../pipeline/pointer.ts';
 import {
   defaultPipelinePaths,
   loadPublishedPointer,
@@ -95,11 +102,11 @@ function createMockS3(initialKeys: string[] = []): S3Client {
   } as unknown as S3Client;
 }
 
-function seedPointer(root: string, cardCount = 1): PublishedPointer {
+function seedPointer(root: string, cardCount = 1): PublishedPointerLegacy {
   const paths = defaultPipelinePaths(root);
   const priorDatasetRel = 'data/datasets/cards-prior.json';
   const priorEnvelope = {
-    schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+    schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
     generatedAt: '2026-01-01T00:00:00.000Z',
     source: 'fixture',
     cards: [
@@ -119,8 +126,8 @@ function seedPointer(root: string, cardCount = 1): PublishedPointer {
   };
   const datasetPath = join(root, datasetFileToRepoRelative(priorDatasetRel));
   atomicWriteUtf8(datasetPath, `${JSON.stringify(priorEnvelope, null, 2)}\n`);
-  const pointer: PublishedPointer = {
-    schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+  const pointer: PublishedPointerLegacy = {
+    schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
     datasetFile: priorDatasetRel,
     sha256: 'prior-hash',
     publishedAt: '2026-01-01T00:00:00.000Z',
@@ -143,8 +150,8 @@ describe('DataPipeline', () => {
   it('publishes a valid fetch and swaps the pointer atomically', async () => {
     const root = makeTempRoot();
     roots.push(root);
-    const prior = seedPointer(root);
     const paths = defaultPipelinePaths(root);
+    const prior = seedPointer(root);
 
     const result = await runPipeline(root, {
       now: () => new Date('2026-11-01T12:00:00.000Z'),
@@ -155,29 +162,37 @@ describe('DataPipeline', () => {
     if (!result.ok) return;
 
     const pointer = loadPublishedPointer(root);
-    expect(pointer?.datasetFile).not.toBe(prior.datasetFile);
-    expect(pointer?.datasetFile).toMatch(/^data\/datasets\/cards-/);
-    expect(pointer?.cardCount).toBe(2);
-    expect(pointer?.sha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(pointer).not.toBeNull();
+    if (!pointer || !isPublishedPointerSplit(pointer)) {
+      throw new Error('expected split published pointer');
+    }
+    expect(pointer.searchIndexFile).not.toBe(prior.datasetFile);
+    expect(pointer.searchIndexFile).toMatch(/^data\/datasets\/search-/);
+    expect(pointer.cardCount).toBe(2);
+    expect(pointer.searchIndexSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(pointer.detailsPrefix).toMatch(/^data\/datasets\/details-/);
+    expect(pointer.detailBucketCount).toBeGreaterThan(0);
 
-    const datasetPath = resolveDatasetPath(root, pointer!);
+    const datasetPath = resolveDatasetPath(root, pointer);
     const datasetText = readFileSync(datasetPath, 'utf8');
     expect(datasetText).toContain('Dark Magician');
     expect(datasetText).not.toContain('images.ygoprodeck.com');
-    expect(datasetText).toContain(`${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/small/46986420.webp`);
-    expect(datasetText).toContain(`${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/46986420.webp`);
-    expect(readFileSync(paths.pointerPath, 'utf8')).toContain(pointer!.datasetFile);
+    expect(datasetText).toContain('"lex"');
+    expect(readFileSync(paths.pointerPath, 'utf8')).toContain(pointer.searchIndexFile);
 
-    const datasetJson = JSON.parse(datasetText) as {
-      setIndex?: Record<string, { tcgDate?: string; numOfCards?: number }>;
-    };
-    expect(datasetJson.setIndex?.['Starter Deck: Yugi']).toEqual({
+    const datasetJson = JSON.parse(datasetText) as unknown;
+    const validatedIndex = validateCompactSearchIndexEnvelope(datasetJson);
+    expect(validatedIndex.ok).toBe(true);
+    if (!validatedIndex.ok) return;
+    const { setIndex } = decodeCompactSearchIndex(validatedIndex.data);
+    expect(setIndex?.['Starter Deck: Yugi']).toEqual({
       tcgDate: '2002-03-08',
       numOfCards: 50,
     });
 
     const datasets = readdirSync(paths.datasetsDir);
-    expect(datasets.some((name) => name.startsWith('cards-2026-11-01'))).toBe(true);
+    expect(datasets.some((name) => name.startsWith('search-2026-11-01'))).toBe(true);
+    expect(datasets.some((name) => name.startsWith('details-2026-11-01'))).toBe(true);
   });
 
   it('excludes placeholder rows and keeps no-set cards in the published pointer count', async () => {
@@ -224,8 +239,11 @@ describe('DataPipeline', () => {
     expect(result.reason).toBe('validation');
 
     const pointer = loadPublishedPointer(root);
-    expect(pointer?.datasetFile).toBe(prior.datasetFile);
-    expect(pointer?.sha256).toBe(prior.sha256);
+    if (!pointer || !isPublishedPointerLegacy(pointer)) {
+      throw new Error('expected legacy pointer to remain');
+    }
+    expect(pointer.datasetFile).toBe(prior.datasetFile);
+    expect(pointer.sha256).toBe(prior.sha256);
     expect(readdirSync(paths.datasetsDir)).toEqual(beforeDatasets);
     expect(readFileSync(resolveDatasetPath(root, prior), 'utf8')).toContain('unchanged');
   });
@@ -251,7 +269,10 @@ describe('DataPipeline', () => {
     expect(result.reason).toBe('fetch');
 
     const pointer = loadPublishedPointer(root);
-    expect(pointer?.datasetFile).toBe(prior.datasetFile);
+    if (!pointer || !isPublishedPointerLegacy(pointer)) {
+      throw new Error('expected legacy pointer to remain');
+    }
+    expect(pointer.datasetFile).toBe(prior.datasetFile);
     expect(readdirSync(paths.datasetsDir)).toEqual(beforeDatasets);
   });
 
@@ -277,7 +298,10 @@ describe('DataPipeline', () => {
     expect(result.reason).toBe('images');
 
     const pointer = loadPublishedPointer(root);
-    expect(pointer?.datasetFile).toBe(prior.datasetFile);
+    if (!pointer || !isPublishedPointerLegacy(pointer)) {
+      throw new Error('expected legacy pointer to remain');
+    }
+    expect(pointer.datasetFile).toBe(prior.datasetFile);
     expect(readdirSync(paths.datasetsDir)).toEqual(beforeDatasets);
   });
 

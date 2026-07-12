@@ -120,6 +120,9 @@ type FieldIndexer = {
 };
 
 function setNamesForCard(card: YugiohCard): readonly string[] {
+  if ('setNames' in card && Array.isArray(card.setNames)) {
+    return card.setNames as readonly string[];
+  }
   const names = new Set<string>();
   for (const entry of card.sets) {
     const name = entry.setName?.trim();
@@ -128,13 +131,20 @@ function setNamesForCard(card: YugiohCard): readonly string[] {
   return [...names];
 }
 
+function raritiesForCard(card: YugiohCard): readonly string[] {
+  if ('rarities' in card && Array.isArray(card.rarities)) {
+    return card.rarities as readonly string[];
+  }
+  return card.sets.map((set) => set.setRarity);
+}
+
 const FIELD_INDEXERS: readonly FieldIndexer[] = [
   { id: 'cardType', valuesForRow: (card) => (card.type ? [card.type] : []) },
   {
     id: 'set',
     valuesForRow: (card) => setNamesForCard(card),
   },
-  { id: 'rarity', valuesForRow: (card) => card.sets.map((set) => set.setRarity) },
+  { id: 'rarity', valuesForRow: (card) => raritiesForCard(card) },
   { id: 'banStatus', valuesForRow: (card) => [tcgBanStatus(card)] },
   { id: 'hasImage', valuesForRow: (card) => [hasHostedImage(card)] },
   { id: 'monsterFrame', valuesForRow: (card) => typeTokens(card.type) },

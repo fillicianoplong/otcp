@@ -1,20 +1,15 @@
 import { join } from 'node:path';
 
-import { DATASETS_SUBDIR } from './constants.ts';
-import { OTCP_DATASET_SCHEMA_VERSION } from '../src/shared/schema/constants.ts';
-
-export type PublishedPointer = {
-  schemaVersion: typeof OTCP_DATASET_SCHEMA_VERSION;
-  datasetFile: string;
-  sha256: string;
-  publishedAt: string;
-  cardCount: number;
-};
-
-/** Path under the published site root (no `public/` prefix). */
-export function siteRelativeDatasetFile(datasetBasename: string): string {
-  return `data/${DATASETS_SUBDIR}/${datasetBasename}`.replaceAll('\\', '/');
-}
+export type {
+  PublishedPointer,
+  PublishedPointerLegacy,
+  PublishedPointerSplit,
+} from '../src/shared/schema/publishedPointer.ts';
+export {
+  isPublishedPointerLegacy,
+  isPublishedPointerSplit,
+  siteRelativeDatasetFile,
+} from '../src/shared/schema/publishedPointer.ts';
 
 /** Map a pointer `datasetFile` to a repo path under `public/`. */
 export function datasetFileToRepoRelative(datasetFile: string): string {
@@ -28,8 +23,16 @@ export function datasetFileToRepoRelative(datasetFile: string): string {
   throw new Error(`Unrecognized datasetFile path: ${datasetFile}`);
 }
 
+export function publishedDataFileToRepoRelative(relativePath: string): string {
+  return datasetFileToRepoRelative(relativePath);
+}
+
 export function resolveDatasetRepoPath(repoRoot: string, datasetFile: string): string {
   return join(repoRoot, datasetFileToRepoRelative(datasetFile));
+}
+
+export function resolvePublishedDataRepoPath(repoRoot: string, relativePath: string): string {
+  return resolveDatasetRepoPath(repoRoot, relativePath);
 }
 
 export function pointerBasename(datasetFile: string): string {

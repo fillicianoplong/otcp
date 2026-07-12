@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { logYgoprodeckDropCounts } from './logDropCounts.ts';
+import { isPublishedPointerLegacy, isPublishedPointerSplit } from './pointer.ts';
 import { runPipeline } from './runPipeline.ts';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -25,7 +26,15 @@ if (!result.ok) {
   process.exitCode = 1;
 } else {
   logYgoprodeckDropCounts(result.dropped);
-  console.log(
-    `Published ${result.pointer.cardCount} cards → ${result.pointer.datasetFile} (sha256 ${result.pointer.sha256})`,
-  );
+  const catalogFile = isPublishedPointerSplit(result.pointer)
+    ? result.pointer.searchIndexFile
+    : isPublishedPointerLegacy(result.pointer)
+      ? result.pointer.datasetFile
+      : 'unknown';
+  const digest = isPublishedPointerSplit(result.pointer)
+    ? result.pointer.searchIndexSha256
+    : isPublishedPointerLegacy(result.pointer)
+      ? result.pointer.sha256
+      : 'unknown';
+  console.log(`Published ${result.pointer.cardCount} cards → ${catalogFile} (sha256 ${digest})`);
 }

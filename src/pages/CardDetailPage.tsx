@@ -39,6 +39,8 @@ import {
   isFormatBanContextActive,
   resolveCardBanForFormat,
 } from '../catalog/formatBanContext.ts';
+import { fetchCardDetailRecord } from '../catalog/loadCardDetail.ts';
+import type { CatalogState } from '../catalog/loadCatalog.ts';
 import { CardImageZoomViewer } from '../components/CardImageZoomViewer.tsx';
 import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
 import { formatPriceSnapshotDate } from '../prices/formatPrice.ts';
@@ -344,7 +346,6 @@ export function CardDetailPage() {
 
   const cardId = Number.parseInt(idParam ?? '', 10);
   const searchQuery = searchParams.get('q');
-  const formatParam = searchParams.get(FORMAT_QUERY_KEY);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -374,8 +375,51 @@ export function CardDetailPage() {
     );
   }
 
-  const card = getCatalogDerived(state.cards).cardById.get(cardId);
-  if (!card) {
+  return (
+    <CardDetailReadyView
+      key={cardId}
+      state={state}
+      cardId={cardId}
+      searchQuery={searchQuery}
+      formatParam={searchParams.get(FORMAT_QUERY_KEY)}
+    />
+  );
+}
+
+function CardDetailReadyView({
+  state,
+  cardId,
+  searchQuery,
+  formatParam,
+}: {
+  state: Extract<CatalogState, { status: 'ready' }>;
+  cardId: number;
+  searchQuery: string | null;
+  formatParam: string | null;
+}) {
+  const searchCard = getCatalogDerived(state.cards).cardById.get(cardId);
+  const [detailCard, setDetailCard] = useState<YugiohCard | null>(null);
+  const [detailLoading, setDetailLoading] = useState(Boolean(state.detailSource));
+
+  useEffect(() => {
+    if (!searchCard || !state.detailSource) return;
+    let cancelled = false;
+    void fetchCardDetailRecord(searchCard, state.detailSource)
+      .then((merged) => {
+        if (!cancelled) {
+          setDetailCard(merged);
+          setDetailLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setDetailLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [searchCard, state.detailSource]);
+
+  if (!searchCard) {
     return (
       <div className="flex flex-col gap-4">
         <DetailMessage title="Card not found">
@@ -383,6 +427,14 @@ export function CardDetailPage() {
         </DetailMessage>
         <BackToSearchControl searchQuery={searchQuery} />
       </div>
+    );
+  }
+
+  const card = state.detailSource ? (detailCard ?? searchCard) : searchCard;
+
+  if (state.detailSource && detailLoading && !detailCard) {
+    return (
+      <DetailMessage title="Loading card…">Fetching full details for this card.</DetailMessage>
     );
   }
 

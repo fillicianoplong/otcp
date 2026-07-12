@@ -6,7 +6,10 @@ import {
   getCardCatalog,
   loadCardCatalog,
 } from '../../src/catalog/loadCatalog.ts';
-import { OTCP_DATASET_SCHEMA_VERSION } from '../../src/shared/schema/constants.ts';
+import { encodeCompactSearchIndex } from '../../src/shared/schema/compactSearchIndex.ts';
+import { OTCP_DATASET_SCHEMA_VERSION_LEGACY } from '../../src/shared/schema/constants.ts';
+import { toCatalogSearchCard } from '../../pipeline/splitDataset.ts';
+import type { YugiohCard } from '../../src/shared/schema/card.ts';
 import validDataset from '../fixtures/schema/dataset-valid.json';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -34,13 +37,56 @@ afterEach(() => {
 });
 
 describe('loadCardCatalog', () => {
+  it('loads a v2 split pointer and search index', async () => {
+    const card = validDataset.cards[0] as YugiohCard;
+    const searchIndex = encodeCompactSearchIndex(
+      [toCatalogSearchCard(card, 0)],
+      validDataset.generatedAt,
+      validDataset.source,
+    );
+    vi.stubGlobal(
+      'fetch',
+      mockFetch({
+        'data/current.json': () =>
+          jsonResponse({
+            schemaVersion: '2.0.0',
+            searchIndexFile: 'data/datasets/search-dev.json',
+            searchIndexSha256: 'abc',
+            detailsPrefix: 'data/datasets/details-dev/',
+            detailsBucketSize: 500,
+            detailBucketCount: 1,
+            publishedAt: '2026-10-28T12:00:00.000Z',
+            cardCount: 1,
+          }),
+        'data/datasets/search-dev.json': () => jsonResponse(searchIndex),
+        'data/datasets/details-dev/bucket-00000.json': () =>
+          jsonResponse({
+            schemaVersion: '2.0.0',
+            bucket: 0,
+            cards: {
+              '89631139': {
+                text: validDataset.cards[0].text,
+                sets: validDataset.cards[0].sets,
+              },
+            },
+          }),
+      }),
+    );
+
+    const result = await loadCardCatalog();
+    expect(result.status).toBe('ready');
+    if (result.status !== 'ready') return;
+    expect(result.cards[0]?.text).toBe(validDataset.cards[0].text);
+    expect(result.detailSource?.detailBucketCount).toBe(1);
+  });
+
   it('loads a valid pointer and dataset', async () => {
     vi.stubGlobal(
       'fetch',
       mockFetch({
         'data/current.json': () =>
           jsonResponse({
-            schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+            schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
             datasetFile: 'data/datasets/sample-dev.json',
             sha256: 'abc',
             publishedAt: '2026-10-28T12:00:00.000Z',
@@ -64,7 +110,7 @@ describe('loadCardCatalog', () => {
       mockFetch({
         'data/current.json': () =>
           jsonResponse({
-            schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+            schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
             datasetFile: 'data/datasets/sample-dev.json',
             sha256: 'abc',
             publishedAt: '2026-10-28T12:00:00.000Z',
@@ -96,7 +142,7 @@ describe('loadCardCatalog', () => {
       mockFetch({
         'data/current.json': () =>
           jsonResponse({
-            schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+            schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
             datasetFile: 'public/data/datasets/bad.json',
             sha256: 'abc',
             publishedAt: '2026-10-28T12:00:00.000Z',
@@ -104,7 +150,7 @@ describe('loadCardCatalog', () => {
           }),
         'data/datasets/bad.json': () =>
           jsonResponse({
-            schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+            schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
             generatedAt: '2026-10-28T12:00:00.000Z',
             source: 'bad',
             cards: [{ id: 1 }],
@@ -124,7 +170,7 @@ describe('getCardCatalog session cache', () => {
     const fetchImpl = mockFetch({
       'data/current.json': () =>
         jsonResponse({
-          schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+          schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
           datasetFile: 'data/datasets/sample-dev.json',
           sha256: 'abc',
           publishedAt: '2026-10-28T12:00:00.000Z',
@@ -148,7 +194,7 @@ describe('getCardCatalog session cache', () => {
     const fetchImpl = mockFetch({
       'data/current.json': () =>
         jsonResponse({
-          schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+          schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
           datasetFile: 'data/datasets/sample-dev.json',
           sha256: 'abc',
           publishedAt: '2026-10-28T12:00:00.000Z',
