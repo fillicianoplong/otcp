@@ -54,6 +54,11 @@ test.describe('smoke', () => {
     await expect(
       page.getByRole('heading', { level: 2, name: 'Card data and images' }),
     ).toBeVisible();
+    await expect(page.getByText('Attribution to be added')).toHaveCount(0);
+    const ygoprodeckLink = page.getByRole('link', { name: 'YGOPRODeck' });
+    await expect(ygoprodeckLink).toBeVisible();
+    await expect(ygoprodeckLink).toHaveAttribute('href', 'https://ygoprodeck.com/api-guide/');
+    await expect(ygoprodeckLink).toHaveAttribute('rel', 'noopener noreferrer');
     await expect(page.getByRole('link', { name: 'About' })).toHaveAttribute('aria-current', 'page');
   });
 
