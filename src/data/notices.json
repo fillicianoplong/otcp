@@ -1,6 +1,12 @@
 {
   "dependencies": [
     {
+      "name": "@supabase/supabase-js",
+      "version": "2.118.0",
+      "license": "MIT",
+      "link": "https://www.npmjs.com/package/%40supabase%2Fsupabase-js"
+    },
+    {
       "name": "react",
       "version": "19.3.1",
       "license": "MIT",

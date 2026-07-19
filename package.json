@@ -23,9 +23,11 @@
     "search:bench": "tsx scripts/search-index-bench.ts",
     "pipeline:refresh": "tsx pipeline/run.ts",
     "pages:smoke-data": "tsx scripts/pages-published-data-smoke.ts",
+    "check:client-secrets": "node scripts/check-client-bundle-secrets.mjs",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run licenses"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router": "^7.18.5",
