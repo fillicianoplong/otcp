@@ -11,8 +11,13 @@ import {
   type CatalogViewMode,
   readCatalogViewPreference,
   resolveCatalogViewPreference,
-  writeCatalogViewPreference,
 } from '../catalog/catalogViewMode.ts';
+import {
+  persistSearchCardViewPreference,
+  persistSearchTablePreferences,
+  readSearchTablePrefsForUi,
+  useProfileViewPreferenceRevision,
+} from '../shared/profile';
 import { FORMAT_QUERY_KEY } from '../catalog/formatBanContext.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
@@ -34,16 +39,11 @@ import {
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { CatalogTableColumnsMenu } from '../catalog/CatalogTableColumnsMenu.tsx';
-import {
-  DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
-  type CatalogTableColumnVisibility,
-} from '../catalog/catalogTableColumns.ts';
-import {
-  DEFAULT_CATALOG_TABLE_SORT,
-  type CatalogTableSortState,
-} from '../catalog/catalogTableSort.ts';
+import { type CatalogTableColumnVisibility } from '../catalog/catalogTableColumns.ts';
+import { type CatalogTableSortState } from '../catalog/catalogTableSort.ts';
 import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+
 const SEARCH_DEBOUNCE_MS = 180;
 
 export function SearchPage() {
@@ -54,6 +54,7 @@ export function SearchPage() {
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const filterState = useMemo(() => readFilterStateFromParams(searchParams), [searchParams]);
+  const profilePreferenceRevision = useProfileViewPreferenceRevision();
   const resolvedViewPreference = useMemo(
     () =>
       resolveCatalogViewPreference({
@@ -61,7 +62,9 @@ export function SearchPage() {
         storedRaw: readCatalogViewPreference(CATALOG_VIEW_STORAGE_KEY_SEARCH),
         defaultMode: 'grid',
       }),
-    [searchParams],
+    // Re-read localStorage when profile sync applies server preferences.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- profilePreferenceRevision
+    [profilePreferenceRevision, searchParams],
   );
   const viewMode = resolvedViewPreference.mode;
   const formatParam = searchParams.get(FORMAT_QUERY_KEY);
@@ -74,11 +77,35 @@ export function SearchPage() {
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
   const tableViewportOk = useMinViewportWidth(CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX);
   const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
-    () => ({ ...DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY }),
+    () => readSearchTablePrefsForUi().visibility,
   );
-  const [tableSort, setTableSort] = useState<CatalogTableSortState>(() => ({
-    ...DEFAULT_CATALOG_TABLE_SORT,
-  }));
+  const [tableSort, setTableSort] = useState<CatalogTableSortState>(
+    () => readSearchTablePrefsForUi().sort,
+  );
+
+  useEffect(() => {
+    const snapshot = readSearchTablePrefsForUi();
+    queueMicrotask(() => {
+      setTableColumnVisibility(snapshot.visibility);
+      setTableSort(snapshot.sort);
+    });
+  }, [profilePreferenceRevision]);
+
+  const handleTableColumnVisibilityChange = useCallback(
+    (next: CatalogTableColumnVisibility) => {
+      setTableColumnVisibility(next);
+      persistSearchTablePreferences({ visibility: next, sort: tableSort });
+    },
+    [tableSort],
+  );
+
+  const handleTableSortChange = useCallback(
+    (next: CatalogTableSortState) => {
+      setTableSort(next);
+      persistSearchTablePreferences({ visibility: tableColumnVisibility, sort: next });
+    },
+    [tableColumnVisibility],
+  );
 
   const effectiveViewMode = displayCatalogViewMode(resolvedViewPreference, {
     tableAvailable: tableViewportOk,
@@ -140,7 +167,7 @@ export function SearchPage() {
 
   const setViewMode = useCallback(
     (mode: CatalogViewMode) => {
-      writeCatalogViewPreference(CATALOG_VIEW_STORAGE_KEY_SEARCH, mode);
+      persistSearchCardViewPreference(mode);
       const params = new URLSearchParams(searchParams);
       if (mode === 'grid') {
         params.delete(CATALOG_VIEW_QUERY_KEY);
@@ -239,7 +266,7 @@ export function SearchPage() {
                 {effectiveViewMode === 'table' ? (
                   <CatalogTableColumnsMenu
                     visibility={tableColumnVisibility}
-                    onChange={setTableColumnVisibility}
+                    onChange={handleTableColumnVisibilityChange}
                   />
                 ) : null}
                 <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
@@ -258,7 +285,7 @@ export function SearchPage() {
             tableAvailable={tableViewportOk}
             tableColumnVisibility={tableColumnVisibility}
             tableSort={tableSort}
-            onTableSortChange={setTableSort}
+            onTableSortChange={handleTableSortChange}
           />
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { NavLink, Outlet } from 'react-router';
 import { PRIMARY_NAV } from '../nav';
+import { ProfileViewPreferenceProvider } from '../shared/profile';
 import { APP_SHELL_CONTENT_CLASS } from './appShellLayout.ts';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -100,7 +101,9 @@ export function AppShell() {
       </header>
 
       <main id="main-content" className={`${APP_SHELL_CONTENT_CLASS} flex-1 py-4`}>
-        <Outlet />
+        <ProfileViewPreferenceProvider>
+          <Outlet />
+        </ProfileViewPreferenceProvider>
       </main>
     </div>
   );
