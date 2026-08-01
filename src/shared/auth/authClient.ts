@@ -80,6 +80,23 @@ export async function signIn(
   }
 }
 
+export async function deleteMyAccount(clientOverride?: SupabaseClient | null): Promise<AuthResult> {
+  const client = resolveClient(clientOverride);
+  if (!client) {
+    return notAvailable();
+  }
+
+  try {
+    const { error } = await client.rpc('delete_my_account');
+    if (error) {
+      return { ok: false, message: authErrorMessage(error) };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, message: 'Something went wrong. Try again.' };
+  }
+}
+
 export async function signOut(clientOverride?: SupabaseClient | null): Promise<AuthResult> {
   const client = resolveClient(clientOverride);
   if (!client) {

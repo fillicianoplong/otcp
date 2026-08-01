@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from '@supabase/supabase-js';
@@ -20,6 +20,7 @@ vi.mock('../shared/supabase/client.ts', () => ({
 const signIn = vi.fn();
 const signOut = vi.fn();
 const signUp = vi.fn();
+const deleteMyAccount = vi.fn();
 
 vi.mock('../shared/auth/authClient.ts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../shared/auth/authClient.ts')>();
@@ -28,8 +29,16 @@ vi.mock('../shared/auth/authClient.ts', async (importOriginal) => {
     signIn: (...args: Parameters<typeof actual.signIn>) => signIn(...args),
     signOut: (...args: Parameters<typeof actual.signOut>) => signOut(...args),
     signUp: (...args: Parameters<typeof actual.signUp>) => signUp(...args),
+    deleteMyAccount: (...args: Parameters<typeof actual.deleteMyAccount>) =>
+      deleteMyAccount(...args),
   };
 });
+
+let authStateCallback: ((event: string, next: Session | null) => void) | null = null;
+
+function emitAuthSession(next: Session | null) {
+  authStateCallback?.('SIGNED_OUT', next);
+}
 
 function renderAccountPage() {
   return render(
@@ -41,14 +50,17 @@ function renderAccountPage() {
 
 function mockAuthClient(session: Session | null) {
   const unsubscribe = vi.fn();
+  authStateCallback = null;
   getSupabaseClient.mockReturnValue({
     auth: {
       getSession: vi.fn(async () => ({ data: { session }, error: null })),
       onAuthStateChange: vi.fn((callback: (event: string, next: Session | null) => void) => {
+        authStateCallback = callback;
         callback('INITIAL_SESSION', session);
         return { data: { subscription: { unsubscribe } } };
       }),
     },
+    rpc: vi.fn(),
   });
 }
 
@@ -62,6 +74,8 @@ describe('AccountPage', () => {
     signIn.mockReset();
     signOut.mockReset();
     signUp.mockReset();
+    deleteMyAccount.mockReset();
+    authStateCallback = null;
   });
 
   it('shows a note when Supabase is not configured', () => {
@@ -191,5 +205,67 @@ describe('AccountPage', () => {
 
     expect(screen.queryByLabelText('Confirm password')).toBeNull();
     expect(screen.getByLabelText('Password')).toBeTruthy();
+  });
+
+  it('deletes the account after typing DELETE in the confirm dialog', async () => {
+    isSupabaseConfigured.mockReturnValue(true);
+    mockAuthClient({
+      user: { id: 'user-123', email: 'player@example.com' },
+    } as Session);
+    deleteMyAccount.mockResolvedValue({ ok: true });
+    signOut.mockImplementation(async () => {
+      emitAuthSession(null);
+      return { ok: true };
+    });
+
+    const user = userEvent.setup();
+    renderAccountPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as player@example.com')).toBeTruthy();
+    });
+
+    await user.click(screen.getAllByRole('button', { name: 'Delete account' })[0]!);
+    expect(screen.getByRole('dialog', { name: 'Delete account' })).toBeTruthy();
+
+    fireEvent.change(screen.getByLabelText('Confirmation'), { target: { value: 'DELETE' } });
+    const dialog = screen.getByRole('dialog', { name: 'Delete account' });
+    await user.click(within(dialog).getByRole('button', { name: 'Delete account' }));
+
+    await waitFor(() => {
+      expect(deleteMyAccount).toHaveBeenCalled();
+      expect(signOut).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Your account has been deleted.')).toBeTruthy();
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('shows an error when account deletion fails', async () => {
+    isSupabaseConfigured.mockReturnValue(true);
+    mockAuthClient({
+      user: { id: 'user-123', email: 'player@example.com' },
+    } as Session);
+    deleteMyAccount.mockResolvedValue({ ok: false, message: 'Could not delete your account.' });
+
+    const user = userEvent.setup();
+    renderAccountPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as player@example.com')).toBeTruthy();
+    });
+
+    await user.click(screen.getAllByRole('button', { name: 'Delete account' })[0]!);
+    fireEvent.change(screen.getByLabelText('Confirmation'), { target: { value: 'DELETE' } });
+    const dialog = screen.getByRole('dialog', { name: 'Delete account' });
+    await user.click(within(dialog).getByRole('button', { name: 'Delete account' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toMatch(/Could not delete your account/i);
+    });
+    expect(signOut).not.toHaveBeenCalled();
+    expect(screen.getByText('Signed in as player@example.com')).toBeTruthy();
   });
 });

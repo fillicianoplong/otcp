@@ -1,6 +1,7 @@
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
-import { signIn, signOut, signUp, useAuth } from '../shared/auth';
+import { clearLocalAccountData } from '../shared/accountLocalData.ts';
+import { deleteMyAccount, signIn, signOut, signUp, useAuth } from '../shared/auth';
 
 type AuthMode = 'sign-in' | 'sign-up';
 
@@ -19,6 +20,11 @@ const primaryButtonClassName =
 const secondaryButtonClassName =
   'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
 
+const dangerButtonClassName =
+  'inline-flex min-h-[var(--touch-min)] w-full items-center justify-center rounded-md border border-ban-forbidden bg-surface px-4 text-sm font-medium text-ban-forbidden hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
+
+const DELETE_CONFIRM_TEXT = 'DELETE';
+
 function AccountPageShell({ children }: { children: ReactNode }) {
   return <div className={accountPageShellClassName}>{children}</div>;
 }
@@ -29,6 +35,107 @@ function AccountHeading({ subtitle }: { subtitle?: ReactNode }) {
       <h1 className="text-2xl font-semibold text-heading">Account</h1>
       {subtitle}
     </header>
+  );
+}
+
+type DeleteAccountDialogProps = {
+  open: boolean;
+  busy: boolean;
+  confirmText: string;
+  errorMessage: string | null;
+  onConfirmTextChange: (value: string) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+
+function DeleteAccountDialog({
+  open,
+  busy,
+  confirmText,
+  errorMessage,
+  onConfirmTextChange,
+  onCancel,
+  onConfirm,
+}: DeleteAccountDialogProps) {
+  const titleId = useId();
+  const confirmFieldId = useId();
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const canConfirm = confirmText === DELETE_CONFIRM_TEXT && !busy;
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    cancelButtonRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) {
+        onCancel();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [busy, onCancel, open]);
+
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4"
+      role="presentation"
+    >
+      <div
+        className={`${accountCardClassName} relative max-w-md shadow-lg`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
+        <h2 id={titleId} className="text-lg font-semibold text-heading">
+          Delete account
+        </h2>
+        <p className="text-sm text-text">
+          This permanently deletes your account, saved decks, want lists, collection, and share
+          links. Type {DELETE_CONFIRM_TEXT} to confirm.
+        </p>
+        <label htmlFor={confirmFieldId} className="flex flex-col gap-2 text-sm text-heading">
+          Confirmation
+          <input
+            id={confirmFieldId}
+            type="text"
+            autoComplete="off"
+            value={confirmText}
+            disabled={busy}
+            onChange={(event) => onConfirmTextChange(event.target.value)}
+            className={inputClassName}
+          />
+        </label>
+        {errorMessage ? (
+          <p className="text-sm text-ban-forbidden" role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <button
+            ref={cancelButtonRef}
+            type="button"
+            className={`${secondaryButtonClassName} w-full sm:w-auto`}
+            disabled={busy}
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={`${dangerButtonClassName} sm:w-auto`}
+            disabled={!canConfirm}
+            onClick={onConfirm}
+          >
+            Delete account
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -47,6 +154,10 @@ export function AccountPage() {
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [signUpNotice, setSignUpNotice] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const [accountDeletedNotice, setAccountDeletedNotice] = useState(false);
 
   if (!configured) {
     return (
@@ -102,12 +213,62 @@ export function AccountPage() {
           >
             Sign out
           </button>
+          <button
+            type="button"
+            className={dangerButtonClassName}
+            disabled={busy}
+            onClick={() => {
+              setDeleteConfirmText('');
+              setDeleteErrorMessage(null);
+              setShowDeleteDialog(true);
+            }}
+          >
+            Delete account
+          </button>
           {errorMessage ? (
             <p className="text-sm text-heading" role="alert">
               {errorMessage}
             </p>
           ) : null}
         </section>
+        <DeleteAccountDialog
+          open={showDeleteDialog}
+          busy={busy}
+          confirmText={deleteConfirmText}
+          errorMessage={deleteErrorMessage}
+          onConfirmTextChange={setDeleteConfirmText}
+          onCancel={() => {
+            if (busy) {
+              return;
+            }
+            setShowDeleteDialog(false);
+            setDeleteConfirmText('');
+            setDeleteErrorMessage(null);
+          }}
+          onConfirm={() => {
+            const userId = session.user.id;
+            setBusy(true);
+            setDeleteErrorMessage(null);
+            void deleteMyAccount().then((result) => {
+              if (!result.ok) {
+                setBusy(false);
+                setDeleteErrorMessage(result.message);
+                return;
+              }
+              clearLocalAccountData(userId);
+              void signOut().then((signOutResult) => {
+                setBusy(false);
+                setShowDeleteDialog(false);
+                setDeleteConfirmText('');
+                if (!signOutResult.ok) {
+                  setDeleteErrorMessage(signOutResult.message);
+                  return;
+                }
+                setAccountDeletedNotice(true);
+              });
+            });
+          }}
+        />
       </AccountPageShell>
     );
   }
@@ -118,11 +279,17 @@ export function AccountPage() {
     <AccountPageShell>
       <AccountHeading
         subtitle={
-          <p className="text-base text-text">
-            {mode === 'sign-in'
-              ? 'Sign in with your email and password.'
-              : 'Create an account with your email and password.'}
-          </p>
+          accountDeletedNotice ? (
+            <p className="text-base text-text" role="status">
+              Your account has been deleted.
+            </p>
+          ) : (
+            <p className="text-base text-text">
+              {mode === 'sign-in'
+                ? 'Sign in with your email and password.'
+                : 'Create an account with your email and password.'}
+            </p>
+          )
         }
       />
 
