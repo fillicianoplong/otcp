@@ -28,6 +28,7 @@ import {
   type CatalogTableColumnVisibility,
 } from './catalogTableColumns.ts';
 import { DEFAULT_CATALOG_TABLE_SORT, type CatalogTableSortState } from './catalogTableSort.ts';
+import { buildSearchCardDetailPath } from './searchCardLinks.ts';
 import { resolveCardBanForFormat } from './formatBanContext.ts';
 import { formatCardCount } from './formatCardCount.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
@@ -72,10 +73,10 @@ function CardTile({
   formatParam?: string | null;
   onBeforeNavigate: () => void;
 }) {
-  const detailPath =
-    searchQuery.length > 0
-      ? `/search/card/${card.id}?q=${encodeURIComponent(searchQuery)}`
-      : `/search/card/${card.id}`;
+  const detailPath = buildSearchCardDetailPath(card.id, {
+    searchQuery,
+    formatParam,
+  });
 
   return (
     <li>
@@ -327,7 +328,8 @@ export function CardCatalogView({
     const result = queryCatalog(catalogDerived, {
       filterState,
       query: trimmedQuery,
-      ...(resolvedViewMode === 'table' ? { tableSort, formatParam: formatParam ?? null } : {}),
+      formatParam: formatParam ?? null,
+      ...(resolvedViewMode === 'table' ? { tableSort } : {}),
     });
     return { visibleCards: result.visibleCards, matchCount: result.matchCount };
   }, [catalogDerived, filterState, formatParam, resolvedViewMode, tableSort, trimmedQuery]);

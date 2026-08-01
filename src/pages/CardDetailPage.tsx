@@ -33,12 +33,13 @@ import {
   sortCardDetailSets,
 } from '../catalog/cardDetailSets.ts';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
+import { buildSearchPathWithFormat } from '../catalog/searchCardLinks.ts';
 import {
   banMarkerForStatus,
-  FORMAT_QUERY_KEY,
   isFormatBanContextActive,
   resolveCardBanForFormat,
 } from '../catalog/formatBanContext.ts';
+import { resolveFormatPreference, readFormatPreference } from '../format/formatPreference.ts';
 import { fetchCardDetailRecord } from '../catalog/loadCardDetail.ts';
 import type { CatalogState } from '../catalog/loadCatalog.ts';
 import { CardImageZoomViewer } from '../components/CardImageZoomViewer.tsx';
@@ -314,7 +315,13 @@ function DetailMessage({ title, children }: { title: string; children: string })
 const backLinkClassName =
   'w-fit text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
-function BackToSearchControl({ searchQuery }: { searchQuery: string | null }) {
+function BackToSearchControl({
+  searchQuery,
+  formatParam,
+}: {
+  searchQuery: string | null;
+  formatParam: string | null;
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const fromSearch = (location.state as { fromSearch?: boolean } | null)?.fromSearch === true;
@@ -327,10 +334,11 @@ function BackToSearchControl({ searchQuery }: { searchQuery: string | null }) {
     );
   }
 
-  const backHref =
-    searchQuery && searchQuery.length > 0
-      ? `/search?q=${encodeURIComponent(searchQuery)}`
-      : '/search';
+  const params = new URLSearchParams();
+  if (searchQuery && searchQuery.length > 0) {
+    params.set('q', searchQuery);
+  }
+  const backHref = buildSearchPathWithFormat(formatParam, params.toString());
 
   return (
     <Link to={backHref} className={backLinkClassName}>
@@ -346,6 +354,15 @@ export function CardDetailPage() {
 
   const cardId = Number.parseInt(idParam ?? '', 10);
   const searchQuery = searchParams.get('q');
+  const resolvedFormat = useMemo(
+    () =>
+      resolveFormatPreference({
+        urlParam: searchParams.get('format'),
+        storedRaw: readFormatPreference(),
+      }),
+    [searchParams],
+  );
+  const formatParam = resolvedFormat.formatId;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -381,7 +398,7 @@ export function CardDetailPage() {
       state={state}
       cardId={cardId}
       searchQuery={searchQuery}
-      formatParam={searchParams.get(FORMAT_QUERY_KEY)}
+      formatParam={formatParam}
     />
   );
 }
@@ -425,7 +442,7 @@ function CardDetailReadyView({
         <DetailMessage title="Card not found">
           No card in the published dataset matches that passcode.
         </DetailMessage>
-        <BackToSearchControl searchQuery={searchQuery} />
+        <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
       </div>
     );
   }
@@ -442,7 +459,7 @@ function CardDetailReadyView({
 
   return (
     <div className="flex flex-col gap-6">
-      <BackToSearchControl searchQuery={searchQuery} />
+      <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
         <div className="w-full shrink-0 md:sticky md:top-4 md:max-w-[435px] md:self-start xl:max-w-[520px]">
           <CardDetailArt key={card.id} card={card} />

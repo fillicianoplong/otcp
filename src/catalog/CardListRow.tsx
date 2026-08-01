@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { BanThumbMarker } from './BanThumbMarker.tsx';
+import { buildSearchCardDetailPath } from './searchCardLinks.ts';
 import {
   banMarkerForStatus,
   isFormatBanContextActive,
@@ -103,20 +104,20 @@ export function CardListRow({
   searchQuery,
   formatParam,
   onBeforeNavigate,
+  detailPath: detailPathOverride,
 }: {
   card: YugiohCard;
   searchQuery: string;
   formatParam: string | null | undefined;
-  onBeforeNavigate: () => void;
+  onBeforeNavigate?: () => void;
+  detailPath?: string;
 }) {
   const typeLine = buildListRowTypeLine(card);
   const levelLine = buildListRowLevelLine(card);
   const statsLine = buildListRowStatsLine(card);
 
   const detailPath =
-    searchQuery.length > 0
-      ? `/search/card/${card.id}?q=${encodeURIComponent(searchQuery)}`
-      : `/search/card/${card.id}`;
+    detailPathOverride ?? buildSearchCardDetailPath(card.id, { searchQuery, formatParam });
 
   return (
     <li>

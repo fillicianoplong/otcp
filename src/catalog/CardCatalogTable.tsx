@@ -7,6 +7,7 @@ import {
   isFormatBanContextActive,
   resolveCardBanForFormat,
 } from './formatBanContext.ts';
+import { buildSearchCardDetailPath } from './searchCardLinks.ts';
 import {
   catalogTableArchetypeCell,
   catalogTableAtkCell,
@@ -223,10 +224,10 @@ export function CardCatalogTable({
 
   const openDetail = (card: YugiohCard) => {
     onBeforeNavigate(visibleCount);
-    const detailPath =
-      searchQuery.length > 0
-        ? `/search/card/${card.id}?q=${encodeURIComponent(searchQuery)}`
-        : `/search/card/${card.id}`;
+    const detailPath = buildSearchCardDetailPath(card.id, {
+      searchQuery,
+      formatParam,
+    });
     navigate(detailPath, { state: { fromSearch: true } });
   };
 

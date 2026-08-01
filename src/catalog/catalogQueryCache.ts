@@ -8,6 +8,7 @@ import {
   type FilterState,
 } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
+import { filterCatalogIdsByFormatPool, visibleCardsFromPoolIds } from './formatPoolQuery.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
 export type CatalogQueryInput = {
@@ -124,27 +125,33 @@ export function queryCatalog(
   const query = normalizeQuery(input.query);
   const filterEntry = buildFilterEntry(derived, filterState, query);
 
-  if (!input.tableSort) {
-    return {
-      matchCount: filterEntry.matchCount,
-      visibleCards: filterEntry.visibleCards,
-      facetGroupCounts: filterEntry.facetGroupCounts,
-      ids: filterEntry.ids,
-    };
+  const pooledIds = filterCatalogIdsByFormatPool(
+    filterEntry.ids,
+    derived.cardById,
+    input.formatParam,
+  );
+  let visibleCards = filterEntry.visibleCards;
+  let matchCount = filterEntry.matchCount;
+  if (pooledIds !== filterEntry.ids) {
+    visibleCards = visibleCardsFromPoolIds(pooledIds, derived.cardById);
+    matchCount = pooledIds.length;
   }
 
-  const sortKey = tableSortCacheKey(input.tableSort, input.formatParam);
-  let sorted = filterEntry.tableSorted.get(sortKey);
-  if (!sorted) {
-    sorted = sortCatalogTableRows(filterEntry.visibleCards, input.tableSort, input.formatParam);
-    filterEntry.tableSorted.set(sortKey, sorted);
+  if (input.tableSort) {
+    const sortKey = tableSortCacheKey(input.tableSort, input.formatParam);
+    let sorted = filterEntry.tableSorted.get(sortKey);
+    if (!sorted) {
+      sorted = sortCatalogTableRows(visibleCards, input.tableSort, input.formatParam);
+      filterEntry.tableSorted.set(sortKey, sorted);
+    }
+    visibleCards = sorted;
   }
 
   return {
-    matchCount: filterEntry.matchCount,
-    visibleCards: sorted,
+    matchCount,
+    visibleCards,
     facetGroupCounts: filterEntry.facetGroupCounts,
-    ids: filterEntry.ids,
+    ids: pooledIds,
   };
 }
 

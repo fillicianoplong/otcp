@@ -6,6 +6,7 @@ import { AccountPage } from './pages/AccountPage';
 import { CollectionPage } from './pages/CollectionPage';
 import { DecksPage } from './pages/DecksPage';
 import { FormatsPage } from './pages/FormatsPage';
+import { FormatDetailPage } from './pages/FormatDetailPage';
 import { ListsPage } from './pages/ListsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AboutPage } from './pages/AboutPage';
@@ -23,6 +24,7 @@ export function App() {
               <Route path="search" element={<SearchPage />} />
               <Route path="search/card/:id" element={<CardDetailPage />} />
               <Route path="formats" element={<FormatsPage />} />
+              <Route path="formats/:formatId" element={<FormatDetailPage />} />
               <Route path="decks" element={<DecksPage />} />
               <Route path="collection" element={<CollectionPage />} />
               <Route path="lists" element={<ListsPage />} />
