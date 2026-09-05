@@ -180,6 +180,24 @@ export function facetDefinitionsForGame(game: 'yugioh'): readonly FacetDefinitio
   return CORE_FACET_DEFINITIONS;
 }
 
+/** Facet groups below Format on Search (desktop sidebar and phone drawer). */
+export const SEARCH_FACET_FIELD_ORDER: readonly FacetFieldId[] = [
+  'banStatus',
+  'cardType',
+  'monsterFrame',
+  'attribute',
+  'race',
+  'level',
+  'atk',
+  'def',
+  'linkMarker',
+  'archetype',
+  'set',
+  'rarity',
+  'price',
+  'hasImage',
+];
+
 export function facetDefinitionById(id: FacetFieldId): FacetDefinition | undefined {
   return facetDefinitionsForGame('yugioh').find((def) => def.id === id);
 }
