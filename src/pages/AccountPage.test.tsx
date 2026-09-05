@@ -3,6 +3,7 @@
  */
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from '@supabase/supabase-js';
 
@@ -40,10 +41,14 @@ function emitAuthSession(next: Session | null) {
   authStateCallback?.('SIGNED_OUT', next);
 }
 
-function renderAccountPage() {
+function renderAccountPage(initialEntry = '/account') {
+  const router = createMemoryRouter([{ path: '/account', element: <AccountPage /> }], {
+    initialEntries: [initialEntry],
+    initialIndex: 0,
+  });
   return render(
     <AuthProvider>
-      <AccountPage />
+      <RouterProvider router={router} />
     </AuthProvider>,
   );
 }
@@ -197,5 +202,38 @@ describe('AccountPage', () => {
     });
     expect(signOut).not.toHaveBeenCalled();
     expect(screen.getByText('Signed in as player@example.com')).toBeTruthy();
+  });
+
+  it('returns to the deck path when signed in with returnTo', async () => {
+    isSupabaseConfigured.mockReturnValue(true);
+    mockAuthClient({
+      access_token: 'token',
+      refresh_token: 'refresh',
+      expires_in: 3600,
+      token_type: 'bearer',
+      user: { id: 'user-1', email: 'player@example.com' } as Session['user'],
+    } as Session);
+
+    const returnPath = '/decks?draft=draft-123';
+    const router = createMemoryRouter(
+      [
+        { path: '/account', element: <AccountPage /> },
+        { path: '/decks', element: <p>Back on decks</p> },
+      ],
+      {
+        initialEntries: [`/account?returnTo=${encodeURIComponent(returnPath)}`],
+        initialIndex: 0,
+      },
+    );
+
+    render(
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Back on decks')).toBeTruthy();
+    });
   });
 });

@@ -1,7 +1,15 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 
 import { clearLocalAccountData } from '../shared/accountLocalData.ts';
-import { deleteMyAccount, signIn, signOut, signUp, useAuth } from '../shared/auth';
+import {
+  deleteMyAccount,
+  parseSafeInAppReturnTo,
+  signIn,
+  signOut,
+  signUp,
+  useAuth,
+} from '../shared/auth';
 
 type AuthMode = 'sign-in' | 'sign-up';
 
@@ -143,6 +151,9 @@ export function AccountPage() {
   const formId = useId();
   const emailId = `${formId}-email`;
   const passwordId = `${formId}-password`;
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = parseSafeInAppReturnTo(searchParams.get('returnTo'));
   const { configured, loading, session, userEmail } = useAuth();
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [email, setEmail] = useState('');
@@ -154,6 +165,13 @@ export function AccountPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const [accountDeletedNotice, setAccountDeletedNotice] = useState(false);
+
+  useEffect(() => {
+    if (loading || !session || !returnTo) {
+      return;
+    }
+    navigate(returnTo, { replace: true });
+  }, [loading, navigate, returnTo, session]);
 
   if (!configured) {
     return (
