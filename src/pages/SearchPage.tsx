@@ -44,6 +44,7 @@ import {
   readFilterStateFromParams,
   writeFilterStateToParams,
 } from '../catalog/filterUrlState.ts';
+import { clearBanStatusSelection } from '../catalog/filterSelection.ts';
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { CatalogTableColumnsMenu } from '../catalog/CatalogTableColumnsMenu.tsx';
@@ -145,14 +146,21 @@ export function SearchPage() {
 
   const facetGroupCounts = useMemo(() => {
     if (!catalogDerived) return [];
-    return queryCatalog(catalogDerived, { filterState, query: trimmedQuery }).facetGroupCounts;
-  }, [catalogDerived, filterState, trimmedQuery]);
+    return queryCatalog(catalogDerived, {
+      filterState,
+      query: trimmedQuery,
+      formatParam: activeFormatId,
+    }).facetGroupCounts;
+  }, [activeFormatId, catalogDerived, filterState, trimmedQuery]);
 
   const draftFacetGroupCounts = useMemo(() => {
     if (!catalogDerived) return [];
-    return queryCatalog(catalogDerived, { filterState: phoneDraft, query: trimmedQuery })
-      .facetGroupCounts;
-  }, [catalogDerived, phoneDraft, trimmedQuery]);
+    return queryCatalog(catalogDerived, {
+      filterState: phoneDraft,
+      query: trimmedQuery,
+      formatParam: phoneDraftFormatId,
+    }).facetGroupCounts;
+  }, [catalogDerived, phoneDraft, phoneDraftFormatId, trimmedQuery]);
 
   const draftMatchCount = useMemo(() => {
     if (!catalogDerived) return 0;
@@ -192,10 +200,11 @@ export function SearchPage() {
 
   const commitFilterAndFormat = useCallback(
     (nextFilterState: FilterState, formatId: FormatId | null) => {
-      filterStateRef.current = nextFilterState;
+      const resolved = formatId ? nextFilterState : clearBanStatusSelection(nextFilterState);
+      filterStateRef.current = resolved;
       writeFormatPreference(formatId);
       const params = new URLSearchParams(searchParams);
-      writeFilterStateToParams(params, nextFilterState);
+      writeFilterStateToParams(params, resolved);
       applyFormatToSearchParams(params, formatId);
       const search = params.toString();
       navigate(
@@ -229,6 +238,11 @@ export function SearchPage() {
       writeFormatPreference(formatId);
       const params = new URLSearchParams(searchParams);
       applyFormatToSearchParams(params, formatId);
+      if (!formatId) {
+        const cleared = clearBanStatusSelection(filterStateRef.current);
+        filterStateRef.current = cleared;
+        writeFilterStateToParams(params, cleared);
+      }
       const search = params.toString();
       navigate(
         { pathname: location.pathname, search: search ? `?${search}` : '' },
@@ -396,7 +410,12 @@ export function SearchPage() {
           catalogFieldIds={catalogFieldIds}
           setIndex={catalogSetIndex}
           draftFormatId={phoneDraftFormatId}
-          onDraftFormatChange={setPhoneDraftFormatId}
+          onDraftFormatChange={(formatId) => {
+            setPhoneDraftFormatId(formatId);
+            if (!formatId) {
+              setPhoneDraft((prev) => clearBanStatusSelection(prev));
+            }
+          }}
           formatPoolCount={formatPoolCount}
         />
       ) : null}

@@ -160,3 +160,11 @@ export function removeFilterChip(
 export function clearAllFilters(): FilterState {
   return emptyFilterState();
 }
+
+/** Drops Legality / banStatus selections (e.g. when format context is cleared). */
+export function clearBanStatusSelection(state: FilterState): FilterState {
+  if (!state.facets.banStatus) return state;
+  const next = cloneState(state);
+  delete next.facets.banStatus;
+  return next;
+}
