@@ -30,6 +30,7 @@ import type { FormatId } from '../format/formatCatalog.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
+import { computeFormatOptionPoolCounts } from '../catalog/formatOptionPoolCounts.ts';
 import { queryCatalog } from '../catalog/catalogQueryCache.ts';
 import {
   emptyFilterState,
@@ -150,8 +151,9 @@ export function SearchPage() {
       filterState,
       query: trimmedQuery,
       formatParam: activeFormatId,
+      setIndex: catalogSetIndex,
     }).facetGroupCounts;
-  }, [activeFormatId, catalogDerived, filterState, trimmedQuery]);
+  }, [activeFormatId, catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
 
   const draftFacetGroupCounts = useMemo(() => {
     if (!catalogDerived) return [];
@@ -159,8 +161,9 @@ export function SearchPage() {
       filterState: phoneDraft,
       query: trimmedQuery,
       formatParam: phoneDraftFormatId,
+      setIndex: catalogSetIndex,
     }).facetGroupCounts;
-  }, [catalogDerived, phoneDraft, phoneDraftFormatId, trimmedQuery]);
+  }, [catalogDerived, catalogSetIndex, phoneDraft, phoneDraftFormatId, trimmedQuery]);
 
   const draftMatchCount = useMemo(() => {
     if (!catalogDerived) return 0;
@@ -168,8 +171,9 @@ export function SearchPage() {
       filterState: phoneDraft,
       query: trimmedQuery,
       formatParam: phoneDraftFormatId,
+      setIndex: catalogSetIndex,
     }).matchCount;
-  }, [catalogDerived, phoneDraft, phoneDraftFormatId, trimmedQuery]);
+  }, [catalogDerived, catalogSetIndex, phoneDraft, phoneDraftFormatId, trimmedQuery]);
 
   const matchCount = useMemo(() => {
     if (!catalogDerived) return 0;
@@ -177,8 +181,9 @@ export function SearchPage() {
       filterState,
       query: trimmedQuery,
       formatParam: activeFormatId,
+      setIndex: catalogSetIndex,
     }).matchCount;
-  }, [activeFormatId, catalogDerived, filterState, trimmedQuery]);
+  }, [activeFormatId, catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
 
   const activeFilterCount = countActiveFacetSelections(filterState) + (activeFormatId ? 1 : 0);
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
@@ -274,7 +279,23 @@ export function SearchPage() {
     );
   }, [trimmedQuery, location.pathname, location.state, navigate, searchParams]);
 
-  const formatPoolCount = catalogState.status === 'ready' ? catalogState.cards.length : undefined;
+  const formatPoolCountsByFormatId = useMemo(() => {
+    if (!catalogDerived) return undefined;
+    return computeFormatOptionPoolCounts(catalogDerived, {
+      filterState,
+      query: trimmedQuery,
+      setIndex: catalogSetIndex,
+    });
+  }, [catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
+
+  const draftFormatPoolCountsByFormatId = useMemo(() => {
+    if (!catalogDerived) return undefined;
+    return computeFormatOptionPoolCounts(catalogDerived, {
+      filterState: phoneDraft,
+      query: trimmedQuery,
+      setIndex: catalogSetIndex,
+    });
+  }, [catalogDerived, catalogSetIndex, phoneDraft, trimmedQuery]);
 
   const openPhoneFilters = () => {
     setPhoneDraft(filterState);
@@ -314,7 +335,7 @@ export function SearchPage() {
                 setIndex={catalogSetIndex}
                 activeFormatId={activeFormatId}
                 onFormatChange={setActiveFormat}
-                formatPoolCount={formatPoolCount}
+                formatPoolCountsByFormatId={formatPoolCountsByFormatId}
               />
             </div>
           </aside>
@@ -416,7 +437,7 @@ export function SearchPage() {
               setPhoneDraft((prev) => clearBanStatusSelection(prev));
             }
           }}
-          formatPoolCount={formatPoolCount}
+          formatPoolCountsByFormatId={draftFormatPoolCountsByFormatId}
         />
       ) : null}
     </div>

@@ -1,5 +1,6 @@
 import type { BanDisplayStatus } from '../catalog/formatBanContext.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { isBanlistSnapshotFormatId, resolveSnapshotBanStatus } from './banlistSnapshots.ts';
 import { getFormatById, normalizeFormatId } from './formatCatalog.ts';
 
 type TcgBanField = 'banTcg';
@@ -32,8 +33,15 @@ export function resolveFormatBanStatus(
   const format = getFormatById(formatId);
   if (!format) return null;
 
-  const field = tcgBanFieldForFormat();
-  const raw = card.banlistInfo?.[field];
+  let raw: BanDisplayStatus | null;
+
+  if (format.banlistSource === 'curated-snapshot' && isBanlistSnapshotFormatId(formatId)) {
+    raw = resolveSnapshotBanStatus(formatId, card.id, card.passcode);
+  } else {
+    const field = tcgBanFieldForFormat();
+    raw = card.banlistInfo?.[field] ?? null;
+  }
+
   if (!raw) return null;
 
   if (format.traditionalForbiddenAsLimited && raw === 'Forbidden') {

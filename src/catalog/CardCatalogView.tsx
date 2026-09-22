@@ -329,10 +329,11 @@ export function CardCatalogView({
       filterState,
       query: trimmedQuery,
       formatParam: formatParam ?? null,
+      setIndex: state.status === 'ready' ? state.setIndex : undefined,
       ...(resolvedViewMode === 'table' ? { tableSort } : {}),
     });
     return { visibleCards: result.visibleCards, matchCount: result.matchCount };
-  }, [catalogDerived, filterState, formatParam, resolvedViewMode, tableSort, trimmedQuery]);
+  }, [catalogDerived, filterState, formatParam, resolvedViewMode, state, tableSort, trimmedQuery]);
 
   const { visibleCards, matchCount } = queryResult;
 

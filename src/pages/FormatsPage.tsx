@@ -3,16 +3,15 @@ import { Link } from 'react-router';
 
 import { formatCardCount } from '../catalog/formatCardCount.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
+import { FormatCatalogNameLabel } from '../format/FormatCatalogNameLabel.tsx';
 import {
   formatDetailPath,
   listFormatsNewestFirst,
   type FormatDefinition,
 } from '../format/formatCatalog.ts';
-import { formatCatalogSortDateLabel } from '../format/formatSortDateLabel.ts';
 import { writeFormatPreference } from '../format/formatPreference.ts';
 
 function FormatCatalogCard({ format, poolCount }: { format: FormatDefinition; poolCount: number }) {
-  const dateLabel = formatCatalogSortDateLabel(format.sortDate);
   const selectFormat = () => {
     writeFormatPreference(format.id);
   };
@@ -24,10 +23,11 @@ function FormatCatalogCard({ format, poolCount }: { format: FormatDefinition; po
         onClick={selectFormat}
         className="flex min-h-[var(--touch-min)] flex-col gap-1 rounded-md border border-border bg-surface px-4 py-4 text-heading transition-colors hover:border-border-strong hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
       >
-        <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <span className="text-lg font-semibold">{format.name}</span>
-          {dateLabel ? <span className="text-xs tabular-nums text-text-2">{dateLabel}</span> : null}
-        </span>
+        <FormatCatalogNameLabel
+          name={format.name}
+          sortDate={format.sortDate}
+          nameClassName="text-lg font-semibold text-heading"
+        />
         <span className="text-sm text-text-2">{format.cardSubtitle}</span>
         <span className="mt-1 text-xs text-text-2">{formatCardCount(poolCount)}</span>
       </Link>

@@ -1,11 +1,13 @@
 import { getFormatById, normalizeFormatId } from '../format/formatCatalog.ts';
 import { isCardInFormatPool } from '../format/formatPool.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import type { SetIndex } from '../shared/schema/setIndex.ts';
 
 export function filterCatalogIdsByFormatPool(
   ids: readonly number[],
   cardById: ReadonlyMap<number, YugiohCard>,
   formatParam: string | null | undefined,
+  setIndex?: SetIndex | null,
 ): readonly number[] {
   const formatId = normalizeFormatId(formatParam);
   if (!formatId) return ids;
@@ -19,7 +21,7 @@ export function filterCatalogIdsByFormatPool(
   for (let i = 0; i < ids.length; i++) {
     const id = ids[i]!;
     const card = cardById.get(id);
-    if (card && isCardInFormatPool(card, formatId)) {
+    if (card && isCardInFormatPool(card, formatId, setIndex)) {
       filtered.push(id);
     }
   }
