@@ -23,14 +23,20 @@ vi.mock('../shared/supabase/client.ts', () => ({
 
 function mockAuthClient(session: Session | null) {
   const unsubscribe = vi.fn();
+  const auth = {
+    getSession: vi.fn(async () => ({ data: { session }, error: null })),
+    onAuthStateChange: vi.fn((callback: (event: string, next: Session | null) => void) => {
+      callback('INITIAL_SESSION', session);
+      return { data: { subscription: { unsubscribe } } };
+    }),
+  };
   getSupabaseClient.mockReturnValue({
-    auth: {
-      getSession: vi.fn(async () => ({ data: { session }, error: null })),
-      onAuthStateChange: vi.fn((callback: (event: string, next: Session | null) => void) => {
-        callback('INITIAL_SESSION', session);
-        return { data: { subscription: { unsubscribe } } };
-      }),
-    },
+    auth,
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        order: vi.fn(async () => ({ data: [], error: null })),
+      })),
+    })),
   });
 }
 
@@ -93,7 +99,7 @@ describe('DecksPage sign-in gate', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Account' })).not.toBeNull();
   });
 
-  it('disables cloud actions when signed in', () => {
+  it('enables Save when signed in and keeps Share disabled', () => {
     mockAuthClient({
       access_token: 'token',
       refresh_token: 'refresh',
@@ -104,7 +110,7 @@ describe('DecksPage sign-in gate', () => {
 
     renderDecksAt('/decks');
 
-    expect(screen.getByRole('button', { name: 'Save' }).hasAttribute('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: 'Save' }).hasAttribute('disabled')).toBe(false);
     expect(screen.getByRole('button', { name: 'Share' }).hasAttribute('disabled')).toBe(true);
   });
 });
