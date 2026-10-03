@@ -41,6 +41,21 @@ YGOPRODeck has no HAT ban field; legality uses the snapshot only (G-14). Uncerta
 
 **Open:** Elemental HERO Grand Neos in `allCardsTengu.json` only (G-02). Four promo rows in `allCardsTengu.json` with post–Generation Force dates (G-16). Duplicate konamiCode rows in that file (G-17). Uncertain banlist rows: G-03, G-04, G-05, G-07–G-10, G-12.
 
+## Edison
+
+| Field | Value |
+|---|---|
+| Banlist effective date (`sortDate`) | 2010-03-01 |
+| List source | [Yugipedia March 2010 Lists (TCG)](https://yugipedia.com/wiki/March_2010_Lists_(TCG)) |
+| Community rules | [Edison Format banlist](https://edisonformat.net/rules/banlist) |
+| Format Library cross-check | [Edison Format](https://formatlibrary.com/formats/edison) (March 2010 list heading) |
+| Pool cutoff (chosen) | 2010-04-16 (Duelist Pack: Kaiba `tcg_date` on YGOPRODeck) |
+| Alternate pool ends (not chosen) | Duelist Revolution (2010-08-17); community sites sometimes cite later 2010 sets — excluded here to match edisonformat.net |
+
+The 132-row snapshot matches the March 2010 Forbidden / Limited / Semi-Limited tables on Yugipedia. YGOPRODeck has no Edison ban field; legality uses the snapshot only.
+
+**Open:** edisonformat.net notes some Hidden Arsenal prints are not legal despite release timing; the app pool rule is earliest TCG set date only and does not model that exception. Cards with no earliest TCG date in the published set index are excluded from the pool (same as other historical formats).
+
 ## Release-date pool gaps
 
-When a card has printings but none resolve to a `tcgDate` in the published set index, `isCardInFormatPool` excludes it from GOAT / HAT / Tengu. Those cards are not flagged in banlist JSON; they are pool-only gaps.
+When a card has printings but none resolve to a `tcgDate` in the published set index, `isCardInFormatPool` excludes it from GOAT / HAT / Tengu / Edison. Those cards are not flagged in banlist JSON; they are pool-only gaps.

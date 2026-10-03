@@ -4,7 +4,10 @@ import {
   lookupBanlistSnapshotCard,
   resolveSnapshotBanStatus,
 } from '../../src/format/banlistSnapshots.ts';
-import { resolveFormatBanStatus } from '../../src/format/formatBanStatus.ts';
+import {
+  resolveFormatBanStatus,
+  maxCopiesForCardInFormat,
+} from '../../src/format/formatBanStatus.ts';
 import type { YugiohCard } from '../../src/shared/schema/card.ts';
 
 function minimalCard(overrides: Partial<YugiohCard> & Pick<YugiohCard, 'id' | 'name'>): YugiohCard {
@@ -31,6 +34,11 @@ describe('banlistSnapshots', () => {
     expect(row?.status).toBe('limited');
   });
 
+  it('loads Edison Forbidden status for Dark Hole', () => {
+    expect(resolveSnapshotBanStatus('edison', 53129443, 53129443)).toBe('Forbidden');
+    expect(lookupBanlistSnapshotCard('edison', { passcode: '53129443' })?.name).toBe('Dark Hole');
+  });
+
   it('returns null for cards not on the Tengu snapshot', () => {
     expect(resolveSnapshotBanStatus('tengu', 99999999, undefined)).toBeNull();
   });
@@ -47,5 +55,14 @@ describe('formatBanStatus with curated snapshots', () => {
       name: 'Chaos Emperor Dragon - Envoy of the End',
     });
     expect(resolveFormatBanStatus(card, 'goat')).toBe('Forbidden');
+  });
+
+  it('uses the Edison snapshot instead of current TCG banlist_info', () => {
+    const card = minimalCard({
+      id: 53129443,
+      name: 'Dark Hole',
+    });
+    expect(resolveFormatBanStatus(card, 'edison')).toBe('Forbidden');
+    expect(maxCopiesForCardInFormat(card, 'edison')).toBe(0);
   });
 });

@@ -10,6 +10,9 @@ const setIndex: SetIndex = {
   'Shadow of Infinity': { tcgDate: '2005-10-20' },
   'Generation Force': { tcgDate: '2011-08-16' },
   'Photon Shockwave': { tcgDate: '2011-11-15' },
+  'Duelist Pack: Kaiba': { tcgDate: '2010-04-16' },
+  'The Shining Darkness': { tcgDate: '2010-05-07' },
+  'Starstrike Blast': { tcgDate: '2010-11-11' },
 };
 
 function cardInSet(id: number, name: string, setName: string): YugiohCard {
@@ -38,6 +41,15 @@ describe('formatPool tcg-earliest-on-or-before', () => {
     const outOfPool = cardInSet(4, 'Later set', 'Photon Shockwave');
     expect(isCardInFormatPool(inPool, 'tengu', setIndex)).toBe(true);
     expect(isCardInFormatPool(outOfPool, 'tengu', setIndex)).toBe(false);
+  });
+
+  it('includes Duelist Pack: Kaiba in Edison and excludes later 2010 sets', () => {
+    const inPool = cardInSet(7, 'DPKB card', 'Duelist Pack: Kaiba');
+    const outOfPool = cardInSet(8, 'Post-Edison pool', 'The Shining Darkness');
+    const later = cardInSet(9, 'Later era', 'Starstrike Blast');
+    expect(isCardInFormatPool(inPool, 'edison', setIndex)).toBe(true);
+    expect(isCardInFormatPool(outOfPool, 'edison', setIndex)).toBe(false);
+    expect(isCardInFormatPool(later, 'edison', setIndex)).toBe(false);
   });
 
   it('excludes cards with no resolvable earliest TCG date from historical pools', () => {

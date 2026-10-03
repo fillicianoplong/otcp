@@ -15,7 +15,7 @@ export const banlistSnapshotCardSchema = z
 
 export const formatBanlistSnapshotSchema = z
   .object({
-    formatId: z.enum(['goat', 'hat', 'tengu']),
+    formatId: z.enum(['goat', 'hat', 'tengu', 'edison']),
     name: z.string().min(1),
     listName: z.string().min(1),
     effectiveDate: z.string().min(1),
