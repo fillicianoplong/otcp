@@ -74,7 +74,7 @@ describe('formatCatalog', () => {
 });
 
 describe('formatCatalogSortDatePrefix', () => {
-  it('returns full YYYY-MM-DD from catalog sortDate for format labels', () => {
+  it('returns full YYYY-MM-DD from catalog sortDate for sorting metadata', () => {
     expect(formatCatalogSortDatePrefix('2026-02-02')).toBe('2026-02-02');
     expect(formatCatalogSortDatePrefix('2005-04-01')).toBe('2005-04-01');
     expect(formatCatalogSortDatePrefix(undefined)).toBeNull();
