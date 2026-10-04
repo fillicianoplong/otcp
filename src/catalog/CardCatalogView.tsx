@@ -6,7 +6,7 @@ import { queryCatalog } from './catalogQueryCache.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
-import { CATALOG_GRID_CLASS } from './catalogGridLayout.ts';
+import { CATALOG_GRID_CLASS, CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
 import {
   gridHasMore,
   initialGridVisibleCount,
@@ -48,14 +48,14 @@ function CardArt({ card, formatParam }: { card: YugiohCard; formatParam?: string
   const banStatus = resolveCardBanForFormat(card, formatParam);
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden leading-none">
       <img
         src={card.images.small}
         alt={card.name}
         loading="lazy"
         decoding="async"
         onError={() => setMissing(true)}
-        className="aspect-[59/86] w-full object-cover"
+        className={CATALOG_GRID_TILE_ART_CLASS}
       />
       {banStatus ? <BanThumbMarker status={banStatus} /> : null}
     </div>
