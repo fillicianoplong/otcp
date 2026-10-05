@@ -26,6 +26,7 @@ import {
   toCatalogSearchCard,
   writeSplitDataset,
 } from './splitDataset.ts';
+import { computeGenesysPointsDiff, formatGenesysPointsDiffForLog } from './genesysPointsDiff.ts';
 import {
   isPublishedPointerLegacy,
   type PublishedPointer,
@@ -153,6 +154,9 @@ export async function runPipeline(
   }
 
   const ordered = cards.slice().sort((a, b) => a.id - b.id || a.name.localeCompare(b.name));
+  const genesysDiff = computeGenesysPointsDiff(ordered);
+  console.log(formatGenesysPointsDiffForLog(genesysDiff));
+
   const searchCards = ordered.map((card, index) =>
     toCatalogSearchCard(card, Math.floor(index / DEFAULT_DETAIL_BUCKET_SIZE)),
   );

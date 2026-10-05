@@ -4,24 +4,31 @@ import type { FormatId } from '../format/formatCatalog.ts';
 export type GuestDeckDraft = {
   id: string;
   name: string;
+  formatId: FormatId;
   main: number[];
   extra: number[];
   side: number[];
+  /** User-set Genesys cap; omitted uses default 100 when format is Genesys. */
+  genesysCap?: number;
   updatedAt: string;
 };
 
 export type GuestDeckDraftInput = {
   name?: string;
+  formatId?: FormatId;
   main?: number[];
   extra?: number[];
   side?: number[];
+  genesysCap?: number | null;
 };
 
 export type GuestDeckDraftUpdate = {
   name?: string;
+  formatId?: FormatId;
   main?: number[];
   extra?: number[];
   side?: number[];
+  genesysCap?: number | null;
 };
 
 /** Saved deck row owned by the signed-in user (Supabase). */
@@ -32,6 +39,7 @@ export type SavedDeck = {
   main: number[];
   extra: number[];
   side: number[];
+  genesysCap?: number;
   updatedAt: string;
 };
 
@@ -41,6 +49,7 @@ export type SavedDeckInput = {
   main?: number[];
   extra?: number[];
   side?: number[];
+  genesysCap?: number | null;
 };
 
 export type SavedDeckUpdate = {
@@ -49,4 +58,5 @@ export type SavedDeckUpdate = {
   main?: number[];
   extra?: number[];
   side?: number[];
+  genesysCap?: number | null;
 };

@@ -30,10 +30,19 @@ describe('formatPreference', () => {
     expect(resolved.formatId).toBe('advanced');
   });
 
-  it('ignores invalid stored values', () => {
+  it('accepts Genesys in stored preference', () => {
     const resolved = resolveFormatPreference({
       urlParam: null,
       storedRaw: 'genesys',
+    });
+    expect(resolved.formatId).toBe('genesys');
+    expect(resolved.invalidStored).toBe(false);
+  });
+
+  it('ignores invalid stored values', () => {
+    const resolved = resolveFormatPreference({
+      urlParam: null,
+      storedRaw: 'not-a-format',
     });
     expect(resolved.formatId).toBeNull();
     expect(resolved.invalidStored).toBe(true);

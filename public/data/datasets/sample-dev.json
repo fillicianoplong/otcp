@@ -346,6 +346,7 @@
       "atk": 0,
       "def": 1800,
       "race": "Zombie",
+      "genesysPoints": 18,
       "prices": {
         "tcgplayer": 18
       }

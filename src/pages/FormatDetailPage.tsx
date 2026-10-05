@@ -19,6 +19,7 @@ import {
   type FormatBanlistCardEntry,
   type FormatBanlistSection,
 } from '../format/formatBanlistPageModel.ts';
+import { isGenesysPlaceholderCardId } from '../format/genesysPlaceholderCard.ts';
 import {
   getFormatById,
   normalizeFormatId,
@@ -48,6 +49,14 @@ function FormatDetailMessage({ title, children }: { title: string; children: str
   );
 }
 
+function FormatBanNameTile({ name }: { name: string }) {
+  return (
+    <div className="flex aspect-[59/86] w-full items-center justify-center rounded-sm border border-border bg-surface-2 p-1 text-center text-[10px] leading-tight text-heading">
+      {name}
+    </div>
+  );
+}
+
 function FormatBanGridTile({
   entry,
   formatId,
@@ -55,7 +64,39 @@ function FormatBanGridTile({
   entry: FormatBanlistCardEntry;
   formatId: FormatId;
 }) {
-  const { card, banStatus, changeBadge } = entry;
+  const { card, banStatus, changeBadge, genesysPoints } = entry;
+  const placeholder = isGenesysPlaceholderCardId(card.id);
+  const tile = (
+    <div className="relative w-full overflow-hidden">
+      {card.images.small ? (
+        <img
+          src={card.images.small}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="aspect-[59/86] w-full object-cover"
+        />
+      ) : (
+        <FormatBanNameTile name={card.name} />
+      )}
+      {banStatus ? <BanThumbMarker status={banStatus} /> : null}
+      {changeBadge ? <BanlistChangeBadgeMarker badge={changeBadge} /> : null}
+      {genesysPoints != null ? (
+        <span className="absolute bottom-0 left-0 right-0 bg-bg/90 px-1 py-0.5 text-center text-[10px] font-medium leading-tight text-heading">
+          {genesysPoints} pts
+        </span>
+      ) : null}
+    </div>
+  );
+
+  if (placeholder) {
+    return (
+      <li aria-label={card.name} className="block rounded-sm">
+        {tile}
+      </li>
+    );
+  }
+
   return (
     <li>
       <Link
@@ -63,17 +104,7 @@ function FormatBanGridTile({
         aria-label={card.name}
         className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
       >
-        <div className="relative w-full overflow-hidden">
-          <img
-            src={card.images.small}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="aspect-[59/86] w-full object-cover"
-          />
-          {banStatus ? <BanThumbMarker status={banStatus} /> : null}
-          {changeBadge ? <BanlistChangeBadgeMarker badge={changeBadge} /> : null}
-        </div>
+        {tile}
       </Link>
     </li>
   );
@@ -129,15 +160,59 @@ function FormatBanListSection({
         <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
       </div>
       <ul className="divide-y divide-border">
-        {section.cards.map((entry) => (
-          <CardListRow
-            key={entry.card.id}
-            card={entry.card}
-            searchQuery=""
-            formatParam={formatId}
-            detailPath={buildSearchCardDetailPath(entry.card.id, { formatParam: formatId })}
-          />
-        ))}
+        {section.cards.map((entry) => {
+          const placeholder = isGenesysPlaceholderCardId(entry.card.id);
+          const rowBody = (
+            <>
+              <div className="relative w-9 shrink-0 overflow-hidden rounded-sm bg-surface-2">
+                {entry.card.images.small ? (
+                  <img
+                    src={entry.card.images.small}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[59/86] w-full object-cover"
+                  />
+                ) : (
+                  <FormatBanNameTile name={entry.card.name} />
+                )}
+              </div>
+              <p className="min-w-0 flex-1 truncate text-sm font-medium text-heading">
+                {entry.card.name}
+              </p>
+              {entry.genesysPoints != null ? (
+                <span className="shrink-0 text-sm text-heading">{entry.genesysPoints} pts</span>
+              ) : null}
+            </>
+          );
+
+          if (entry.genesysPoints != null) {
+            return (
+              <li key={`${entry.card.id}-${entry.genesysPoints}`}>
+                {placeholder ? (
+                  <div className="flex items-center gap-3 px-2 py-2">{rowBody}</div>
+                ) : (
+                  <Link
+                    to={buildSearchCardDetailPath(entry.card.id, { formatParam: formatId })}
+                    className="flex items-center gap-3 px-2 py-2 transition-colors hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
+                  >
+                    {rowBody}
+                  </Link>
+                )}
+              </li>
+            );
+          }
+
+          return (
+            <CardListRow
+              key={entry.card.id}
+              card={entry.card}
+              searchQuery=""
+              formatParam={formatId}
+              detailPath={buildSearchCardDetailPath(entry.card.id, { formatParam: formatId })}
+            />
+          );
+        })}
       </ul>
     </section>
   );

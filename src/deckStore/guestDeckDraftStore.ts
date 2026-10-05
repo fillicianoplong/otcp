@@ -1,15 +1,30 @@
 import { z } from 'zod';
 
+import { type FormatId, isKnownFormatId } from '../format/formatCatalog.ts';
+import { readFormatPreference, resolveFormatPreference } from '../format/formatPreference.ts';
 import { readLocalStorageString, writeLocalStorageString } from '../shared/safeLocalStorage.ts';
 import type { GuestDeckDraft, GuestDeckDraftInput, GuestDeckDraftUpdate } from './types.ts';
 
 export const GUEST_DECK_DRAFTS_STORAGE_KEY = 'otcp:guest-deck-drafts:v1';
 
-export const GUEST_DECK_DRAFTS_STORAGE_VERSION = 1;
+export const GUEST_DECK_DRAFTS_STORAGE_VERSION = 2;
 
 const cardIdSchema = z.number().int().positive();
 
+const formatIdSchema = z.string().refine((value) => isKnownFormatId(value), 'Unknown format');
+
 const guestDeckDraftSchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  formatId: formatIdSchema,
+  main: z.array(cardIdSchema),
+  extra: z.array(cardIdSchema),
+  side: z.array(cardIdSchema),
+  genesysCap: z.number().int().min(0).optional(),
+  updatedAt: z.string().min(1),
+});
+
+const legacyGuestDeckDraftSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
   main: z.array(cardIdSchema),
@@ -23,7 +38,15 @@ const storageEnvelopeSchema = z.object({
   drafts: z.array(guestDeckDraftSchema),
 });
 
-type StorageEnvelope = z.infer<typeof storageEnvelopeSchema>;
+const legacyStorageEnvelopeSchema = z.object({
+  version: z.literal(1),
+  drafts: z.array(legacyGuestDeckDraftSchema),
+});
+
+type StorageEnvelope = {
+  version: typeof GUEST_DECK_DRAFTS_STORAGE_VERSION;
+  drafts: GuestDeckDraft[];
+};
 
 function newDraftId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -34,6 +57,14 @@ function newDraftId(): string {
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function defaultFormatIdForNewDeck(): FormatId {
+  const resolved = resolveFormatPreference({
+    urlParam: null,
+    storedRaw: readFormatPreference(),
+  });
+  return resolved.formatId ?? 'advanced';
 }
 
 function readEnvelope(): StorageEnvelope | null {
@@ -49,12 +80,28 @@ function readEnvelope(): StorageEnvelope | null {
     return null;
   }
 
-  const result = storageEnvelopeSchema.safeParse(parsed);
-  if (!result.success) {
+  const current = storageEnvelopeSchema.safeParse(parsed);
+  if (current.success) {
+    return {
+      version: current.data.version,
+      drafts: current.data.drafts as GuestDeckDraft[],
+    };
+  }
+
+  const legacy = legacyStorageEnvelopeSchema.safeParse(parsed);
+  if (!legacy.success) {
     return null;
   }
 
-  return result.data;
+  const migrated: StorageEnvelope = {
+    version: GUEST_DECK_DRAFTS_STORAGE_VERSION,
+    drafts: legacy.data.drafts.map((draft) => ({
+      ...draft,
+      formatId: defaultFormatIdForNewDeck(),
+    })) as GuestDeckDraft[],
+  };
+  writeEnvelope(migrated.drafts);
+  return migrated;
 }
 
 function writeEnvelope(drafts: GuestDeckDraft[]): void {
@@ -90,9 +137,11 @@ export function createGuestDeckDraft(input: GuestDeckDraftInput = {}): GuestDeck
   const draft: GuestDeckDraft = {
     id: newDraftId(),
     name: input.name?.trim() || 'Untitled deck',
+    formatId: input.formatId ?? defaultFormatIdForNewDeck(),
     main: input.main ?? [],
     extra: input.extra ?? [],
     side: input.side ?? [],
+    ...(input.genesysCap != null ? { genesysCap: Math.trunc(input.genesysCap) } : {}),
     updatedAt: nowIso(),
   };
 
@@ -117,9 +166,15 @@ export function updateGuestDeckDraft(
   const next: GuestDeckDraft = {
     ...current,
     ...(update.name !== undefined ? { name: update.name.trim() || 'Untitled deck' } : {}),
+    ...(update.formatId !== undefined ? { formatId: update.formatId } : {}),
     ...(update.main !== undefined ? { main: [...update.main] } : {}),
     ...(update.extra !== undefined ? { extra: [...update.extra] } : {}),
     ...(update.side !== undefined ? { side: [...update.side] } : {}),
+    ...(update.genesysCap === null
+      ? { genesysCap: undefined }
+      : update.genesysCap !== undefined
+        ? { genesysCap: Math.trunc(update.genesysCap) }
+        : {}),
     updatedAt: nowIso(),
   };
 

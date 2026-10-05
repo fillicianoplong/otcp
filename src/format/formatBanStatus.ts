@@ -33,6 +33,10 @@ export function resolveFormatBanStatus(
   const format = getFormatById(formatId);
   if (!format) return null;
 
+  if (format.banlistSource === 'genesys-points') {
+    return null;
+  }
+
   let raw: BanDisplayStatus | null;
 
   if (format.banlistSource === 'curated-snapshot' && isBanlistSnapshotFormatId(formatId)) {
@@ -70,5 +74,8 @@ export function maxCopiesForCardInFormat(
   card: YugiohCard,
   formatParam: string | null | undefined,
 ): number {
+  if (normalizeFormatId(formatParam) === 'genesys') {
+    return 3;
+  }
   return maxCopiesForFormatBanStatus(resolveFormatBanStatus(card, formatParam));
 }

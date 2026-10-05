@@ -44,7 +44,7 @@ function SourceLinksStacked({ links }: { links: readonly FormatSourceLink[] }) {
 }
 
 export function FormatDetailFactsBlock({ facts }: { facts: FormatDetailFacts }) {
-  const { description, banList, cardPool, sourceLinks } = facts;
+  const { description, banList, cardPool, genesysDetail, sourceLinks } = facts;
 
   return (
     <aside className={DETAILS_BOX_CLASS} aria-label="Format details">
@@ -53,10 +53,23 @@ export function FormatDetailFactsBlock({ facts }: { facts: FormatDetailFacts }) 
           <p className={`mb-3 text-sm leading-relaxed text-text-2 ${WRAP_CLASS}`}>{description}</p>
         ) : null}
         <dl className={WRAP_CLASS}>
+          {genesysDetail ? (
+            <>
+              <SpecRow label="Ban list">
+                <span>{genesysDetail.banListName}</span>
+              </SpecRow>
+              <SpecRow label="Point cap">
+                <span>{genesysDetail.pointCap}</span>
+              </SpecRow>
+              <SpecRow label="Not included">
+                <span>{genesysDetail.notIncluded}</span>
+              </SpecRow>
+            </>
+          ) : null}
           {banList ? (
             <>
               <SpecRow label="Effective">
-                <span className="tabular-nums">{banList.effectiveDate}</span>
+                <span>{banList.effectiveDate}</span>
               </SpecRow>
               <SpecRow label="Ban list">
                 <span>{banList.listName}</span>

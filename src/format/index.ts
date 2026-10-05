@@ -12,6 +12,16 @@ export {
   type FormatId,
 } from './formatCatalog.ts';
 export {
+  DEFAULT_GENESYS_POINT_CAP,
+  evaluateGenesysDeckPoints,
+  formatUsesGenesysPoints,
+  genesysRefusalReasonForCard,
+  isGenesysFormat,
+  resolveGenesysPointCap,
+  resolveGenesysPoints,
+} from './formatEngine/index.ts';
+export { lookupKonamiGenesysPointsByName } from './genesysKonamiPoints.ts';
+export {
   maxCopiesForCardInFormat,
   maxCopiesForFormatBanStatus,
   resolveAdvancedBanStatus,

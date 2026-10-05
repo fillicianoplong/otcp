@@ -19,8 +19,18 @@ test.describe('Format banlist pages', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Formats' })).toBeVisible();
 
     const links = page.locator('main ul li a');
-    await expect(links.first()).toHaveText('Advanced');
-    await expect(links.nth(1)).toHaveText('Traditional');
+    const expectedOrder = [
+      'Advanced',
+      'Traditional',
+      'Genesys',
+      'HAT',
+      'Tengu Plant',
+      'Edison',
+      'GOAT',
+    ];
+    for (let index = 0; index < expectedOrder.length; index += 1) {
+      await expect(links.nth(index)).toHaveText(expectedOrder[index]!);
+    }
 
     await links.filter({ hasText: 'GOAT' }).click();
     await expect(page).toHaveURL(/\/otcp\/formats\/goat$/);
