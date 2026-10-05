@@ -25,6 +25,7 @@ describe('buildFormatDetailFacts', () => {
     expect(facts.banList).toEqual({
       effectiveDate: '2005-04-01',
       listName: 'April 2005 TCG Forbidden/Limited List',
+      historyPath: '/banlists/2005-04-01',
     });
     expect(facts.cardPool).toEqual({
       cardsReleasedBy: '2005-08-31',

@@ -22,6 +22,7 @@ function renderAt(path: string) {
             <Route element={<AppShell />}>
               <Route path="/search" element={<SearchPage />} />
               <Route path="/formats" element={<h1>Formats</h1>} />
+              <Route path="/banlists" element={<h1>Banlists</h1>} />
               <Route path="/decks" element={<h1>Decks</h1>} />
               <Route path="/collection" element={<h1>Collection</h1>} />
               <Route path="/lists" element={<h1>Lists</h1>} />

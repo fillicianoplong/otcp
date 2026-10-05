@@ -6,7 +6,8 @@ import { queryCatalog } from './catalogQueryCache.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
-import { CATALOG_GRID_CLASS, CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
+import { CATALOG_GRID_CLASS } from './catalogGridLayout.ts';
+import { CatalogGridTileFrame, CatalogGridTileImage } from './CatalogGridTileArt.tsx';
 import {
   gridHasMore,
   initialGridVisibleCount,
@@ -34,31 +35,13 @@ import { formatCardCount } from './formatCardCount.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
 
 function CardArt({ card, formatParam }: { card: YugiohCard; formatParam?: string | null }) {
-  const [missing, setMissing] = useState(false);
-
-  if (missing) {
-    return (
-      <div className="flex aspect-[59/86] w-full flex-col items-center justify-center gap-1 rounded-sm bg-surface-2 px-2 text-center text-xs text-text-2">
-        <span>No image</span>
-        <span className="font-medium text-heading">{card.name}</span>
-      </div>
-    );
-  }
-
   const banStatus = resolveCardBanForFormat(card, formatParam);
 
   return (
-    <div className="relative w-full overflow-hidden leading-none">
-      <img
-        src={card.images.small}
-        alt={card.name}
-        loading="lazy"
-        decoding="async"
-        onError={() => setMissing(true)}
-        className={CATALOG_GRID_TILE_ART_CLASS}
-      />
+    <CatalogGridTileFrame>
+      <CatalogGridTileImage card={card} />
       {banStatus ? <BanThumbMarker status={banStatus} /> : null}
-    </div>
+    </CatalogGridTileFrame>
   );
 }
 

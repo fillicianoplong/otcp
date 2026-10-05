@@ -11,6 +11,8 @@ import { FormatDetailPage } from './pages/FormatDetailPage';
 import { ListsPage } from './pages/ListsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AboutPage } from './pages/AboutPage';
+import { BanlistDetailPage } from './pages/BanlistDetailPage';
+import { BanlistsPage } from './pages/BanlistsPage';
 import { CardDetailPage } from './pages/CardDetailPage';
 import { SearchPage } from './pages/SearchPage';
 
@@ -26,6 +28,8 @@ export function App() {
               <Route path="search/card/:id" element={<CardDetailPage />} />
               <Route path="formats" element={<FormatsPage />} />
               <Route path="formats/:formatId" element={<FormatDetailPage />} />
+              <Route path="banlists" element={<BanlistsPage />} />
+              <Route path="banlists/:effectiveDate" element={<BanlistDetailPage />} />
               <Route path="decks" element={<DecksPage />} />
               <Route path="decks/edit/:draftId" element={<DeckEditorPage />} />
               <Route path="collection" element={<CollectionPage />} />

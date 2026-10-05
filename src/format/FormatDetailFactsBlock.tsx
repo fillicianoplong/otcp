@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router';
 
 import type { FormatDetailFacts, FormatSourceLink } from './formatDetailFacts.ts';
 
@@ -74,7 +75,16 @@ export function FormatDetailFactsBlock({ facts }: { facts: FormatDetailFacts }) 
                 </SpecRow>
               ) : null}
               <SpecRow label="Ban list">
-                <span>{banList.listName}</span>
+                {banList.historyPath ? (
+                  <Link
+                    to={banList.historyPath}
+                    className={`${VALUE_CLASS} hover:underline hover:underline-offset-2`}
+                  >
+                    {banList.listName}
+                  </Link>
+                ) : (
+                  <span>{banList.listName}</span>
+                )}
               </SpecRow>
             </>
           ) : null}

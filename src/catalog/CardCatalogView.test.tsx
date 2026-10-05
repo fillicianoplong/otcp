@@ -81,7 +81,7 @@ describe('CardCatalogView grid tiles', () => {
     image.dispatchEvent(new Event('error'));
 
     await waitFor(() => {
-      expect(screen.getByText('No image')).toBeTruthy();
+      expect(screen.queryByRole('img', { name: 'Blue-Eyes White Dragon' })).toBeNull();
       expect(screen.getByText('Blue-Eyes White Dragon', { selector: 'span' })).toBeTruthy();
     });
   });
