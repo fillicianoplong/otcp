@@ -12,11 +12,12 @@ import {
 import { formatCatalogSortDatePrefix } from '../../src/format/formatSortDateLabel.ts';
 
 describe('formatCatalog', () => {
-  it('lists Advanced, Traditional, Genesys, and curated historical formats', () => {
-    expect(listFormats()).toHaveLength(7);
+  it('lists Advanced, Traditional, Speed Duel, Genesys, and curated historical formats', () => {
+    expect(listFormats()).toHaveLength(8);
     expect(FORMAT_CATALOG.map((f) => f.id)).toEqual([
       'advanced',
       'traditional',
+      'speed-duel',
       'genesys',
       'hat',
       'tengu',
@@ -25,10 +26,18 @@ describe('formatCatalog', () => {
     ]);
   });
 
-  it('sorts formats with Genesys after Advanced and Traditional', () => {
+  it('sorts formats with Speed Duel and Genesys after Advanced and Traditional', () => {
     const ids = listFormatsNewestFirst().map((f) => f.id);
-    expect(ids.slice(0, 3)).toEqual(['advanced', 'traditional', 'genesys']);
-    expect(ids).toContain('goat');
+    expect(ids).toEqual([
+      'advanced',
+      'traditional',
+      'speed-duel',
+      'genesys',
+      'hat',
+      'tengu',
+      'edison',
+      'goat',
+    ]);
   });
 
   it('resolves format ids case-insensitively', () => {

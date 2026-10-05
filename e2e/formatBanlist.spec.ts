@@ -22,6 +22,7 @@ test.describe('Format banlist pages', () => {
     const expectedOrder = [
       'Advanced',
       'Traditional',
+      'Speed Duel',
       'Genesys',
       'HAT',
       'Tengu Plant',

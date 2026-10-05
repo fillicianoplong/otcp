@@ -6,7 +6,7 @@ import { serializeFilterState } from '../src/catalog/filterEngine.ts';
 test.describe('Facet filters on Search page', () => {
   test('toggling an attribute facet changes the result count', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const darkCheckbox = page
       .getByRole('complementary', { name: 'Filter sidebar' })
@@ -21,7 +21,7 @@ test.describe('Facet filters on Search page', () => {
 
   test('cycles include, exclude, and off on tri-state checkboxes', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
     const darkOption = () =>
@@ -60,7 +60,7 @@ test.describe('Facet filters on Search page', () => {
 
   test('lists set facet options newest first in the filter panel', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
     const setHeading = sidebar.getByRole('button', { name: 'Set', exact: true });
@@ -78,7 +78,7 @@ test.describe('Facet filters on Search page', () => {
 
   test('updates facet counts in other groups when attribute is filtered', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
     const frameHeading = sidebar.getByRole('button', { name: 'Monster card type', exact: true });
@@ -100,24 +100,24 @@ test.describe('Facet filters on Search page', () => {
 
   test('short facet groups avoid inner scroll and expand with Show more', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
-    const frameHeading = sidebar.getByRole('button', { name: 'Monster card type', exact: true });
-    if ((await frameHeading.getAttribute('aria-expanded')) === 'false') {
-      await frameHeading.click();
+    const raceHeading = sidebar.getByRole('button', { name: 'Monster type / race', exact: true });
+    if ((await raceHeading.getAttribute('aria-expanded')) === 'false') {
+      await raceHeading.click();
     }
 
-    const optionList = sidebar.locator('[data-facet-options="monsterFrame"]');
+    const optionList = sidebar.locator('[data-facet-options="race"]');
     await expect(optionList).toHaveCount(1);
     const overflowBefore = await optionList.evaluate((el) => getComputedStyle(el).overflowY);
     expect(overflowBefore).not.toBe('auto');
     expect(overflowBefore).not.toBe('scroll');
 
-    const frameSection = frameHeading.locator('xpath=ancestor::section[1]');
-    await expect(frameSection.getByRole('checkbox')).toHaveCount(8);
-    await frameSection.getByRole('button', { name: 'Show more' }).click();
-    await expect(frameSection.getByRole('checkbox')).toHaveCount(10);
+    const raceSection = raceHeading.locator('xpath=ancestor::section[1]');
+    await expect(raceSection.getByRole('checkbox')).toHaveCount(8);
+    await raceSection.getByRole('button', { name: 'Show more' }).click();
+    await expect(raceSection.getByRole('checkbox')).toHaveCount(10);
 
     const overflowAfterExpand = await optionList.evaluate((el) => getComputedStyle(el).overflowY);
     expect(overflowAfterExpand).not.toBe('auto');

@@ -11,13 +11,32 @@ import {
   resolveGenesysPointCap,
   resolveGenesysPoints,
 } from '../format/formatEngine/genesysRules.ts';
+import { evaluateDeckAdd, type DeckListState } from '../format/formatEngine.ts';
 import { formatDisplayName, listFormats, type FormatId } from '../format/formatCatalog.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
 const panelClassName = 'rounded-md border border-border bg-surface p-4';
 
+const SAMPLE_SKILL_IDS = {
+  heroesUnite: 300302050,
+  ancientFusion: 300302022,
+} as const;
+
 function deckSectionLabel(main: number, extra: number, side: number): string {
   return `Main ${main}  Extra ${extra}  Side ${side}`;
+}
+
+function deckStateFromDraft(draft: GuestDeckDraft): DeckListState {
+  return {
+    main: draft.main,
+    extra: draft.extra,
+    side: draft.side,
+    skillId: draft.skillId ?? null,
+  };
+}
+
+function findCatalogCard(cards: readonly YugiohCard[], id: number): YugiohCard | undefined {
+  return cards.find((card) => card.id === id);
 }
 
 function GenesysPointsBar({
@@ -77,6 +96,7 @@ export function DeckEditorPage() {
   const [draft, setDraft] = useState<GuestDeckDraft | null>(initialDraft);
   const [passcodeInput, setPasscodeInput] = useState('');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [skillRefusalMessage, setSkillRefusalMessage] = useState<string | null>(null);
   const [capInput, setCapInput] = useState(() =>
     initialDraft?.genesysCap != null ? String(initialDraft.genesysCap) : '',
   );
@@ -89,6 +109,11 @@ export function DeckEditorPage() {
   }, [catalogState]);
 
   const lookupCard = useCallback((id: number) => catalogById.get(id), [catalogById]);
+
+  const catalogCards = catalogState.status === 'ready' ? catalogState.cards : [];
+
+  const skillCard =
+    draft?.skillId != null ? (findCatalogCard(catalogCards, draft.skillId) ?? null) : null;
 
   const genesysStatus = useMemo(() => {
     if (!draft || !isGenesysFormat(draft.formatId)) {
@@ -111,9 +136,11 @@ export function DeckEditorPage() {
     const next = updateGuestDeckDraft(draft.id, {
       formatId,
       ...(formatId !== 'genesys' ? { genesysCap: null } : {}),
+      ...(formatId !== 'speed-duel' ? { skillId: null } : {}),
     });
     if (next) {
       setDraft(next);
+      setSkillRefusalMessage(null);
       if (formatId !== 'genesys') {
         setCapInput('');
       }
@@ -132,6 +159,26 @@ export function DeckEditorPage() {
       return;
     }
     const next = updateGuestDeckDraft(draft.id, { genesysCap: Math.trunc(parsed) });
+    if (next) setDraft(next);
+  };
+
+  const trySetSkill = (skillCardId: number) => {
+    if (catalogState.status !== 'ready') {
+      setSkillRefusalMessage('Catalog is still loading.');
+      return;
+    }
+    const card = findCatalogCard(catalogCards, skillCardId);
+    if (!card) {
+      setSkillRefusalMessage('That Skill card is not in the loaded catalog.');
+      return;
+    }
+    const evaluation = evaluateDeckAdd(card, 'skill', deckStateFromDraft(draft), draft.formatId);
+    if (!evaluation.ok) {
+      setSkillRefusalMessage(evaluation.message);
+      return;
+    }
+    setSkillRefusalMessage(null);
+    const next = updateGuestDeckDraft(draft.id, { skillId: skillCardId });
     if (next) setDraft(next);
   };
 
@@ -234,6 +281,45 @@ export function DeckEditorPage() {
           capInput={capInput}
           onCapInputChange={handleCapInputChange}
         />
+      ) : null}
+
+      {draft.formatId === 'speed-duel' ? (
+        <div className={`${panelClassName} space-y-3`} aria-labelledby="skill-heading">
+          <h2 id="skill-heading" className="text-base font-semibold text-heading">
+            Skill card
+          </h2>
+          <p className="text-sm text-text-2">
+            Speed Duel allows one active Skill. It does not count toward Main Deck size.
+          </p>
+          {skillCard ? (
+            <p className="text-sm text-heading">
+              Active Skill: <span className="font-medium">{skillCard.name}</span>
+            </p>
+          ) : (
+            <p className="text-sm text-text-2">No Skill selected yet.</p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90"
+              onClick={() => trySetSkill(SAMPLE_SKILL_IDS.heroesUnite)}
+            >
+              Set HEROES UNITE - FUSION!!
+            </button>
+            <button
+              type="button"
+              className="inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-heading hover:border-border-strong"
+              onClick={() => trySetSkill(SAMPLE_SKILL_IDS.ancientFusion)}
+            >
+              Set Ancient Fusion
+            </button>
+          </div>
+          {skillRefusalMessage ? (
+            <p className="text-sm text-heading" role="alert">
+              {skillRefusalMessage}
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       <div className={`${panelClassName} space-y-3`}>

@@ -71,6 +71,21 @@ describe('buildFormatDetailFacts', () => {
     expect(facts.banList?.effectiveDate).toBe('2026-02-02');
     expect(facts.sourceLinks[0]?.href).toContain('yugioh-card.com/en/limited');
   });
+
+  it('builds Speed Duel structured rows from Konami sources', () => {
+    const format = getFormatById('speed-duel');
+    expect(format).toBeDefined();
+    const facts = buildFormatDetailFacts(format!);
+    expect(facts.description).toContain('January 2019');
+    expect(facts.banList?.listName).toBe('Speed Duel Forbidden & Limited List');
+    expect(facts.banList?.effectiveDate).toBeUndefined();
+    expect(facts.cardPool?.cardsReleasedBy).toBe('2024-12-13');
+    expect(facts.cardPool?.latestSet).toBe('Speed Duel: Battle City Finals');
+    expect(facts.cardPool?.notIncluded).toContain('Speed Duel symbol');
+    expect(facts.sourceLinks).toHaveLength(2);
+    expect(facts.sourceLinks[0]?.href).toContain('speed-duel-forbidden-limited-list');
+    expect(facts.sourceLinks[1]?.href).toContain('Speed_Duel_Guide');
+  });
 });
 
 describe('formatCatalogOptionAriaLabel', () => {

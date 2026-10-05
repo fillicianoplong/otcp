@@ -7,13 +7,22 @@ import type { FormatDefinition } from './formatCatalog.ts';
 import { DEFAULT_GENESYS_POINT_CAP } from './formatEngine/genesysRules.ts';
 import { getGenesysKonamiPointsDocument } from './genesysKonamiPoints.ts';
 
+const KONAMI_SPEED_DUEL_GUIDE_URL =
+  'https://img.yugioh-card.com/en/downloads/rulebook/Speed_Duel_Guide_EN.pdf';
+
+const KONAMI_SPEED_DUEL_FNL_PAGE_URL =
+  'https://www.yugioh-card.com/eu/play/speed-duel-forbidden-limited-list/';
+
+const SPEED_DUEL_DETAIL_INTRO =
+  'Konami launched Speed Duel for the physical TCG in January 2019 with Speed Duel Starter Decks: Destiny Masters and Duelists of Tomorrow (North America launch 25 January 2019), adapting the faster Yu-Gi-Oh! Duel Links style of play for tabletop Duels.';
+
 export type FormatSourceLink = {
   readonly label: string;
   readonly href: string;
 };
 
 export type FormatDetailBanList = {
-  readonly effectiveDate: string;
+  readonly effectiveDate?: string;
   readonly listName: string;
 };
 
@@ -99,6 +108,9 @@ function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
 }
 
 function buildCardPool(format: FormatDefinition): FormatDetailCardPool | null {
+  if (format.poolRule === 'speed-duel-ygoprodeck') {
+    return null;
+  }
   if (format.poolRule !== 'tcg-earliest-on-or-before') return null;
   if (!format.poolThroughSet || !format.poolCutoffDate) return null;
 
@@ -111,8 +123,37 @@ function buildCardPool(format: FormatDefinition): FormatDetailCardPool | null {
   };
 }
 
+function buildSpeedDuelDetailFacts(): FormatDetailFacts {
+  return {
+    description: SPEED_DUEL_DETAIL_INTRO,
+    banList: {
+      listName: 'Speed Duel Forbidden & Limited List',
+    },
+    cardPool: {
+      cardsReleasedBy: '2024-12-13',
+      latestSet: 'Speed Duel: Battle City Finals',
+      notIncluded: 'Printings without the Speed Duel symbol on the card',
+    },
+    genesysDetail: null,
+    sourceLinks: [
+      {
+        label: 'Speed Duel Forbidden & Limited List',
+        href: KONAMI_SPEED_DUEL_FNL_PAGE_URL,
+      },
+      {
+        label: 'Konami Speed Duel Guide (PDF)',
+        href: KONAMI_SPEED_DUEL_GUIDE_URL,
+      },
+    ],
+  };
+}
+
 /** Built from catalog entries and curated snapshot JSON only. */
 export function buildFormatDetailFacts(format: FormatDefinition): FormatDetailFacts {
+  if (format.id === 'speed-duel') {
+    return buildSpeedDuelDetailFacts();
+  }
+
   const description = format.description?.trim() ? format.description.trim() : null;
 
   if (format.banlistSource === 'genesys-points') {

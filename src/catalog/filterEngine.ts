@@ -105,6 +105,13 @@ function typeTokens(type: string): readonly string[] {
   return type.split(/\s+/).filter((part) => part.length > 0);
 }
 
+/** Monster card type facet values (excludes Spell/Trap/Skill and the Monster suffix). */
+function monsterFrameFacetValues(card: YugiohCard): readonly string[] {
+  if (card.type.includes('Spell') || card.type.includes('Trap')) return [];
+  if (card.type.includes('Skill')) return [];
+  return typeTokens(card.type).filter((part) => part !== 'Monster');
+}
+
 function levelFacetValues(card: YugiohCard): readonly string[] {
   const metric = cardLevelMetric(card);
   return metric != null ? [String(metric)] : [];
@@ -163,7 +170,7 @@ const FIELD_INDEXERS: readonly FieldIndexer[] = [
   },
   { id: 'rarity', valuesForRow: (card) => raritiesForCard(card) },
   { id: 'hasImage', valuesForRow: (card) => [hasHostedImage(card)] },
-  { id: 'monsterFrame', valuesForRow: (card) => typeTokens(card.type) },
+  { id: 'monsterFrame', valuesForRow: (card) => monsterFrameFacetValues(card) },
   { id: 'attribute', valuesForRow: (card) => (card.attribute ? [card.attribute] : []) },
   { id: 'race', valuesForRow: (card) => (card.race ? [card.race] : []) },
   { id: 'archetype', valuesForRow: (card) => (card.archetype ? [card.archetype] : []) },
@@ -524,7 +531,7 @@ export class FilterEngine {
     const scratch = this.scratch;
     scratch.fill(0);
     for (let row = 0; row < this.count; row++) {
-      if (typeTokens(this.cardsByRow[row].type).includes(keyword)) setBit(scratch, row);
+      if (monsterFrameFacetValues(this.cardsByRow[row]).includes(keyword)) setBit(scratch, row);
     }
     if (!started) {
       field.unionScratch.set(scratch);
@@ -538,7 +545,7 @@ export class FilterEngine {
     const scratch = this.scratch;
     scratch.fill(0);
     for (let row = 0; row < this.count; row++) {
-      if (typeTokens(this.cardsByRow[row].type).includes(keyword)) setBit(scratch, row);
+      if (monsterFrameFacetValues(this.cardsByRow[row]).includes(keyword)) setBit(scratch, row);
     }
     if (!started) target.set(scratch);
     else orInPlace(target, scratch);

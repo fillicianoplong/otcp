@@ -68,9 +68,11 @@ export function FormatDetailFactsBlock({ facts }: { facts: FormatDetailFacts }) 
           ) : null}
           {banList ? (
             <>
-              <SpecRow label="Effective">
-                <span>{banList.effectiveDate}</span>
-              </SpecRow>
+              {banList.effectiveDate ? (
+                <SpecRow label="Effective">
+                  <span className="tabular-nums">{banList.effectiveDate}</span>
+                </SpecRow>
+              ) : null}
               <SpecRow label="Ban list">
                 <span>{banList.listName}</span>
               </SpecRow>

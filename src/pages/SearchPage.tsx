@@ -360,8 +360,10 @@ export function SearchPage() {
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-text-2" aria-live="polite">
-                {formatCardCount(matchCount)}
-                {activeFormatId ? <> · format {formatDisplayName(activeFormatId)}</> : null}
+                <span>{formatCardCount(matchCount)}</span>
+                {activeFormatId ? (
+                  <span className="ml-3">format {formatDisplayName(activeFormatId)}</span>
+                ) : null}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 {effectiveViewMode === 'table' ? (

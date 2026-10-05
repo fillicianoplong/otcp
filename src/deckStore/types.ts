@@ -10,6 +10,7 @@ export type GuestDeckDraft = {
   side: number[];
   /** User-set Genesys cap; omitted uses default 100 when format is Genesys. */
   genesysCap?: number;
+  skillId?: number | null;
   updatedAt: string;
 };
 
@@ -20,6 +21,7 @@ export type GuestDeckDraftInput = {
   extra?: number[];
   side?: number[];
   genesysCap?: number | null;
+  skillId?: number | null;
 };
 
 export type GuestDeckDraftUpdate = {
@@ -29,6 +31,7 @@ export type GuestDeckDraftUpdate = {
   extra?: number[];
   side?: number[];
   genesysCap?: number | null;
+  skillId?: number | null;
 };
 
 /** Saved deck row owned by the signed-in user (Supabase). */

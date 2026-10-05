@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "datasetFile": "data/datasets/sample-dev.json",
-  "sha256": "532902e855885c289adfd7e5ec54915429de31a536c68016190fdcd1666695ba",
+  "sha256": "e57a4713e2c66b112855bd0ee47cac10e8900b7500d171196d89b8cce03fe469",
   "publishedAt": "2026-10-28T12:00:00.000Z",
-  "cardCount": 22
+  "cardCount": 26
 }
