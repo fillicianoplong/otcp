@@ -5,7 +5,7 @@ test.describe('CardCatalog on Search', () => {
     await page.goto('/otcp/');
     await expect(page).toHaveURL(/\/otcp\/search$/);
 
-    await expect(page.getByRole('link', { name: 'Dark Magician' })).toBeVisible({
+    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
       timeout: 15_000,
     });
     await expect(page.getByRole('link', { name: 'Blue-Eyes White Dragon' })).toBeVisible();

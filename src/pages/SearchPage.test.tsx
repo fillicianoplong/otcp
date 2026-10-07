@@ -139,12 +139,12 @@ describe('Search scroll restore', () => {
     const user = userEvent.setup();
     renderSearchFlowWithRouter(['/search'], 0);
 
-    await screen.findByText(`${CATALOG_GRID_PAGE_SIZE + 5} cards`);
+    await screen.findByText(`${CATALOG_GRID_PAGE_SIZE + 5} artworks`);
     window.scrollTo(0, 500);
     await user.type(screen.getByLabelText('Find a card'), '900001');
 
     await waitFor(() => {
-      expect(screen.getByText('1 card')).toBeTruthy();
+      expect(screen.getByText('1 artwork')).toBeTruthy();
     });
     await waitFor(() => {
       expect(window.scrollY).toBe(0);

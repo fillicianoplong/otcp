@@ -21,6 +21,7 @@ const sampleCard: YugiohCard = {
     large: `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/46986420.webp`,
   },
   sets: [],
+  artIds: [46986420, 46986421],
 };
 
 describe('cardArtUrl', () => {
@@ -29,8 +30,10 @@ describe('cardArtUrl', () => {
     expect(YGO_CARD_ART_ASPECT_CLASS).toBe('aspect-[421/614]');
   });
 
-  it('uses the large published image URL on the detail page', () => {
-    expect(cardDetailImageSrc(sampleCard)).toBe(sampleCard.images.large);
+  it('uses image-id URLs for alternate artwork on the detail page', () => {
+    const alt = cardDetailImageSrc(sampleCard, 46986421);
+    expect(alt).toContain('/ygo/large/46986421.webp');
+    expect(alt).not.toBe(sampleCard.images.large);
   });
 
   it('falls back to small when the large URL fails to load', () => {

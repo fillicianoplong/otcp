@@ -86,6 +86,7 @@ export function toCatalogSearchCard(card: YugiohCard, detailBucket: number): Cat
     ...(card.race != null ? { race: card.race } : {}),
     ...(card.banlistInfo != null ? { banlistInfo: card.banlistInfo } : {}),
     ...(card.speedDuelLegal === true ? { speedDuelLegal: true } : {}),
+    ...(card.artIds != null ? { artIds: card.artIds } : {}),
   };
 }
 

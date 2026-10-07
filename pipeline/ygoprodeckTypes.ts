@@ -25,6 +25,13 @@ export type YgoCardPrices = {
   coolstuffinc_price?: string;
 };
 
+export type YgoCardImage = {
+  id: number;
+  image_url?: string;
+  image_url_small?: string;
+  image_url_cropped?: string;
+};
+
 export type YgoApiCard = {
   id: number;
   name: string;
@@ -47,6 +54,7 @@ export type YgoApiCard = {
   misc_info?: YgoMiscInfo[];
   card_sets?: YgoCardSet[];
   card_prices?: YgoCardPrices[];
+  card_images?: YgoCardImage[];
 };
 
 export type YgoCardinfoResponse = {

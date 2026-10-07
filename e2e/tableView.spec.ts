@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+import { SEARCH_ALL_ART_OFF } from './helpers/searchAllArt.ts';
+
 test.describe('Table view on Search page', () => {
   test('table shows rows, ATK sort reorders, toggle hidden at 390px', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/otcp/search');
+    await page.goto(SEARCH_ALL_ART_OFF);
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     await page.getByRole('button', { name: 'Table view' }).click();
@@ -47,7 +49,7 @@ test.describe('Table view on Search page', () => {
 
   test('reload keeps Table view after choosing it on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/otcp/search');
+    await page.goto(SEARCH_ALL_ART_OFF);
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     await page.getByRole('button', { name: 'Table view' }).click();

@@ -22,7 +22,7 @@ export type R2UploadEnv = Record<string, string | undefined>;
 export type CardImageR2Variant = 'large' | 'small';
 
 export type UploadCardImagesR2Options = {
-  cardIds: number[];
+  imageIds: number[];
   variants?: readonly CardImageR2Variant[];
   env?: R2UploadEnv;
   s3Client?: S3Client;
@@ -35,13 +35,18 @@ export type UploadCardImagesR2Options = {
   webpQuality?: number;
 };
 
+/** @deprecated Use {@link UploadCardImagesR2Options.imageIds} */
+export type LegacyUploadCardImagesR2Options = UploadCardImagesR2Options & {
+  cardIds?: number[];
+};
+
 /** @deprecated Use {@link UploadCardImagesR2Options} */
 export type UploadLargeCardImagesR2Options = Omit<UploadCardImagesR2Options, 'variants'>;
 
 export type UploadCardImagesR2Result =
   | { ok: true; uploaded: number; skipped: number; skippedStep?: false }
   | { ok: true; uploaded: 0; skipped: 0; skippedStep: true }
-  | { ok: false; error: string; cardId?: number; variant?: CardImageR2Variant };
+  | { ok: false; error: string; imageId?: number; variant?: CardImageR2Variant };
 
 /** @deprecated Use {@link UploadCardImagesR2Result} */
 export type UploadLargeCardImagesR2Result = UploadCardImagesR2Result;
@@ -116,12 +121,12 @@ function r2ListPrefix(variant: CardImageR2Variant): string {
   return variant === 'large' ? 'ygo/large/' : 'ygo/small/';
 }
 
-function r2ObjectKey(cardId: number, variant: CardImageR2Variant): string {
-  return variant === 'large' ? r2LargeObjectKey(cardId) : r2SmallObjectKey(cardId);
+function r2ObjectKey(imageId: number, variant: CardImageR2Variant): string {
+  return variant === 'large' ? r2LargeObjectKey(imageId) : r2SmallObjectKey(imageId);
 }
 
-function ygoprodeckImageUrl(cardId: number, variant: CardImageR2Variant): string {
-  return variant === 'large' ? ygoprodeckLargeImageUrl(cardId) : ygoprodeckSmallImageUrl(cardId);
+function ygoprodeckImageUrl(imageId: number, variant: CardImageR2Variant): string {
+  return variant === 'large' ? ygoprodeckLargeImageUrl(imageId) : ygoprodeckSmallImageUrl(imageId);
 }
 
 function maxBytesForVariant(variant: CardImageR2Variant): number {
@@ -168,13 +173,13 @@ async function listExistingKeys(client: S3Client, prefix: string): Promise<Set<s
 }
 
 async function downloadYgoprodeckJpeg(
-  cardId: number,
+  imageId: number,
   variant: CardImageR2Variant,
   options: Required<
     Pick<UploadCardImagesR2Options, 'fetchImpl' | 'userAgent' | 'maxAttempts' | 'initialBackoffMs'>
   >,
 ): Promise<Buffer> {
-  const url = ygoprodeckImageUrl(cardId, variant);
+  const url = ygoprodeckImageUrl(imageId, variant);
   const maxBytes = maxBytesForVariant(variant);
   let lastError: unknown;
 
@@ -226,14 +231,14 @@ async function downloadYgoprodeckJpeg(
 
 async function uploadWebp(
   client: S3Client,
-  cardId: number,
+  imageId: number,
   variant: CardImageR2Variant,
   body: Buffer,
 ): Promise<void> {
   await client.send(
     new PutObjectCommand({
       Bucket: R2_CARD_IMAGES_BUCKET,
-      Key: r2ObjectKey(cardId, variant),
+      Key: r2ObjectKey(imageId, variant),
       Body: body,
       ContentType: 'image/webp',
       CacheControl: R2_LARGE_IMAGE_CACHE_CONTROL,
@@ -241,7 +246,13 @@ async function uploadWebp(
   );
 }
 
-type UploadWorkItem = { cardId: number; variant: CardImageR2Variant };
+type UploadWorkItem = { imageId: number; variant: CardImageR2Variant };
+
+function resolveImageIds(options: UploadCardImagesR2Options): number[] {
+  const legacy = (options as LegacyUploadCardImagesR2Options).cardIds;
+  const source = options.imageIds ?? legacy ?? [];
+  return [...new Set(source)].sort((a, b) => a - b);
+}
 
 export async function uploadCardImagesR2(
   options: UploadCardImagesR2Options,
@@ -266,17 +277,17 @@ export async function uploadCardImagesR2(
     existingByVariant.set(variant, await listExistingKeys(client, r2ListPrefix(variant)));
   }
 
-  const uniqueIds = [...new Set(options.cardIds)].sort((a, b) => a - b);
+  const uniqueIds = resolveImageIds(options);
   const toUpload: UploadWorkItem[] = [];
   let skipped = 0;
 
-  for (const cardId of uniqueIds) {
+  for (const imageId of uniqueIds) {
     for (const variant of variants) {
       const existing = existingByVariant.get(variant)!;
-      if (existing.has(r2ObjectKey(cardId, variant))) {
+      if (existing.has(r2ObjectKey(imageId, variant))) {
         skipped += 1;
       } else {
-        toUpload.push({ cardId, variant });
+        toUpload.push({ imageId, variant });
       }
     }
   }
@@ -287,7 +298,7 @@ export async function uploadCardImagesR2(
 
   const limiter = new FetchRateLimiter(minFetchIntervalMs);
   let uploaded = 0;
-  let failure: { error: string; cardId: number; variant: CardImageR2Variant } | undefined;
+  let failure: { error: string; imageId: number; variant: CardImageR2Variant } | undefined;
   let workIndex = 0;
 
   async function worker(): Promise<void> {
@@ -296,22 +307,22 @@ export async function uploadCardImagesR2(
       workIndex += 1;
       if (current >= toUpload.length) break;
 
-      const { cardId, variant } = toUpload[current]!;
+      const { imageId, variant } = toUpload[current]!;
 
       try {
         await limiter.wait();
-        const jpeg = await downloadYgoprodeckJpeg(cardId, variant, {
+        const jpeg = await downloadYgoprodeckJpeg(imageId, variant, {
           fetchImpl,
           userAgent,
           maxAttempts,
           initialBackoffMs,
         });
         const webp = await jpegToWebpAtQuality(jpeg, webpQuality);
-        await uploadWebp(client, cardId, variant, webp);
+        await uploadWebp(client, imageId, variant, webp);
         uploaded += 1;
       } catch (error) {
         failure = {
-          cardId,
+          imageId,
           variant,
           error: error instanceof Error ? error.message : String(error),
         };
@@ -322,7 +333,7 @@ export async function uploadCardImagesR2(
   await Promise.all(Array.from({ length: Math.min(concurrency, toUpload.length) }, () => worker()));
 
   if (failure) {
-    return { ok: false, error: failure.error, cardId: failure.cardId, variant: failure.variant };
+    return { ok: false, error: failure.error, imageId: failure.imageId, variant: failure.variant };
   }
 
   return { ok: true, uploaded, skipped };

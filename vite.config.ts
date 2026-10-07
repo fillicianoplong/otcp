@@ -5,6 +5,7 @@ import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
 import { copyIndexHtmlTo404 } from './scripts/copySpa404.ts';
+import { devArtFixturesPlugin } from './scripts/devArtFixturesPlugin.ts';
 
 function spa404Fallback(): Plugin {
   let outDir = 'dist';
@@ -22,7 +23,7 @@ function spa404Fallback(): Plugin {
 
 export default defineConfig({
   base: '/otcp/',
-  plugins: [react(), tailwindcss(), spa404Fallback()],
+  plugins: [react(), tailwindcss(), devArtFixturesPlugin(), spa404Fallback()],
   test: {
     environment: 'node',
     setupFiles: ['tests/setup.ts'],

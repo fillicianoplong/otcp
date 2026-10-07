@@ -77,7 +77,7 @@ describe('CardDetailPage artwork', () => {
     expect(frame?.className).not.toContain('aspect-[63/88]');
 
     const img = trigger.querySelector('img');
-    expect(img?.className).toContain('object-contain');
+    expect(img?.className).toContain('object-cover');
   });
 
   it('opens and closes the zoom viewer from the card trigger with keyboard', async () => {

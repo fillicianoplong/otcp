@@ -2,10 +2,11 @@ import { expect, test } from '@playwright/test';
 
 import { FILTER_QUERY_KEY } from '../src/catalog/filterUrlState.ts';
 import { serializeFilterState } from '../src/catalog/filterEngine.ts';
+import { SEARCH_ALL_ART_OFF } from './helpers/searchAllArt.ts';
 
 test.describe('Facet filters on Search page', () => {
   test('toggling an attribute facet changes the result count', async ({ page }) => {
-    await page.goto('/otcp/search');
+    await page.goto(SEARCH_ALL_ART_OFF);
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const darkCheckbox = page
@@ -20,7 +21,7 @@ test.describe('Facet filters on Search page', () => {
   });
 
   test('cycles include, exclude, and off on tri-state checkboxes', async ({ page }) => {
-    await page.goto('/otcp/search');
+    await page.goto(SEARCH_ALL_ART_OFF);
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
@@ -48,7 +49,7 @@ test.describe('Facet filters on Search page', () => {
     };
     const params = new URLSearchParams();
     params.set(FILTER_QUERY_KEY, serializeFilterState(state));
-    await page.goto(`/otcp/search?${params.toString()}`);
+    await page.goto(`/otcp/search?${params.toString()}&allArt=0`);
 
     await expect(page.getByText('1 card')).toBeVisible({ timeout: 15_000 });
     await expect(
@@ -59,7 +60,7 @@ test.describe('Facet filters on Search page', () => {
   });
 
   test('lists set facet options newest first in the filter panel', async ({ page }) => {
-    await page.goto('/otcp/search');
+    await page.goto(SEARCH_ALL_ART_OFF);
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
@@ -77,7 +78,7 @@ test.describe('Facet filters on Search page', () => {
   });
 
   test('updates facet counts in other groups when attribute is filtered', async ({ page }) => {
-    await page.goto('/otcp/search');
+    await page.goto(SEARCH_ALL_ART_OFF);
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
@@ -99,7 +100,7 @@ test.describe('Facet filters on Search page', () => {
   });
 
   test('short facet groups avoid inner scroll and expand with Show more', async ({ page }) => {
-    await page.goto('/otcp/search');
+    await page.goto(SEARCH_ALL_ART_OFF);
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
@@ -134,7 +135,7 @@ test.describe('Facet filters on Search page', () => {
     };
     const params = new URLSearchParams();
     params.set(FILTER_QUERY_KEY, serializeFilterState(state));
-    await page.goto(`/otcp/search?${params.toString()}`);
+    await page.goto(`/otcp/search?${params.toString()}&allArt=0`);
 
     await expect(page.getByText('0 cards', { exact: true })).toBeVisible({ timeout: 15_000 });
   });

@@ -4,10 +4,11 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { getCatalogDerived } from './catalogDerived.ts';
 import { queryCatalog } from './catalogQueryCache.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { expandCardsToArtTiles, catalogResultCount, type CatalogArtTile } from './cardArt.ts';
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
-import { CATALOG_GRID_CLASS } from './catalogGridLayout.ts';
-import { CatalogGridTileFrame, CatalogGridTileImage } from './CatalogGridTileArt.tsx';
+import { CATALOG_GRID_CLASS, CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
+import { CatalogGridTileFrame } from './CatalogGridTileArt.tsx';
 import {
   gridHasMore,
   initialGridVisibleCount,
@@ -31,34 +32,53 @@ import {
 import { DEFAULT_CATALOG_TABLE_SORT, type CatalogTableSortState } from './catalogTableSort.ts';
 import { buildSearchCardDetailPath } from './searchCardLinks.ts';
 import { resolveCardBanForFormat } from './formatBanContext.ts';
-import { formatCardCount } from './formatCardCount.ts';
+import { formatCatalogResultCount } from './formatCardCount.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
+import { CatalogArtImage } from './CatalogArtImage.tsx';
+import { catalogGridTileAriaLabel } from './catalogArtTileLabel.ts';
 
-function CardArt({ card, formatParam }: { card: YugiohCard; formatParam?: string | null }) {
+function CardArt({
+  card,
+  imageId,
+  formatParam,
+}: {
+  card: YugiohCard;
+  imageId: number;
+  formatParam?: string | null;
+}) {
   const banStatus = resolveCardBanForFormat(card, formatParam);
 
   return (
     <CatalogGridTileFrame>
-      <CatalogGridTileImage card={card} />
+      <CatalogArtImage
+        card={card}
+        imageId={imageId}
+        size="small"
+        alt=""
+        loading="lazy"
+        imgClassName={CATALOG_GRID_TILE_ART_CLASS}
+      />
       {banStatus ? <BanThumbMarker status={banStatus} /> : null}
     </CatalogGridTileFrame>
   );
 }
 
 function CardTile({
-  card,
+  tile,
   searchQuery,
   formatParam,
   onBeforeNavigate,
 }: {
-  card: YugiohCard;
+  tile: CatalogArtTile;
   searchQuery: string;
   formatParam?: string | null;
   onBeforeNavigate: () => void;
 }) {
+  const { card, imageId } = tile;
   const detailPath = buildSearchCardDetailPath(card.id, {
     searchQuery,
     formatParam,
+    artId: imageId,
   });
 
   return (
@@ -67,10 +87,10 @@ function CardTile({
         to={detailPath}
         state={{ fromSearch: true }}
         onClick={onBeforeNavigate}
-        aria-label={card.name}
+        aria-label={catalogGridTileAriaLabel(card, imageId)}
         className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
       >
-        <CardArt card={card} formatParam={formatParam} />
+        <CardArt card={card} imageId={imageId} formatParam={formatParam} />
       </Link>
     </li>
   );
@@ -95,7 +115,7 @@ function CatalogMessage({
 }
 
 function CardCatalogList({
-  visibleCards,
+  visibleTiles,
   matchCount,
   searchQuery,
   formatParam,
@@ -103,7 +123,7 @@ function CardCatalogList({
   restoreScrollY,
   onBeforeNavigate,
 }: {
-  visibleCards: YugiohCard[];
+  visibleTiles: CatalogArtTile[];
   matchCount: number;
   searchQuery: string;
   formatParam?: string | null;
@@ -113,8 +133,8 @@ function CardCatalogList({
 }) {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [visibleCount, setVisibleCount] = useState(() => {
-    if (initialVisibleCount !== undefined) {
-      return Math.min(Math.max(0, initialVisibleCount), matchCount);
+    if (initialVisibleCount !== undefined && initialVisibleCount > 0) {
+      return Math.min(initialVisibleCount, matchCount);
     }
     return initialGridVisibleCount(matchCount);
   });
@@ -145,15 +165,16 @@ function CardCatalogList({
     onBeforeNavigate(visibleCount);
   };
 
-  const renderedCards = sliceGridCards(visibleCards, visibleCount);
+  const renderedTiles = sliceGridCards(visibleTiles, visibleCount);
 
   return (
     <>
       <ul className="flex flex-col gap-2">
-        {renderedCards.map((card) => (
+        {renderedTiles.map((tile) => (
           <CardListRow
-            key={card.id}
-            card={card}
+            key={`${tile.card.id}-${tile.imageId}`}
+            card={tile.card}
+            imageId={tile.imageId}
             searchQuery={searchQuery}
             formatParam={formatParam}
             onBeforeNavigate={saveScrollState}
@@ -168,7 +189,7 @@ function CardCatalogList({
 }
 
 function CardCatalogGrid({
-  visibleCards,
+  visibleTiles,
   matchCount,
   searchQuery,
   formatParam,
@@ -176,7 +197,7 @@ function CardCatalogGrid({
   restoreScrollY,
   onBeforeNavigate,
 }: {
-  visibleCards: YugiohCard[];
+  visibleTiles: CatalogArtTile[];
   matchCount: number;
   searchQuery: string;
   formatParam?: string | null;
@@ -186,8 +207,8 @@ function CardCatalogGrid({
 }) {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [visibleCount, setVisibleCount] = useState(() => {
-    if (initialVisibleCount !== undefined) {
-      return Math.min(Math.max(0, initialVisibleCount), matchCount);
+    if (initialVisibleCount !== undefined && initialVisibleCount > 0) {
+      return Math.min(initialVisibleCount, matchCount);
     }
     return initialGridVisibleCount(matchCount);
   });
@@ -218,15 +239,15 @@ function CardCatalogGrid({
     onBeforeNavigate(visibleCount);
   };
 
-  const renderedCards = sliceGridCards(visibleCards, visibleCount);
+  const renderedTiles = sliceGridCards(visibleTiles, visibleCount);
 
   return (
     <>
       <ul className={CATALOG_GRID_CLASS}>
-        {renderedCards.map((card) => (
+        {renderedTiles.map((tile) => (
           <CardTile
-            key={card.id}
-            card={card}
+            key={`${tile.card.id}-${tile.imageId}`}
+            tile={tile}
             searchQuery={searchQuery}
             formatParam={formatParam}
             onBeforeNavigate={saveScrollState}
@@ -251,6 +272,7 @@ export function CardCatalogView({
   tableColumnVisibility = DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
   tableSort = DEFAULT_CATALOG_TABLE_SORT,
   onTableSortChange,
+  allArtworks = true,
 }: {
   headingId?: string;
   searchQuery?: string;
@@ -262,6 +284,7 @@ export function CardCatalogView({
   tableColumnVisibility?: CatalogTableColumnVisibility;
   tableSort?: CatalogTableSortState;
   onTableSortChange?: (next: CatalogTableSortState) => void;
+  allArtworks?: boolean;
 }) {
   const { state, retry } = useCardCatalog();
   const trimmedQuery = searchQuery.trim();
@@ -319,6 +342,11 @@ export function CardCatalogView({
   }, [catalogDerived, filterState, formatParam, resolvedViewMode, state, tableSort, trimmedQuery]);
 
   const { visibleCards, matchCount } = queryResult;
+  const visibleTiles = useMemo(
+    () => expandCardsToArtTiles(visibleCards, allArtworks),
+    [allArtworks, visibleCards],
+  );
+  const displayCount = catalogResultCount(matchCount, visibleTiles, allArtworks);
 
   const tableCards = visibleCards;
 
@@ -380,7 +408,7 @@ export function CardCatalogView({
     <section aria-labelledby={headingId} className="flex flex-col gap-4">
       {showResultCount ? (
         <p className="text-sm text-text-2" aria-live="polite">
-          {formatCardCount(matchCount)}
+          {formatCatalogResultCount(displayCount, allArtworks)}
         </p>
       ) : null}
       {trimmedQuery && matchCount === 0 ? (
@@ -394,9 +422,9 @@ export function CardCatalogView({
         </CatalogMessage>
       ) : resolvedViewMode === 'list' ? (
         <CardCatalogList
-          key={`list:${trimmedQuery}:${filtersKey}:${matchCount}`}
-          visibleCards={visibleCards}
-          matchCount={matchCount}
+          key={`list:${trimmedQuery}:${filtersKey}:${displayCount}:${allArtworks}`}
+          visibleTiles={visibleTiles}
+          matchCount={displayCount}
           searchQuery={trimmedQuery}
           formatParam={formatParam}
           initialVisibleCount={scrollRestore?.loadedCount}
@@ -419,9 +447,9 @@ export function CardCatalogView({
         />
       ) : (
         <CardCatalogGrid
-          key={`grid:${trimmedQuery}:${filtersKey}:${matchCount}`}
-          visibleCards={visibleCards}
-          matchCount={matchCount}
+          key={`grid:${trimmedQuery}:${filtersKey}:${displayCount}:${allArtworks}`}
+          visibleTiles={visibleTiles}
+          matchCount={displayCount}
           searchQuery={trimmedQuery}
           formatParam={formatParam}
           initialVisibleCount={scrollRestore?.loadedCount}
