@@ -148,9 +148,7 @@ export function BanlistDetailPage() {
 
   if (!isKnownTcgBanlistDate(effectiveDate)) {
     return (
-      <BanlistMessage title="Unknown banlist">
-        Pick a list from the Banlists timeline.
-      </BanlistMessage>
+      <BanlistMessage title="Unknown banlist">Pick a format from the Formats table.</BanlistMessage>
     );
   }
 

@@ -7,7 +7,6 @@ export type NavItem = {
 export const PRIMARY_NAV: NavItem[] = [
   { label: 'Search', to: '/search' },
   { label: 'Formats', to: '/formats' },
-  { label: 'Banlists', to: '/banlists' },
   { label: 'Decks', to: '/decks' },
   { label: 'Collection', to: '/collection' },
   { label: 'Lists', to: '/lists' },

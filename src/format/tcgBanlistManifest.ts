@@ -144,6 +144,13 @@ export function formatSignedDelta(delta: number): string {
   return `−${Math.abs(delta)}`;
 }
 
+/** Text color for list-size change vs the previous list (+ green, − red). */
+export function banlistDeltaToneClass(delta: number): string {
+  if (delta > 0) return 'text-emerald-700';
+  if (delta < 0) return 'text-red-700';
+  return 'text-text-3';
+}
+
 export const FORMAT_TCG_BANLIST_DATES: Readonly<
   Record<'goat' | 'hat' | 'tengu' | 'edison', string>
 > = {

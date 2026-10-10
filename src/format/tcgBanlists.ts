@@ -1,5 +1,6 @@
 export {
   FORMAT_TCG_BANLIST_DATES,
+  banlistDeltaToneClass,
   formatSignedDelta,
   formatTcgBanlistUntilLabel,
   getPreviousTcgBanlistEffectiveDate,
