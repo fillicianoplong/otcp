@@ -20,6 +20,7 @@ describe('computeFormatOptionPoolCounts', () => {
       filterState,
       setIndex,
     });
+    expect(counts).toBeDefined();
 
     const advancedCount = queryCatalog(derived, {
       filterState,
@@ -32,10 +33,10 @@ describe('computeFormatOptionPoolCounts', () => {
       setIndex,
     }).matchCount;
 
-    expect(counts.advanced).toBe(advancedCount);
-    expect(counts.goat).toBe(goatCount);
+    expect(counts!.advanced).toBe(advancedCount);
+    expect(counts!.goat).toBe(goatCount);
     expect(goatCount).toBeLessThan(advancedCount);
-    expect(counts.advanced).toBe(sampleCards.length);
+    expect(counts!.advanced).toBe(sampleCards.length);
   });
 
   it('respects non-format facet filters when counting each format pool', () => {
@@ -51,6 +52,7 @@ describe('computeFormatOptionPoolCounts', () => {
       filterState,
       setIndex,
     });
+    expect(counts).toBeDefined();
 
     const goatSpells = queryCatalog(derived, {
       filterState,
@@ -58,7 +60,7 @@ describe('computeFormatOptionPoolCounts', () => {
       setIndex,
     }).matchCount;
 
-    expect(counts.goat).toBe(goatSpells);
-    expect(counts.goat).toBeLessThan(counts.advanced ?? 0);
+    expect(counts!.goat).toBe(goatSpells);
+    expect(counts!.goat).toBeLessThan(counts!.advanced ?? 0);
   });
 });

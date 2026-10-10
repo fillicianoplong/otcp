@@ -353,17 +353,26 @@ export function SearchPage() {
       filterState,
       query: trimmedQuery,
       setIndex: catalogSetIndex,
+      activeFormatId,
     });
-  }, [catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
+  }, [activeFormatId, catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
 
   const draftFormatPoolCountsByFormatId = useMemo(() => {
-    if (!catalogDerived) return undefined;
+    if (!phoneFiltersOpen || !catalogDerived) return undefined;
     return computeFormatOptionPoolCounts(catalogDerived, {
       filterState: phoneDraft,
       query: trimmedQuery,
       setIndex: catalogSetIndex,
+      activeFormatId: phoneDraftFormatId,
     });
-  }, [catalogDerived, catalogSetIndex, phoneDraft, trimmedQuery]);
+  }, [
+    catalogDerived,
+    catalogSetIndex,
+    phoneDraft,
+    phoneDraftFormatId,
+    phoneFiltersOpen,
+    trimmedQuery,
+  ]);
 
   const openPhoneFilters = () => {
     setPhoneDraft(filterState);
