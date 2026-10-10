@@ -1,5 +1,5 @@
-import { FORMAT_TCG_BANLIST_DATES, tcgBanlistDetailPath } from './tcgBanlistManifest.ts';
 import type { FormatDefinition } from './formatCatalog.ts';
+import { formatDetailPath } from './formatCatalog.ts';
 import {
   getFormatBanlistSnapshot,
   isBanlistSnapshotFormatId,
@@ -87,12 +87,8 @@ function mergeSourceLinks(
   return merged;
 }
 
-function historyPathForFormat(format: FormatDefinition): string | undefined {
-  if (format.banlistSource === 'tcg-dated-list' && format.banlistEffectiveDate) {
-    return tcgBanlistDetailPath(format.banlistEffectiveDate);
-  }
-  const dated = FORMAT_TCG_BANLIST_DATES[format.id as keyof typeof FORMAT_TCG_BANLIST_DATES];
-  return dated ? tcgBanlistDetailPath(dated) : undefined;
+function historyPathForFormat(format: FormatDefinition): string {
+  return formatDetailPath(format.id);
 }
 
 function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
@@ -106,7 +102,7 @@ function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
     return {
       effectiveDate,
       listName: format.banlistHeading,
-      historyPath: tcgBanlistDetailPath(effectiveDate),
+      historyPath: formatDetailPath(format.id),
     };
   }
 

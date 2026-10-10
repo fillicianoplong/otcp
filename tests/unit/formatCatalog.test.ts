@@ -2,16 +2,25 @@ import { describe, expect, it } from 'vitest';
 
 import {
   FORMAT_CATALOG,
+  formatDetailPathForBanlistDate,
   formatDisplayName,
   getFormatById,
   isKnownFormatId,
   listFormats,
   listFormatsNewestFirst,
   normalizeFormatId,
+  resolveFormatIdForBanlistDate,
 } from '../../src/format/formatCatalog.ts';
 import { formatCatalogSortDatePrefix } from '../../src/format/formatSortDateLabel.ts';
 
 describe('formatCatalog', () => {
+  it('resolves legacy banlist dates to playable format detail ids', () => {
+    expect(resolveFormatIdForBanlistDate('2005-04-01')).toBe('goat');
+    expect(resolveFormatIdForBanlistDate('2026-02-02')).toBe('mjolnir');
+    expect(formatDetailPathForBanlistDate('2005-04-01')).toBe('/formats/goat');
+    expect(resolveFormatIdForBanlistDate('1900-01-01')).toBeNull();
+  });
+
   it('lists core rulesets plus generated meta formats', () => {
     expect(listFormats().length).toBeGreaterThanOrEqual(101);
     expect(FORMAT_CATALOG.slice(0, 8).map((f) => f.id)).toEqual([

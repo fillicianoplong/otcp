@@ -11,7 +11,7 @@ import { FormatDetailPage } from './pages/FormatDetailPage';
 import { ListsPage } from './pages/ListsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AboutPage } from './pages/AboutPage';
-import { BanlistDetailPage } from './pages/BanlistDetailPage';
+import { BanlistDateRedirect } from './pages/BanlistDateRedirect.tsx';
 import { CardDetailPage } from './pages/CardDetailPage';
 import { SearchPage } from './pages/SearchPage';
 
@@ -28,7 +28,7 @@ export function App() {
               <Route path="formats" element={<FormatsPage />} />
               <Route path="formats/:formatId" element={<FormatDetailPage />} />
               <Route path="banlists" element={<Navigate to="/formats" replace />} />
-              <Route path="banlists/:effectiveDate" element={<BanlistDetailPage />} />
+              <Route path="banlists/:effectiveDate" element={<BanlistDateRedirect />} />
               <Route path="decks" element={<DecksPage />} />
               <Route path="decks/edit/:draftId" element={<DeckEditorPage />} />
               <Route path="collection" element={<CollectionPage />} />

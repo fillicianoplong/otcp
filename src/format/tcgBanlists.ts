@@ -10,7 +10,6 @@ export {
   isTcgBanlistInForce,
   listTcgBanlistManifestEntriesNewestFirst,
   localTodayIsoDate,
-  tcgBanlistDetailPath,
   tcgBanlistStatusTotals,
   tcgBanlistTotalsDelta,
   type TcgBanlistManifest,
