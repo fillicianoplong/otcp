@@ -14,23 +14,14 @@ test.describe('Format banlist pages', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Search' })).toBeVisible();
   });
 
-  test('Formats list is ordered and links to banlists', async ({ page }) => {
+  test('Formats table is ordered and links to format detail', async ({ page }) => {
     await page.goto('/otcp/formats');
     await expect(page.getByRole('heading', { level: 1, name: 'Formats' })).toBeVisible();
 
-    const links = page.locator('main ul li a');
-    const expectedOrder = [
-      'Advanced',
-      'Traditional',
-      'Speed Duel',
-      'Genesys',
-      'HAT',
-      'Tengu Plant',
-      'Edison',
-      'GOAT',
-    ];
-    for (let index = 0; index < expectedOrder.length; index += 1) {
-      await expect(links.nth(index)).toHaveText(expectedOrder[index]!);
+    const links = page.locator('main tbody tr td:first-child a');
+    const expectedPrefix = ['Advanced', 'Traditional', 'Speed Duel', 'Genesys'];
+    for (let index = 0; index < expectedPrefix.length; index += 1) {
+      await expect(links.nth(index)).toHaveText(expectedPrefix[index]!);
     }
 
     await links.filter({ hasText: 'GOAT' }).click();

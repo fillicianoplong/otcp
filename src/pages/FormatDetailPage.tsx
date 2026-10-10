@@ -16,10 +16,12 @@ import {
 } from '../format/FormatBanlistViewToggle.tsx';
 import {
   buildFormatBanlistPageModel,
+  buildTcgDatedFormatBanlistPageModel,
   type FormatBanlistCardEntry,
   type FormatBanlistSection,
   type FormatBanlistPageModel,
 } from '../format/formatBanlistPageModel.ts';
+import { loadTcgBanlistSnapshotWithPrevious } from '../format/tcgBanlists.ts';
 import { isGenesysPlaceholderCardId } from '../format/genesysPlaceholderCard.ts';
 import {
   getFormatById,
@@ -256,6 +258,10 @@ export function FormatDetailPage() {
   const [viewMode, setViewModeState] = useState<FormatBanlistViewMode>(() =>
     readFormatDetailViewMode(),
   );
+  const [tcgDatedLoad, setTcgDatedLoad] = useState<{
+    effectiveDate: string;
+    model: FormatBanlistPageModel | 'loading' | 'missing';
+  } | null>(null);
 
   useEffect(() => {
     if (formatId) {
@@ -263,10 +269,62 @@ export function FormatDetailPage() {
     }
   }, [formatId]);
 
+  useEffect(() => {
+    if (!format || format.banlistSource !== 'tcg-dated-list' || !format.banlistEffectiveDate) {
+      return;
+    }
+    if (catalogState.status !== 'ready') {
+      return;
+    }
+    const effectiveDate = format.banlistEffectiveDate;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setTcgDatedLoad({ effectiveDate, model: 'loading' });
+      }
+    });
+    loadTcgBanlistSnapshotWithPrevious(effectiveDate)
+      .then((result) => {
+        if (cancelled) return;
+        if (!result) {
+          setTcgDatedLoad({ effectiveDate, model: 'missing' });
+          return;
+        }
+        setTcgDatedLoad({
+          effectiveDate,
+          model: buildTcgDatedFormatBanlistPageModel(
+            format,
+            result.snapshot,
+            result.previousCards,
+            catalogState.cards,
+          ),
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setTcgDatedLoad({ effectiveDate, model: 'missing' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [catalogState, format]);
+
   const pageModel = useMemo(() => {
     if (!format || catalogState.status !== 'ready') return null;
+    if (format.banlistSource === 'tcg-dated-list') {
+      const effectiveDate = format.banlistEffectiveDate;
+      if (!effectiveDate || !tcgDatedLoad || tcgDatedLoad.effectiveDate !== effectiveDate) {
+        return null;
+      }
+      if (tcgDatedLoad.model === 'loading') {
+        return null;
+      }
+      if (tcgDatedLoad.model === 'missing') {
+        return { effectiveDate, sections: [] };
+      }
+      return tcgDatedLoad.model;
+    }
     return buildFormatBanlistPageModel(format, catalogState.cards);
-  }, [catalogState, format]);
+  }, [catalogState, format, tcgDatedLoad]);
 
   const detailFacts = useMemo(() => (format ? buildFormatDetailFacts(format) : null), [format]);
 

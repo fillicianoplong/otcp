@@ -1,0 +1,432 @@
+[
+  {
+    "id": "yugi-kaiba",
+    "name": "Yugi-Kaiba",
+    "banlistEffectiveDate": "2002-05-07"
+  },
+  {
+    "id": "critter",
+    "name": "Critter",
+    "banlistEffectiveDate": "2002-07-01"
+  },
+  {
+    "id": "treasure",
+    "name": "Treasure",
+    "banlistEffectiveDate": "2002-10-01"
+  },
+  {
+    "id": "imperial",
+    "name": "Imperial",
+    "banlistEffectiveDate": "2002-12-01"
+  },
+  {
+    "id": "android",
+    "name": "Android",
+    "banlistEffectiveDate": "2003-04-01"
+  },
+  {
+    "id": "joey-pegasus",
+    "name": "Joey-Pegasus",
+    "banlistEffectiveDate": "2003-05-08"
+  },
+  {
+    "id": "fiber",
+    "name": "Fiber",
+    "banlistEffectiveDate": "2003-07-08"
+  },
+  {
+    "id": "yata",
+    "name": "Yata",
+    "banlistEffectiveDate": "2003-08-25"
+  },
+  {
+    "id": "scientist",
+    "name": "Scientist",
+    "banlistEffectiveDate": "2003-11-17"
+  },
+  {
+    "id": "vampire",
+    "name": "Vampire",
+    "banlistEffectiveDate": "2004-02-02"
+  },
+  {
+    "id": "chaos",
+    "name": "Chaos",
+    "banlistEffectiveDate": "2004-04-19"
+  },
+  {
+    "id": "warrior",
+    "name": "Warrior",
+    "banlistEffectiveDate": "2004-10-01"
+  },
+  {
+    "id": "cyber",
+    "name": "Cyber",
+    "banlistEffectiveDate": "2005-10-01"
+  },
+  {
+    "id": "reaper",
+    "name": "Reaper",
+    "banlistEffectiveDate": "2005-10-01"
+  },
+  {
+    "id": "chaos-return",
+    "name": "Chaos Return",
+    "banlistEffectiveDate": "2006-04-01"
+  },
+  {
+    "id": "stein",
+    "name": "Stein",
+    "banlistEffectiveDate": "2006-09-01"
+  },
+  {
+    "id": "chimeratech",
+    "name": "Chimeratech",
+    "banlistEffectiveDate": "2006-09-01"
+  },
+  {
+    "id": "demise",
+    "name": "Demise",
+    "banlistEffectiveDate": "2007-03-01"
+  },
+  {
+    "id": "trooper",
+    "name": "Trooper",
+    "banlistEffectiveDate": "2007-06-01"
+  },
+  {
+    "id": "zombie",
+    "name": "Zombie",
+    "banlistEffectiveDate": "2007-09-01"
+  },
+  {
+    "id": "perfect-circle",
+    "name": "Perfect Circle",
+    "banlistEffectiveDate": "2007-09-01"
+  },
+  {
+    "id": "dad-return",
+    "name": "DAD Return",
+    "banlistEffectiveDate": "2008-03-01"
+  },
+  {
+    "id": "gladiator",
+    "name": "Gladiator",
+    "banlistEffectiveDate": "2008-05-09"
+  },
+  {
+    "id": "teledad",
+    "name": "TeleDAD",
+    "banlistEffectiveDate": "2008-09-01"
+  },
+  {
+    "id": "cat",
+    "name": "Cat",
+    "banlistEffectiveDate": "2009-03-01"
+  },
+  {
+    "id": "lightsworn",
+    "name": "Lightsworn",
+    "banlistEffectiveDate": "2009-09-01"
+  },
+  {
+    "id": "frog",
+    "name": "Frog",
+    "banlistEffectiveDate": "2010-03-01"
+  },
+  {
+    "id": "x-saber",
+    "name": "X-Saber",
+    "banlistEffectiveDate": "2010-09-01"
+  },
+  {
+    "id": "starstrike",
+    "name": "Starstrike",
+    "banlistEffectiveDate": "2010-09-01"
+  },
+  {
+    "id": "trishula",
+    "name": "Trishula",
+    "banlistEffectiveDate": "2011-03-01"
+  },
+  {
+    "id": "wind-up",
+    "name": "Wind-Up",
+    "banlistEffectiveDate": "2012-09-01"
+  },
+  {
+    "id": "dino-rabbit",
+    "name": "Dino Rabbit",
+    "banlistEffectiveDate": "2012-03-01"
+  },
+  {
+    "id": "miami",
+    "name": "Miami",
+    "banlistEffectiveDate": "2012-09-01"
+  },
+  {
+    "id": "meadowlands",
+    "name": "Meadowlands",
+    "banlistEffectiveDate": "2013-03-01"
+  },
+  {
+    "id": "baby-ruler",
+    "name": "Baby Ruler",
+    "banlistEffectiveDate": "2013-03-01"
+  },
+  {
+    "id": "ravine-ruler",
+    "name": "Ravine Ruler",
+    "banlistEffectiveDate": "2013-09-01"
+  },
+  {
+    "id": "fire-water",
+    "name": "Fire-Water",
+    "banlistEffectiveDate": "2014-01-01"
+  },
+  {
+    "id": "vegas",
+    "name": "Vegas",
+    "banlistEffectiveDate": "2014-04-01"
+  },
+  {
+    "id": "shaddoll",
+    "name": "Shaddoll",
+    "banlistEffectiveDate": "2014-07-14"
+  },
+  {
+    "id": "london",
+    "name": "London",
+    "banlistEffectiveDate": "2014-10-01"
+  },
+  {
+    "id": "burning-abyss",
+    "name": "Burning Abyss",
+    "banlistEffectiveDate": "2014-10-01"
+  },
+  {
+    "id": "charleston",
+    "name": "Charleston",
+    "banlistEffectiveDate": "2015-01-01"
+  },
+  {
+    "id": "nekroz",
+    "name": "Nekroz",
+    "banlistEffectiveDate": "2015-04-01"
+  },
+  {
+    "id": "clown",
+    "name": "Clown",
+    "banlistEffectiveDate": "2015-07-16"
+  },
+  {
+    "id": "performapal",
+    "name": "Performapal",
+    "banlistEffectiveDate": "2015-11-09"
+  },
+  {
+    "id": "dracoslayer",
+    "name": "Dracoslayer",
+    "banlistEffectiveDate": "2016-02-08"
+  },
+  {
+    "id": "monarch",
+    "name": "Monarch",
+    "banlistEffectiveDate": "2016-04-11"
+  },
+  {
+    "id": "invasion",
+    "name": "Invasion",
+    "banlistEffectiveDate": "2016-08-29"
+  },
+  {
+    "id": "grass-zoo",
+    "name": "Grass Zoo",
+    "banlistEffectiveDate": "2017-03-31"
+  },
+  {
+    "id": "draco-zoo",
+    "name": "Draco Zoo",
+    "banlistEffectiveDate": "2017-06-12"
+  },
+  {
+    "id": "link-zoo",
+    "name": "Link Zoo",
+    "banlistEffectiveDate": "2017-06-12"
+  },
+  {
+    "id": "decode",
+    "name": "Decode",
+    "banlistEffectiveDate": "2017-09-18"
+  },
+  {
+    "id": "spyral",
+    "name": "SPYRAL",
+    "banlistEffectiveDate": "2017-11-06"
+  },
+  {
+    "id": "magician",
+    "name": "Magician",
+    "banlistEffectiveDate": "2018-02-05"
+  },
+  {
+    "id": "secaucus",
+    "name": "Secaucus",
+    "banlistEffectiveDate": "2018-05-21"
+  },
+  {
+    "id": "danger-1",
+    "name": "Danger 1",
+    "banlistEffectiveDate": "2018-09-17"
+  },
+  {
+    "id": "danger-2",
+    "name": "Danger 2",
+    "banlistEffectiveDate": "2018-12-03"
+  },
+  {
+    "id": "sky-striker",
+    "name": "Sky Striker",
+    "banlistEffectiveDate": "2019-01-28"
+  },
+  {
+    "id": "thunder-dragon",
+    "name": "Thunder Dragon",
+    "banlistEffectiveDate": "2019-04-29"
+  },
+  {
+    "id": "lunalight",
+    "name": "Lunalight",
+    "banlistEffectiveDate": "2019-07-15"
+  },
+  {
+    "id": "toss",
+    "name": "TOSS",
+    "banlistEffectiveDate": "2019-10-14"
+  },
+  {
+    "id": "rokket",
+    "name": "Rokket",
+    "banlistEffectiveDate": "2020-01-20"
+  },
+  {
+    "id": "adamancipator",
+    "name": "Adamancipator",
+    "banlistEffectiveDate": "2020-09-14"
+  },
+  {
+    "id": "infernoble",
+    "name": "Infernoble",
+    "banlistEffectiveDate": "2020-12-15"
+  },
+  {
+    "id": "virtual-world",
+    "name": "Virtual World",
+    "banlistEffectiveDate": "2021-03-15"
+  },
+  {
+    "id": "dragon-link",
+    "name": "Dragon Link",
+    "banlistEffectiveDate": "2021-07-01"
+  },
+  {
+    "id": "tri-brigade",
+    "name": "Tri-Brigade",
+    "banlistEffectiveDate": "2021-10-01"
+  },
+  {
+    "id": "bird-up",
+    "name": "Bird-Up",
+    "banlistEffectiveDate": "2021-10-01"
+  },
+  {
+    "id": "phoenix",
+    "name": "Phoenix",
+    "banlistEffectiveDate": "2022-02-07"
+  },
+  {
+    "id": "despia",
+    "name": "Despia",
+    "banlistEffectiveDate": "2022-05-17"
+  },
+  {
+    "id": "elements",
+    "name": "Elements",
+    "banlistEffectiveDate": "2022-05-17"
+  },
+  {
+    "id": "darkwing",
+    "name": "Darkwing",
+    "banlistEffectiveDate": "2022-10-03"
+  },
+  {
+    "id": "tearlaments",
+    "name": "Tearlaments",
+    "banlistEffectiveDate": "2022-12-01"
+  },
+  {
+    "id": "overlord",
+    "name": "Overlord",
+    "banlistEffectiveDate": "2023-09-25"
+  },
+  {
+    "id": "kashtira",
+    "name": "Kashtira",
+    "banlistEffectiveDate": "2023-06-05"
+  },
+  {
+    "id": "fire-king",
+    "name": "Fire King",
+    "banlistEffectiveDate": "2024-01-01"
+  },
+  {
+    "id": "snake-eye",
+    "name": "Snake-Eye",
+    "banlistEffectiveDate": "2024-04-15"
+  },
+  {
+    "id": "fiendsmith",
+    "name": "Fiendsmith",
+    "banlistEffectiveDate": "2024-09-02"
+  },
+  {
+    "id": "lacrima",
+    "name": "Lacrima",
+    "banlistEffectiveDate": "2024-12-09"
+  },
+  {
+    "id": "ryzeal",
+    "name": "Ryzeal",
+    "banlistEffectiveDate": "2025-04-07"
+  },
+  {
+    "id": "maliss",
+    "name": "Maliss",
+    "banlistEffectiveDate": "2025-09-15"
+  },
+  {
+    "id": "justice",
+    "name": "Justice",
+    "banlistEffectiveDate": "2025-10-27"
+  },
+  {
+    "id": "mjolnir",
+    "name": "Mjolnir",
+    "banlistEffectiveDate": "2026-02-02"
+  },
+  {
+    "id": "doom",
+    "name": "Doom",
+    "banlistEffectiveDate": "2026-05-18"
+  },
+  {
+    "id": "protocol",
+    "name": "Protocol",
+    "banlistEffectiveDate": "2026-09-21"
+  },
+  {
+    "id": "hypernova",
+    "name": "Hypernova",
+    "banlistEffectiveDate": "2026-10-19"
+  }
+]

@@ -1,3 +1,5 @@
+import generatedMetaJson from './data/playableFormats.generated.json' with { type: 'json' };
+
 /** ISO 8601 calendar date (YYYY-MM-DD) for newest-first sort and UI labels. */
 export type FormatSortDate = string;
 
@@ -5,6 +7,14 @@ export type FormatDetailSourceLink = {
   readonly label: string;
   readonly href: string;
 };
+
+export type FormatBanlistSource =
+  'tcg-current' | 'curated-snapshot' | 'genesys-points' | 'tcg-dated-list';
+
+export type FormatPoolRule = 'full-tcg' | 'tcg-earliest-on-or-before' | 'speed-duel-ygoprodeck';
+
+/** Playable format id (core rulesets plus Format Library / dated list entries). */
+export type FormatId = string;
 
 export type FormatDefinition = {
   readonly id: FormatId;
@@ -20,6 +30,8 @@ export type FormatDefinition = {
   readonly deckRulesSummary: string;
   readonly poolRule: FormatPoolRule;
   readonly banlistSource: FormatBanlistSource;
+  /** When `banlistSource` is `tcg-dated-list`, the Konami list effective date. */
+  readonly banlistEffectiveDate?: FormatSortDate;
   /** Required when `poolRule` is `tcg-earliest-on-or-before`. */
   readonly poolCutoffDate?: FormatSortDate;
   readonly poolCutoffSource?: string;
@@ -37,13 +49,12 @@ export type FormatDefinition = {
   readonly sortDateSource?: string;
 };
 
-/** Must-format ids shipped in v1; extend this union as M4 issues land (#34–#38). */
-export type FormatId =
-  'advanced' | 'traditional' | 'speed-duel' | 'genesys' | 'hat' | 'tengu' | 'edison' | 'goat';
+export type GeneratedMetaFormatDefinition = Omit<
+  FormatDefinition,
+  'description' | 'detailSourceLinks' | 'poolThroughSet' | 'poolExclusionNote'
+>;
 
-export type FormatPoolRule = 'full-tcg' | 'tcg-earliest-on-or-before' | 'speed-duel-ygoprodeck';
-
-export type FormatBanlistSource = 'tcg-current' | 'curated-snapshot' | 'genesys-points';
+const GENERATED_META_FORMATS = generatedMetaJson as readonly GeneratedMetaFormatDefinition[];
 
 const ADVANCED_DECK_RULES = 'Main 40–60, Extra 0–15, Side 0–15';
 
@@ -71,7 +82,7 @@ const TENGU_LIST_ARCHIVE_URL =
 const EDISON_LIST_YUGIPEDIA_URL = 'https://yugipedia.com/wiki/March_2010_Lists_(TCG)';
 const EDISON_RULES_URL = 'https://edisonformat.net/rules/banlist';
 
-export const FORMAT_CATALOG: readonly FormatDefinition[] = [
+export const CORE_FORMAT_CATALOG: readonly FormatDefinition[] = [
   {
     id: 'advanced',
     name: 'Advanced',
@@ -214,7 +225,12 @@ export const FORMAT_CATALOG: readonly FormatDefinition[] = [
     sortDate: '2005-04-01',
     sortDateSource: `April 2005 TCG list per GoatFormat.com (${GOAT_SNAPSHOT_URL})`,
   },
-] as const;
+] as const satisfies readonly FormatDefinition[];
+
+export const FORMAT_CATALOG: readonly FormatDefinition[] = [
+  ...CORE_FORMAT_CATALOG,
+  ...GENERATED_META_FORMATS,
+];
 
 const formatById = new Map<string, FormatDefinition>(
   FORMAT_CATALOG.map((format) => [format.id, format]),
@@ -226,24 +242,35 @@ export function listFormats(): readonly FormatDefinition[] {
   return FORMAT_CATALOG;
 }
 
+const FORMAT_FILTER_PREFIX = ['advanced', 'traditional', 'speed-duel', 'genesys'] as const;
+
 /** Formats grid / filter order: Speed Duel follows Advanced and Traditional despite a newer ban snapshot. */
 function formatListSortDate(format: FormatDefinition): string {
   if (format.id === 'speed-duel') return '2026-02-02';
   return format.sortDate ?? '';
 }
 
-/** Newest `sortDate` first; ties keep catalog order; undated formats sort last. */
+function compareFormatsBySortDate(left: FormatDefinition, right: FormatDefinition): number {
+  const leftDate = formatListSortDate(left);
+  const rightDate = formatListSortDate(right);
+  if (leftDate !== rightDate) {
+    if (!leftDate) return 1;
+    if (!rightDate) return -1;
+    return rightDate.localeCompare(leftDate);
+  }
+  return (catalogOrder.get(left.id) ?? 0) - (catalogOrder.get(right.id) ?? 0);
+}
+
+/** Search filter order: core quartet first, then every other format newest `sortDate` first. */
 export function listFormatsNewestFirst(): readonly FormatDefinition[] {
-  return [...FORMAT_CATALOG].sort((left, right) => {
-    const leftDate = formatListSortDate(left);
-    const rightDate = formatListSortDate(right);
-    if (leftDate !== rightDate) {
-      if (!leftDate) return 1;
-      if (!rightDate) return -1;
-      return rightDate.localeCompare(leftDate);
-    }
-    return (catalogOrder.get(left.id) ?? 0) - (catalogOrder.get(right.id) ?? 0);
-  });
+  const prefixIds = new Set<string>(FORMAT_FILTER_PREFIX);
+  const prefix = FORMAT_FILTER_PREFIX.map((id) => formatById.get(id)).filter(
+    (format): format is FormatDefinition => format != null,
+  );
+  const rest = FORMAT_CATALOG.filter((format) => !prefixIds.has(format.id)).sort(
+    compareFormatsBySortDate,
+  );
+  return [...prefix, ...rest];
 }
 
 export function getFormatById(id: string | null | undefined): FormatDefinition | undefined {
@@ -271,4 +298,21 @@ export function formatDetailPath(formatId: FormatId): string {
 
 export function searchWithFormatPath(formatId: FormatId): string {
   return `/search?format=${encodeURIComponent(formatId)}`;
+}
+
+export function formatBanlistEffectiveDate(format: FormatDefinition): string | null {
+  if (format.banlistSource === 'tcg-dated-list') {
+    return format.banlistEffectiveDate ?? format.sortDate ?? null;
+  }
+  if (format.banlistSource === 'curated-snapshot') {
+    return format.sortDate ?? null;
+  }
+  if (format.banlistSource === 'tcg-current') {
+    return format.sortDate ?? null;
+  }
+  return null;
+}
+
+export function isCoreFormatId(formatId: string): boolean {
+  return CORE_FORMAT_CATALOG.some((format) => format.id === formatId);
 }
