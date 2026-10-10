@@ -3,10 +3,12 @@ import { useMemo, useState } from 'react';
 import {
   FACET_LONG_GROUP_OPTION_THRESHOLD,
   FACET_OPTION_LIST_SCROLL_CAP_PX,
+  facetOptionListShowsSearch,
   facetOptionListUsesInnerScroll,
   facetOptionShowMoreLess,
   facetOptionVisibleCount,
 } from '../catalog/facetOptionListLayout.ts';
+import { formatOptionMatchesQuery } from './formatFilterSearch.ts';
 import { FormatCatalogNameLabel, formatCatalogOptionAriaLabel } from './FormatCatalogNameLabel.tsx';
 import { listFormatsNewestFirst, type FormatId } from './formatCatalog.ts';
 import type { FormatOptionPoolCounts } from '../catalog/formatOptionPoolCounts.ts';
@@ -67,6 +69,7 @@ export function FormatFilterGroup({
 }: FormatFilterGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [listExpanded, setListExpanded] = useState(false);
+  const [query, setQuery] = useState('');
 
   const options: FormatOption[] = useMemo(() => {
     const none: FormatOption = { id: null, name: 'None' };
@@ -78,10 +81,23 @@ export function FormatFilterGroup({
   }, []);
 
   const isLongList = options.length >= FACET_LONG_GROUP_OPTION_THRESHOLD;
-  const visibleCount = facetOptionVisibleCount(options.length, listExpanded);
-  const visibleOptions = options.slice(0, visibleCount);
-  const showMoreLess = facetOptionShowMoreLess(options.length, listExpanded);
-  const listScrollable = facetOptionListUsesInnerScroll(isLongList, listExpanded);
+  const showSearch = facetOptionListShowsSearch(isLongList);
+
+  const filteredOptions = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return options;
+    return options.filter((option) => formatOptionMatchesQuery(option, normalized));
+  }, [options, query]);
+
+  const searching = query.trim().length > 0;
+  const visibleCount = searching
+    ? filteredOptions.length
+    : facetOptionVisibleCount(filteredOptions.length, listExpanded);
+  const visibleOptions = filteredOptions.slice(0, visibleCount);
+  const showMoreLess = searching
+    ? null
+    : facetOptionShowMoreLess(filteredOptions.length, listExpanded);
+  const listScrollable = searching || facetOptionListUsesInnerScroll(isLongList, listExpanded);
 
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -97,34 +113,56 @@ export function FormatFilterGroup({
         </span>
       </button>
       {!collapsed ? (
-        <div className="px-3 py-3" role="radiogroup" aria-label="Format">
+        <div className="flex flex-col gap-2 px-3 py-3" role="radiogroup" aria-label="Format">
+          {showSearch ? (
+            <>
+              <label className="sr-only" htmlFor="format-filter-search">
+                Search formats
+              </label>
+              <input
+                id="format-filter-search"
+                type="search"
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setListExpanded(false);
+                }}
+                placeholder="Search formats…"
+                className="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+              />
+            </>
+          ) : null}
           <div
             className={listScrollable ? 'overflow-y-auto pr-1' : undefined}
             style={
               listScrollable ? { maxHeight: `${FACET_OPTION_LIST_SCROLL_CAP_PX}px` } : undefined
             }
           >
-            <ul className="flex flex-col gap-0.5">
-              {visibleOptions.map((option) => {
-                const selected = value === option.id;
-                return (
-                  <li key={option.id ?? 'none'}>
-                    <FormatOptionRow
-                      name={option.name}
-                      selected={selected}
-                      count={option.id ? poolCountsByFormatId?.[option.id] : undefined}
-                      onSelect={() => onChange(option.id)}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
+            {filteredOptions.length === 0 ? (
+              <p className="py-1 text-sm text-text-2">No formats match.</p>
+            ) : (
+              <ul className="flex flex-col gap-0.5">
+                {visibleOptions.map((option) => {
+                  const selected = value === option.id;
+                  return (
+                    <li key={option.id ?? 'none'}>
+                      <FormatOptionRow
+                        name={option.name}
+                        selected={selected}
+                        count={option.id ? poolCountsByFormatId?.[option.id] : undefined}
+                        onSelect={() => onChange(option.id)}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
           {showMoreLess === 'more' ? (
             <button
               type="button"
               onClick={() => setListExpanded(true)}
-              className="mt-2 text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
+              className="text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
             >
               Show more
             </button>
@@ -133,7 +171,7 @@ export function FormatFilterGroup({
             <button
               type="button"
               onClick={() => setListExpanded(false)}
-              className="mt-2 text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
+              className="text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
             >
               Show less
             </button>
