@@ -30,7 +30,6 @@ import type { FormatId } from '../format/formatCatalog.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
-import { computeFormatOptionPoolCounts } from '../catalog/formatOptionPoolCounts.ts';
 import { queryCatalog } from '../catalog/catalogQueryCache.ts';
 import {
   emptyFilterState,
@@ -347,33 +346,6 @@ export function SearchPage() {
     );
   }, [trimmedQuery, location.pathname, location.state, navigate, searchParams]);
 
-  const formatPoolCountsByFormatId = useMemo(() => {
-    if (!catalogDerived) return undefined;
-    return computeFormatOptionPoolCounts(catalogDerived, {
-      filterState,
-      query: trimmedQuery,
-      setIndex: catalogSetIndex,
-      activeFormatId,
-    });
-  }, [activeFormatId, catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
-
-  const draftFormatPoolCountsByFormatId = useMemo(() => {
-    if (!phoneFiltersOpen || !catalogDerived) return undefined;
-    return computeFormatOptionPoolCounts(catalogDerived, {
-      filterState: phoneDraft,
-      query: trimmedQuery,
-      setIndex: catalogSetIndex,
-      activeFormatId: phoneDraftFormatId,
-    });
-  }, [
-    catalogDerived,
-    catalogSetIndex,
-    phoneDraft,
-    phoneDraftFormatId,
-    phoneFiltersOpen,
-    trimmedQuery,
-  ]);
-
   const openPhoneFilters = () => {
     setPhoneDraft(filterState);
     setPhoneDraftFormatId(activeFormatId);
@@ -412,7 +384,6 @@ export function SearchPage() {
                 setIndex={catalogSetIndex}
                 activeFormatId={activeFormatId}
                 onFormatChange={setActiveFormat}
-                formatPoolCountsByFormatId={formatPoolCountsByFormatId}
               />
             </div>
           </aside>
@@ -438,9 +409,6 @@ export function SearchPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-text-2" aria-live="polite">
                 {formatCatalogResultCount(visibleTileCount, allArtworks)}
-                {activeFormatId ? (
-                  <span className="ml-3">format {formatDisplayName(activeFormatId)}</span>
-                ) : null}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <AllArtworksSwitch enabled={allArtworks} onChange={setAllArtworks} />
@@ -518,7 +486,6 @@ export function SearchPage() {
               setPhoneDraft((prev) => clearBanStatusSelection(prev));
             }
           }}
-          formatPoolCountsByFormatId={draftFormatPoolCountsByFormatId}
         />
       ) : null}
     </div>

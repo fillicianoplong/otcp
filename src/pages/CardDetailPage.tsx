@@ -36,6 +36,8 @@ import {
 } from '../catalog/setArtPrintings.ts';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
 import { buildSearchPathWithFormat } from '../catalog/searchCardLinks.ts';
+import type { CardDetailLinkState } from '../catalog/searchNavigation.ts';
+import { getFormatById } from '../format/formatCatalog.ts';
 import {
   banMarkerForStatus,
   isFormatBanContextActive,
@@ -81,7 +83,7 @@ function CardDetailArt({
         aria-label={`View larger artwork for ${card.name}`}
       >
         <div
-          className={`relative mx-auto ${YGO_CARD_ART_ASPECT_CLASS} w-full max-w-[min(100%,280px)] overflow-hidden rounded-md border border-border bg-surface-2 sm:max-w-[300px] md:max-w-[280px]`}
+          className={`relative mx-auto ${YGO_CARD_ART_ASPECT_CLASS} w-full max-w-[min(100%,360px)] overflow-hidden rounded-md border border-border bg-surface-2 sm:max-w-[380px] md:max-w-none`}
         >
           <CatalogArtImage
             card={card}
@@ -358,13 +360,24 @@ function BackToSearchControl({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const fromSearch = (location.state as { fromSearch?: boolean } | null)?.fromSearch === true;
+  const linkState = location.state as CardDetailLinkState | null;
+  const fromSearch = linkState?.fromSearch === true;
+  const returnFormatId = linkState?.returnFormatId;
 
   if (fromSearch) {
     return (
       <button type="button" onClick={() => navigate(-1)} className={backLinkClassName}>
         ← Back to Search
       </button>
+    );
+  }
+
+  if (returnFormatId) {
+    const formatName = getFormatById(returnFormatId)?.name ?? 'format';
+    return (
+      <Link to={`/formats/${returnFormatId}`} className={backLinkClassName}>
+        ← Back to {formatName}
+      </Link>
     );
   }
 
@@ -518,7 +531,7 @@ function CardDetailReadyView({
     <div className="flex flex-col gap-6">
       <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
-        <div className="w-full shrink-0 md:sticky md:top-4 md:max-w-[300px] md:self-start">
+        <div className="w-full shrink-0 md:sticky md:top-4 md:w-[min(100%,380px)] md:max-w-[380px] md:self-start">
           <CardDetailArt
             key={`${card.id}-${selectedArtId}`}
             card={card}

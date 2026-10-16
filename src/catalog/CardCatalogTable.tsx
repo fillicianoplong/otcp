@@ -8,6 +8,7 @@ import {
   resolveCardBanForFormat,
 } from './formatBanContext.ts';
 import { buildSearchCardDetailPath } from './searchCardLinks.ts';
+import { cardDetailLinkStateFromSearch, type CardDetailLinkState } from './searchNavigation.ts';
 import {
   catalogTableArchetypeCell,
   catalogTableAtkCell,
@@ -169,6 +170,7 @@ export function CardCatalogTable({
   initialVisibleCount,
   restoreScrollY,
   onBeforeNavigate,
+  linkState,
 }: {
   visibleCards: YugiohCard[];
   matchCount: number;
@@ -180,6 +182,7 @@ export function CardCatalogTable({
   initialVisibleCount?: number;
   restoreScrollY?: number | null;
   onBeforeNavigate: (loadedCount: number) => void;
+  linkState?: CardDetailLinkState;
 }) {
   const navigate = useNavigate();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -228,7 +231,7 @@ export function CardCatalogTable({
       searchQuery,
       formatParam,
     });
-    navigate(detailPath, { state: { fromSearch: true } });
+    navigate(detailPath, { state: linkState ?? cardDetailLinkStateFromSearch() });
   };
 
   return (

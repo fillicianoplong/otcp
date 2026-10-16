@@ -1,8 +1,4 @@
-import {
-  getFormatById,
-  listFormats,
-  type FormatId,
-} from '../format/formatCatalog.ts';
+import { getFormatById, listFormats, type FormatId } from '../format/formatCatalog.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type { CatalogDerived } from './catalogDerived.ts';
 import { queryCatalog } from './catalogQueryCache.ts';
@@ -29,12 +25,7 @@ function countForFormatFromBaseIds(
   if (format?.poolRule === 'full-tcg' && format.banlistSource !== 'genesys-points') {
     return baseIds.length;
   }
-  return filterCatalogIdsByFormatPool(
-    baseIds,
-    derived.cardById,
-    formatId,
-    setIndex,
-  ).length;
+  return filterCatalogIdsByFormatPool(baseIds, derived.cardById, formatId, setIndex).length;
 }
 
 /**
@@ -86,12 +77,7 @@ export function computeFormatOptionPoolCounts(
 
   const counts: Partial<Record<FormatId, number>> = {};
   for (const format of formats) {
-    counts[format.id] = countForFormatFromBaseIds(
-      derived,
-      base.ids,
-      format.id,
-      options.setIndex,
-    );
+    counts[format.id] = countForFormatFromBaseIds(derived, base.ids, format.id, options.setIndex);
   }
   return counts;
 }

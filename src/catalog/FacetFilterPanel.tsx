@@ -20,7 +20,6 @@ import type {
 import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
 import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
 import type { FormatId } from '../format/formatCatalog.ts';
-import type { FormatOptionPoolCounts } from './formatOptionPoolCounts.ts';
 
 const LINK_ARROW_VALUES = [
   'Top',
@@ -202,7 +201,6 @@ type FacetFilterPanelProps = {
   setIndex?: SetIndex | null;
   activeFormatId?: FormatId | null;
   onFormatChange?: (formatId: FormatId | null) => void;
-  formatPoolCountsByFormatId?: FormatOptionPoolCounts;
 };
 
 export function FacetFilterPanel({
@@ -214,7 +212,6 @@ export function FacetFilterPanel({
   setIndex,
   activeFormatId = null,
   onFormatChange,
-  formatPoolCountsByFormatId,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
   const countsByField = useMemo(() => {
@@ -255,11 +252,7 @@ export function FacetFilterPanel({
       <h2 className="mb-3 text-base font-semibold text-heading">Filters</h2>
       <div className="flex flex-col gap-3">
         {onFormatChange ? (
-          <FormatFilterGroup
-            value={activeFormatId}
-            onChange={onFormatChange}
-            poolCountsByFormatId={formatPoolCountsByFormatId}
-          />
+          <FormatFilterGroup value={activeFormatId} onChange={onFormatChange} />
         ) : null}
         {visibleDefinitions.map((def) => {
           const collapsed = collapsedFields[def.id] ?? false;
@@ -689,7 +682,6 @@ type PhoneFiltersSheetProps = {
   setIndex?: SetIndex | null;
   draftFormatId?: FormatId | null;
   onDraftFormatChange?: (formatId: FormatId | null) => void;
-  formatPoolCountsByFormatId?: FormatOptionPoolCounts;
 };
 
 export function PhoneFiltersSheet({
@@ -705,7 +697,6 @@ export function PhoneFiltersSheet({
   setIndex,
   draftFormatId = null,
   onDraftFormatChange,
-  formatPoolCountsByFormatId,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -763,7 +754,6 @@ export function PhoneFiltersSheet({
           setIndex={setIndex}
           activeFormatId={draftFormatId}
           onFormatChange={onDraftFormatChange}
-          formatPoolCountsByFormatId={formatPoolCountsByFormatId}
         />
       </div>
       <footer className="border-t border-border p-4">

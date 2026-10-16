@@ -5,17 +5,30 @@ import {
   R2_CARD_IMAGES_PUBLIC_BASE_URL,
 } from '../shared/cardImageUrls.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { setArtPrintingsForCard } from './setArtPrintings.ts';
 
 export type CatalogArtTile = {
   card: YugiohCard;
   imageId: number;
 };
 
+function curatedArtIdsForCard(cardId: number): number[] {
+  const entry = setArtPrintingsForCard(cardId);
+  if (!entry) return [];
+  return Object.keys(entry.byImageId)
+    .map((key) => Number.parseInt(key, 10))
+    .filter((id) => Number.isFinite(id));
+}
+
 export function resolveArtIds(card: Pick<YugiohCard, 'id' | 'artIds'>): number[] {
-  if (card.artIds && card.artIds.length > 0) {
-    return card.artIds;
-  }
-  return [card.id];
+  const fromCard = card.artIds && card.artIds.length > 0 ? [...card.artIds] : [card.id];
+  const curated = curatedArtIdsForCard(card.id);
+  if (curated.length === 0) return fromCard;
+
+  const merged = new Set<number>([...fromCard, ...curated]);
+  const primary = fromCard[0] ?? card.id;
+  const rest = [...merged].filter((id) => id !== primary).sort((left, right) => left - right);
+  return [primary, ...rest];
 }
 
 export function defaultArtId(card: Pick<YugiohCard, 'id' | 'artIds'>): number {
