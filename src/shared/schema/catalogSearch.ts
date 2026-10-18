@@ -57,6 +57,7 @@ export const catalogDetailOverlaySchema = z
     monsterDesc: z.string().min(1).optional(),
     scale: z.number().int().min(0).max(13).optional(),
     genesysPoints: z.number().int().min(0).optional(),
+    artIds: z.array(z.number().int().positive()).min(1).optional(),
   })
   .strict();
 

@@ -1,4 +1,11 @@
-import { ALL_ARTWORKS_QUERY_KEY, persistAllArtworksPreference } from './allArtworksPreference.ts';
+import { ALL_ARTWORKS_QUERY_KEY } from './allArtworksPreference.ts';
+import { catalogViewToggleSelectedClass } from './CatalogViewToggle.tsx';
+
+const toggleShellClass =
+  'inline-flex min-h-9 items-center rounded-md border border-border bg-surface focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-strong';
+
+const toggleButtonClass =
+  'min-h-9 rounded-md px-3 text-sm font-medium text-text-2 transition-colors hover:text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
 export function AllArtworksSwitch({
   enabled,
@@ -8,22 +15,33 @@ export function AllArtworksSwitch({
   onChange: (next: boolean) => void;
 }) {
   return (
-    <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 text-sm text-text">
-      <input
-        type="checkbox"
-        checked={enabled}
-        onChange={(event) => {
-          const next = event.target.checked;
-          persistAllArtworksPreference(next);
-          onChange(next);
-        }}
-        className="size-4 shrink-0 rounded-sm border border-border bg-surface accent-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-        aria-describedby={`${ALL_ARTWORKS_QUERY_KEY}-hint`}
-      />
-      <span className="font-medium text-heading">All artworks</span>
+    <div
+      role="group"
+      aria-label="Artwork display"
+      className={toggleShellClass}
+      aria-describedby={`${ALL_ARTWORKS_QUERY_KEY}-hint`}
+    >
+      <button
+        type="button"
+        className={`${toggleButtonClass} rounded-l-md ${!enabled ? catalogViewToggleSelectedClass : ''}`}
+        aria-pressed={!enabled}
+        onClick={() => onChange(false)}
+      >
+        One per card
+      </button>
+      <button
+        type="button"
+        className={`${toggleButtonClass} -ml-px rounded-r-md ${enabled ? catalogViewToggleSelectedClass : ''}`}
+        aria-pressed={enabled}
+        onClick={() => onChange(true)}
+      >
+        All artworks
+      </button>
       <span id={`${ALL_ARTWORKS_QUERY_KEY}-hint`} className="sr-only">
-        {enabled ? 'Showing every artwork as its own tile' : 'Showing one tile per matching card'}
+        {enabled
+          ? 'Showing every artwork as its own tile when the catalog has alternate art ids'
+          : 'Showing one tile per matching card'}
       </span>
-    </label>
+    </div>
   );
 }

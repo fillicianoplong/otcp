@@ -98,6 +98,7 @@ export function extractDetailOverlay(card: YugiohCard): CatalogDetailOverlay {
     ...(card.monsterDesc ? { monsterDesc: card.monsterDesc } : {}),
     ...(card.scale != null ? { scale: card.scale } : {}),
     ...(card.genesysPoints != null ? { genesysPoints: card.genesysPoints } : {}),
+    ...(card.artIds != null ? { artIds: card.artIds } : {}),
   };
 }
 
