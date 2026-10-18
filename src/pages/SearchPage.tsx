@@ -46,6 +46,7 @@ import {
   writeAllArtworksParam,
 } from '../catalog/allArtworksPreference.ts';
 import { expandCardsToArtTiles, catalogResultCount } from '../catalog/cardArt.ts';
+import { useArtworkEnrichedCards } from '../catalog/useArtworkEnrichedCards.ts';
 import {
   countActiveFacetSelections,
   filterStateToChips,
@@ -196,24 +197,26 @@ export function SearchPage() {
     }).matchCount;
   }, [activeFormatId, catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
 
-  const visibleTileCount = useMemo(() => {
-    if (!catalogDerived) return 0;
-    const cards = queryCatalog(catalogDerived, {
+  const visibleCardsForArt = useMemo(() => {
+    if (!catalogDerived) return [];
+    return queryCatalog(catalogDerived, {
       filterState,
       query: trimmedQuery,
       formatParam: activeFormatId,
       setIndex: catalogSetIndex,
     }).visibleCards;
-    return catalogResultCount(matchCount, expandCardsToArtTiles(cards, allArtworks), allArtworks);
-  }, [
-    activeFormatId,
-    allArtworks,
-    catalogDerived,
-    catalogSetIndex,
-    filterState,
-    matchCount,
-    trimmedQuery,
-  ]);
+  }, [activeFormatId, catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
+
+  const enrichedVisibleCards = useArtworkEnrichedCards(visibleCardsForArt, allArtworks);
+
+  const visibleTileCount = useMemo(() => {
+    if (!catalogDerived) return 0;
+    return catalogResultCount(
+      matchCount,
+      expandCardsToArtTiles(enrichedVisibleCards, allArtworks),
+      allArtworks,
+    );
+  }, [allArtworks, catalogDerived, enrichedVisibleCards, matchCount]);
 
   const draftVisibleTileCount = useMemo(() => {
     if (!catalogDerived) return 0;

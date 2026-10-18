@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'reac
 
 import { YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
 import { resolveArtIds, resolveSelectedArtId } from '../catalog/cardArt.ts';
+import { queueYgoproArtIdLookup } from '../catalog/ygoproArtIds.ts';
 import { CatalogArtImage, CatalogArtThumbnail } from '../catalog/CatalogArtImage.tsx';
 import {
   buildCardDetailChips,
@@ -466,6 +467,10 @@ function CardDetailReadyView({
   const searchCard = getCatalogDerived(state.cards).cardById.get(cardId);
   const [detailCard, setDetailCard] = useState<YugiohCard | null>(null);
   const [detailLoading, setDetailLoading] = useState(Boolean(state.detailSource));
+
+  useEffect(() => {
+    if (searchCard) queueYgoproArtIdLookup(searchCard.id);
+  }, [searchCard]);
 
   useEffect(() => {
     if (!searchCard || !state.detailSource) return;

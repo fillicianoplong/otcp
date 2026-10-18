@@ -170,7 +170,6 @@ export function encodeCompactSearchIndex(
   let anyPasscode = false;
   let anyBan = false;
   let anyPrice = false;
-  let anyArtIds = false;
 
   for (const card of cards) {
     i.push(card.id);
@@ -190,7 +189,6 @@ export function encodeCompactSearchIndex(
     if (card.passcode != null && card.passcode !== card.id) anyPasscode = true;
     if (card.banlistInfo?.banTcg) anyBan = true;
     if (card.prices?.tcgplayer != null) anyPrice = true;
-    if (card.artIds && (card.artIds.length > 1 || card.artIds[0] !== card.id)) anyArtIds = true;
 
     l.push(card.level ?? -1);
     rk.push(card.rank ?? -1);
@@ -233,7 +231,7 @@ export function encodeCompactSearchIndex(
     ...(anyBan ? { bt } : {}),
     ...(anyPrice ? { pt } : {}),
     pr,
-    ...(anyArtIds ? { aid } : {}),
+    aid,
     ...(setIndex ? { si: compactSetIndex(setIndex, lex.sn) } : {}),
   };
 }
