@@ -38,10 +38,10 @@ import {
   type FilterStateUpdater,
 } from '../catalog/filterEngine.ts';
 import { formatCatalogResultCount } from '../catalog/formatCardCount.ts';
-import { AllArtworksSwitch } from '../catalog/AllArtworksSwitch.tsx';
 import {
   ALL_ARTWORKS_QUERY_KEY,
   persistAllArtworksPreference,
+  readAllArtworksPreference,
   resolveAllArtworksPreference,
   writeAllArtworksParam,
 } from '../catalog/allArtworksPreference.ts';
@@ -107,6 +107,7 @@ export function SearchPage() {
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
   const [phoneDraftFormatId, setPhoneDraftFormatId] = useState<FormatId | null>(activeFormatId);
+  const [phoneDraftAllArtworks, setPhoneDraftAllArtworks] = useState(allArtworks);
   const tableViewportOk = useMinViewportWidth(CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX);
   const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
     () => readSearchTablePrefsForUi().visibility,
@@ -218,28 +219,29 @@ export function SearchPage() {
     );
   }, [allArtworks, catalogDerived, enrichedVisibleCards, matchCount]);
 
-  const draftVisibleTileCount = useMemo(() => {
-    if (!catalogDerived) return 0;
-    const cards = queryCatalog(catalogDerived, {
+  const draftVisibleCardsForArt = useMemo(() => {
+    if (!catalogDerived) return [];
+    return queryCatalog(catalogDerived, {
       filterState: phoneDraft,
       query: trimmedQuery,
       formatParam: phoneDraftFormatId,
       setIndex: catalogSetIndex,
     }).visibleCards;
+  }, [catalogDerived, catalogSetIndex, phoneDraft, phoneDraftFormatId, trimmedQuery]);
+
+  const draftEnrichedVisibleCards = useArtworkEnrichedCards(
+    draftVisibleCardsForArt,
+    phoneDraftAllArtworks,
+  );
+
+  const draftVisibleTileCount = useMemo(() => {
+    if (!catalogDerived) return 0;
     return catalogResultCount(
       draftMatchCount,
-      expandCardsToArtTiles(cards, allArtworks),
-      allArtworks,
+      expandCardsToArtTiles(draftEnrichedVisibleCards, phoneDraftAllArtworks),
+      phoneDraftAllArtworks,
     );
-  }, [
-    allArtworks,
-    catalogDerived,
-    catalogSetIndex,
-    draftMatchCount,
-    phoneDraft,
-    phoneDraftFormatId,
-    trimmedQuery,
-  ]);
+  }, [catalogDerived, draftEnrichedVisibleCards, draftMatchCount, phoneDraftAllArtworks]);
 
   const activeFilterCount = countActiveFacetSelections(filterState) + (activeFormatId ? 1 : 0);
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
@@ -260,20 +262,26 @@ export function SearchPage() {
   );
 
   const commitFilterAndFormat = useCallback(
-    (nextFilterState: FilterState, formatId: FormatId | null) => {
+    (
+      nextFilterState: FilterState,
+      formatId: FormatId | null,
+      nextAllArtworks: boolean = allArtworks,
+    ) => {
       const resolved = formatId ? nextFilterState : clearBanStatusSelection(nextFilterState);
       filterStateRef.current = resolved;
       writeFormatPreference(formatId);
+      persistAllArtworksPreference(nextAllArtworks);
       const params = new URLSearchParams(searchParams);
       writeFilterStateToParams(params, resolved);
       applyFormatToSearchParams(params, formatId);
+      writeAllArtworksParam(params, nextAllArtworks);
       const search = params.toString();
       navigate(
         { pathname: location.pathname, search: search ? `?${search}` : '' },
         { replace: true, state: withoutSearchScrollRestore(location.state) },
       );
     },
-    [location.pathname, location.state, navigate, searchParams],
+    [allArtworks, location.pathname, location.state, navigate, searchParams],
   );
 
   const setViewMode = useCallback(
@@ -352,6 +360,7 @@ export function SearchPage() {
   const openPhoneFilters = () => {
     setPhoneDraft(filterState);
     setPhoneDraftFormatId(activeFormatId);
+    setPhoneDraftAllArtworks(allArtworks);
     setPhoneFiltersOpen(true);
   };
 
@@ -387,6 +396,8 @@ export function SearchPage() {
                 setIndex={catalogSetIndex}
                 activeFormatId={activeFormatId}
                 onFormatChange={setActiveFormat}
+                allArtworks={allArtworks}
+                onAllArtworksChange={setAllArtworks}
               />
             </div>
           </aside>
@@ -414,7 +425,6 @@ export function SearchPage() {
                 {formatCatalogResultCount(visibleTileCount, allArtworks)}
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                <AllArtworksSwitch enabled={allArtworks} onChange={setAllArtworks} />
                 {effectiveViewMode === 'table' ? (
                   <CatalogTableColumnsMenu
                     visibility={tableColumnVisibility}
@@ -473,9 +483,10 @@ export function SearchPage() {
           onReset={() => {
             setPhoneDraft(emptyFilterState());
             setPhoneDraftFormatId(null);
+            setPhoneDraftAllArtworks(readAllArtworksPreference());
           }}
           onApply={() => {
-            commitFilterAndFormat(phoneDraft, phoneDraftFormatId);
+            commitFilterAndFormat(phoneDraft, phoneDraftFormatId, phoneDraftAllArtworks);
             setPhoneFiltersOpen(false);
           }}
           resultCount={draftVisibleTileCount}
@@ -489,6 +500,8 @@ export function SearchPage() {
               setPhoneDraft((prev) => clearBanStatusSelection(prev));
             }
           }}
+          draftAllArtworks={phoneDraftAllArtworks}
+          onDraftAllArtworksChange={setPhoneDraftAllArtworks}
         />
       ) : null}
     </div>

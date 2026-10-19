@@ -19,6 +19,7 @@ import type {
 } from './filterEngine.ts';
 import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
 import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
+import { AllArtworksFilterGroup } from './AllArtworksFilterGroup.tsx';
 import type { FormatId } from '../format/formatCatalog.ts';
 
 const LINK_ARROW_VALUES = [
@@ -201,6 +202,8 @@ type FacetFilterPanelProps = {
   setIndex?: SetIndex | null;
   activeFormatId?: FormatId | null;
   onFormatChange?: (formatId: FormatId | null) => void;
+  allArtworks?: boolean;
+  onAllArtworksChange?: (enabled: boolean) => void;
 };
 
 export function FacetFilterPanel({
@@ -212,6 +215,8 @@ export function FacetFilterPanel({
   setIndex,
   activeFormatId = null,
   onFormatChange,
+  allArtworks = true,
+  onAllArtworksChange,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
   const countsByField = useMemo(() => {
@@ -253,6 +258,9 @@ export function FacetFilterPanel({
       <div className="flex flex-col gap-3">
         {onFormatChange ? (
           <FormatFilterGroup value={activeFormatId} onChange={onFormatChange} />
+        ) : null}
+        {onAllArtworksChange ? (
+          <AllArtworksFilterGroup enabled={allArtworks} onChange={onAllArtworksChange} />
         ) : null}
         {visibleDefinitions.map((def) => {
           const collapsed = collapsedFields[def.id] ?? false;
@@ -682,6 +690,8 @@ type PhoneFiltersSheetProps = {
   setIndex?: SetIndex | null;
   draftFormatId?: FormatId | null;
   onDraftFormatChange?: (formatId: FormatId | null) => void;
+  draftAllArtworks?: boolean;
+  onDraftAllArtworksChange?: (enabled: boolean) => void;
 };
 
 export function PhoneFiltersSheet({
@@ -697,6 +707,8 @@ export function PhoneFiltersSheet({
   setIndex,
   draftFormatId = null,
   onDraftFormatChange,
+  draftAllArtworks = true,
+  onDraftAllArtworksChange,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -754,6 +766,8 @@ export function PhoneFiltersSheet({
           setIndex={setIndex}
           activeFormatId={draftFormatId}
           onFormatChange={onDraftFormatChange}
+          allArtworks={draftAllArtworks}
+          onAllArtworksChange={onDraftAllArtworksChange}
         />
       </div>
       <footer className="border-t border-border p-4">

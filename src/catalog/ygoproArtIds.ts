@@ -94,6 +94,20 @@ export async function fetchYgoproArtIdsForPasscodes(
   return results;
 }
 
+export async function fetchYgoproCardRow(passcode: number): Promise<YgoApiCard | undefined> {
+  try {
+    const response = await fetch(`${YGO_CARDINFO_URL}?id=${passcode}`);
+    if (!response.ok) return undefined;
+    const json = (await response.json()) as { data?: YgoApiCard[] };
+    const row = json.data?.[0];
+    if (!row) return undefined;
+    cacheArtIds(row.id, mapYgoproArtIds(row));
+    return row;
+  } catch {
+    return undefined;
+  }
+}
+
 export function queueYgoproArtIdLookup(passcode: number): void {
   if (artIdsByPasscode.has(passcode) || inflightByPasscode.has(passcode)) return;
   void fetchArtIdsForPasscode(passcode);
