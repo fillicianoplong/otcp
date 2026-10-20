@@ -15,11 +15,14 @@ const sampleCards = sampleDataset.cards as YugiohCard[];
 
 const SEARCH_FILTER_SECTION_LABELS = [
   'Format',
-  'Artworks',
-  ...SEARCH_FACET_FIELD_ORDER.map((fieldId) => {
+  ...SEARCH_FACET_FIELD_ORDER.flatMap((fieldId) => {
     const def = facetDefinitionById(fieldId);
     if (!def) throw new Error(`missing facet ${fieldId}`);
-    return facetDisplayLabel(def);
+    const label = facetDisplayLabel(def);
+    if (fieldId === 'banStatus') {
+      return [label, 'Artworks'];
+    }
+    return [label];
   }),
 ];
 
@@ -64,7 +67,7 @@ describe('FacetFilterPanel filter group order', () => {
     const expectedVisible = SEARCH_FILTER_SECTION_LABELS.filter((label) => visible.has(label));
     expect(titles).toEqual(expectedVisible);
     expect(titles.indexOf('Legality')).toBeGreaterThan(titles.indexOf('Format'));
-    expect(titles.indexOf('Artworks')).toBeGreaterThan(titles.indexOf('Format'));
+    expect(titles.indexOf('Artworks')).toBeGreaterThan(titles.indexOf('Legality'));
   });
 
   it('hides Legality when no format is selected', () => {
