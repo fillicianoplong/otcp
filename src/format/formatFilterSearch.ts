@@ -9,8 +9,10 @@ export function formatOptionMatchesQuery(
   option: FormatFilterSearchOption,
   normalizedQuery: string,
 ): boolean {
+  const nameMatches = option.name.toLowerCase().includes(normalizedQuery);
   if (option.id === null) {
-    return 'none'.includes(normalizedQuery);
+    return nameMatches || 'none'.includes(normalizedQuery);
   }
-  return option.name.toLowerCase().includes(normalizedQuery) || option.id.includes(normalizedQuery);
+  // Single letters match names only. Longer queries also match the format id.
+  return nameMatches || (normalizedQuery.length > 1 && option.id.includes(normalizedQuery));
 }

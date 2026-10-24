@@ -13,4 +13,9 @@ describe('format filter search', () => {
   it('matches None when typing none', () => {
     expect(formatOptionMatchesQuery({ id: null, name: 'None' }, 'no')).toBe(true);
   });
+
+  it('matches All formats by the visible name', () => {
+    expect(formatOptionMatchesQuery({ id: null, name: 'All formats' }, 'all')).toBe(true);
+    expect(formatOptionMatchesQuery({ id: null, name: 'All formats' }, 'goat')).toBe(false);
+  });
 });
