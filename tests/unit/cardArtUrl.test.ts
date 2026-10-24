@@ -36,10 +36,17 @@ describe('cardArtUrl', () => {
     expect(alt).not.toBe(sampleCard.images.large);
   });
 
-  it('falls back to small when the large URL fails to load', () => {
-    expect(cardDetailImageFallback(sampleCard, sampleCard.images.large)).toBe(
-      sampleCard.images.small,
+  it('falls back through smaller hosted and YGOPRODeck URLs when load fails', () => {
+    const altLarge = cardDetailImageSrc(sampleCard, 46986421);
+    expect(cardDetailImageFallback(sampleCard, altLarge, 46986421)).toContain(
+      '/ygo/small/46986421.webp',
     );
-    expect(cardDetailImageFallback(sampleCard, sampleCard.images.small)).toBeUndefined();
+    expect(
+      cardDetailImageFallback(
+        sampleCard,
+        'https://images.ygoprodeck.com/images/cards_small/46986421.jpg',
+        46986421,
+      ),
+    ).toBe('https://images.ygoprodeck.com/images/cards/46986421.jpg');
   });
 });

@@ -411,7 +411,7 @@ export function CardCatalogView({
     <section aria-labelledby={headingId} className="flex flex-col gap-4">
       {showResultCount ? (
         <p className="text-sm text-text-2" aria-live="polite">
-          {formatCatalogResultCount(displayCount, allArtworks)}
+          {formatCatalogResultCount(displayCount)}
         </p>
       ) : null}
       {trimmedQuery && matchCount === 0 ? (

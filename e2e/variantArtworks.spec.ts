@@ -20,7 +20,7 @@ test.describe('variant artworks', () => {
   test('All artworks filter and art path on detail', async ({ page }) => {
     await page.goto(searchPathWithAllArtOff('Dark Magician'));
     await clickAllArtworksFilter(page);
-    await expect(page.getByText('5 artworks')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('5 cards')).toBeVisible({ timeout: 15_000 });
 
     await ensureGridTileCount(page, 5);
 
@@ -35,7 +35,7 @@ test.describe('variant artworks', () => {
     await expect(page.getByText('1 card')).toBeVisible();
 
     await clickAllArtworksFilter(page);
-    await expect(page.getByText('5 artworks')).toBeVisible();
+    await expect(page.getByText('5 cards')).toBeVisible();
     await ensureGridTileCount(page, 5);
     await page.getByRole('link', { name: 'Dark Magician, artwork 2 of 5', exact: true }).click();
     await expect(page).toHaveURL(/\/search\/card\/46986421(?:\?|$)/, { timeout: 15_000 });

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { ygoprodeckLargeImageUrl, ygoprodeckSmallImageUrl } from '../shared/cardImageUrls.ts';
 import { bundledDevArtUrl } from './bundledDevArt.ts';
-import { catalogLargeImageUrl, catalogSmallImageUrl } from './cardArt.ts';
+import { catalogLargeImageUrl, catalogSmallImageUrl, defaultArtId } from './cardArt.ts';
 import { YGO_CARD_ART_ASPECT_CLASS } from './cardArtUrl.ts';
 
 type CatalogArtImageSize = 'small' | 'large';
@@ -37,6 +38,10 @@ function NamedArtPlaceholder({
   );
 }
 
+function ygoproArtSrc(imageId: number, size: CatalogArtImageSize): string {
+  return size === 'small' ? ygoprodeckSmallImageUrl(imageId) : ygoprodeckLargeImageUrl(imageId);
+}
+
 function CatalogArtImageInner({
   card,
   imageId,
@@ -58,6 +63,7 @@ function CatalogArtImageInner({
 }) {
   const [src, setSrc] = useState(() => primaryArtSrc(card, imageId, size));
   const [showPlaceholder, setShowPlaceholder] = useState(false);
+  const triedSrcRef = useRef(new Set<string>([primaryArtSrc(card, imageId, size)]));
 
   useEffect(() => {
     if (!showPlaceholder) {
@@ -83,15 +89,18 @@ function CatalogArtImageInner({
       loading={loading}
       decoding="async"
       onError={() => {
-        const bundled = bundledDevArtUrl(imageId, size);
-        if (bundled && src !== bundled) {
-          setSrc(bundled);
-          return;
-        }
-        const fallback = defaultArtSrc(card, size);
-        if (src !== fallback && fallback.length > 0) {
-          setSrc(fallback);
-          return;
+        triedSrcRef.current.add(src);
+        const candidates = [
+          bundledDevArtUrl(imageId, size),
+          ygoproArtSrc(imageId, size),
+          imageId === defaultArtId(card) ? defaultArtSrc(card, size) : null,
+        ].filter((candidate): candidate is string => Boolean(candidate && candidate.length > 0));
+
+        for (const candidate of candidates) {
+          if (!triedSrcRef.current.has(candidate)) {
+            setSrc(candidate);
+            return;
+          }
         }
         setShowPlaceholder(true);
       }}

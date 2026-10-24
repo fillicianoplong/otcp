@@ -6,6 +6,6 @@ export function formatArtworkCount(count: number): string {
   return count === 1 ? '1 artwork' : `${count.toLocaleString()} artworks`;
 }
 
-export function formatCatalogResultCount(count: number, allArtworks: boolean): string {
-  return allArtworks ? formatArtworkCount(count) : formatCardCount(count);
+export function formatCatalogResultCount(count: number): string {
+  return formatCardCount(count);
 }

@@ -422,7 +422,7 @@ export function SearchPage() {
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-text-2" aria-live="polite">
-                {formatCatalogResultCount(visibleTileCount, allArtworks)}
+                {formatCatalogResultCount(visibleTileCount)}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 {effectiveViewMode === 'table' ? (
