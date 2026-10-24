@@ -219,21 +219,6 @@ export function FormatFilterGroup({ value, onChange }: FormatFilterGroupProps) {
             open ? '' : 'cursor-default caret-transparent'
           }`}
         />
-        {value ? (
-          <button
-            type="button"
-            aria-label="Clear format"
-            onPointerDown={(event) => event.preventDefault()}
-            onClick={() => {
-              onChange(null);
-              closeList();
-              inputRef.current?.focus();
-            }}
-            className="inline-flex size-8 shrink-0 items-center justify-center text-text-2 hover:text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-          >
-            <span aria-hidden="true">×</span>
-          </button>
-        ) : null}
         <button
           type="button"
           aria-label={open ? 'Hide formats' : 'Show formats'}

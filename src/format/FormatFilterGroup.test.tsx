@@ -112,16 +112,22 @@ describe('FormatFilterGroup combobox', () => {
     }
   });
 
-  it('returns to every format from All formats, Clear, or typeahead', async () => {
+  it('shows the selected name and chevron without a clear control', () => {
+    render(<FormatFilterGroup value="advanced" onChange={() => {}} />);
+
+    expect((screen.getByRole('combobox', { name: 'Format' }) as HTMLInputElement).value).toBe(
+      'Advanced',
+    );
+    expect(screen.queryByRole('button', { name: 'Clear format' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Show formats' })).toBeTruthy();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('returns to every format from All formats or typeahead', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const { rerender } = render(<FormatFilterGroup value="genesys" onChange={onChange} />);
 
-    await user.click(screen.getByRole('button', { name: 'Clear format' }));
-    expect(onChange).toHaveBeenCalledWith(null);
-
-    onChange.mockClear();
-    rerender(<FormatFilterGroup value="genesys" onChange={onChange} />);
     await user.click(screen.getByRole('combobox', { name: 'Format' }));
     await user.click(screen.getByRole('option', { name: 'All formats' }));
     expect(onChange).toHaveBeenCalledWith(null);
