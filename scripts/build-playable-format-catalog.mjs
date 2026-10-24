@@ -65,7 +65,7 @@ function buildFormatEntry({ id, name, banlistEffectiveDate, manifest, usedIds })
   return {
     id,
     name,
-    cardSubtitle: `${banlistEffectiveDate} list · pool through ${poolCutoff}`,
+    cardSubtitle: `${banlistEffectiveDate} list, pool through ${poolCutoff}`,
     banlistHeading: list.listName,
     deckRulesSummary: ADVANCED_DECK_RULES,
     poolRule: 'tcg-earliest-on-or-before',

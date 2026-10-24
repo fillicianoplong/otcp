@@ -72,7 +72,7 @@ export function formatCardDetailSetReleaseDate(tcgDate: string): string | null {
 }
 
 export function cardDetailSetRowCodeRarity(setCode: string, setRarity: string): string {
-  return `${setCode} · ${setRarity}`;
+  return `${setCode}, ${setRarity}`;
 }
 
 export function cardDetailSetRowReleaseDate(

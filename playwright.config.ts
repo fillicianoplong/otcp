@@ -18,7 +18,7 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: `VITE_CATALOG_GRID_PAGE_SIZE=1 VITE_DEV_ART_FALLBACK=true npm run build && npm run preview -- --host ${host} --port ${port} --strictPort`,
+          command: `VITE_CATALOG_GRID_PAGE_SIZE=1 VITE_DEV_ART_FALLBACK=true VITE_DISABLE_CATALOG_ART_WARM=true npm run build && npm run preview -- --host ${host} --port ${port} --strictPort`,
           url: `http://${host}:${port}/otcp/`,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,

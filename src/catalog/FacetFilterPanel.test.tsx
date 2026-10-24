@@ -18,11 +18,7 @@ const SEARCH_FILTER_SECTION_LABELS = [
   ...SEARCH_FACET_FIELD_ORDER.flatMap((fieldId) => {
     const def = facetDefinitionById(fieldId);
     if (!def) throw new Error(`missing facet ${fieldId}`);
-    const label = facetDisplayLabel(def);
-    if (fieldId === 'banStatus') {
-      return [label, 'Artworks'];
-    }
-    return [label];
+    return [facetDisplayLabel(def)];
   }),
 ];
 
@@ -33,7 +29,6 @@ function filterPanelSectionTitles(container: HTMLElement): string[] {
   return Array.from(sections).map((section) => {
     const panel = within(section as HTMLElement);
     if (panel.queryByLabelText('Format')) return 'Format';
-    if (panel.queryByText('Artworks')) return 'Artworks';
     const heading = panel.getByRole('button', { expanded: true });
     return heading.textContent!.replace(/\s*[▸▾]\s*$/u, '').trim();
   });
@@ -57,8 +52,6 @@ describe('FacetFilterPanel filter group order', () => {
         onChange={() => {}}
         activeFormatId="advanced"
         onFormatChange={() => {}}
-        allArtworks
-        onAllArtworksChange={() => {}}
       />,
     );
 
@@ -67,7 +60,6 @@ describe('FacetFilterPanel filter group order', () => {
     const expectedVisible = SEARCH_FILTER_SECTION_LABELS.filter((label) => visible.has(label));
     expect(titles).toEqual(expectedVisible);
     expect(titles.indexOf('Legality')).toBeGreaterThan(titles.indexOf('Format'));
-    expect(titles.indexOf('Artworks')).toBeGreaterThan(titles.indexOf('Legality'));
   });
 
   it('hides Legality when no format is selected', () => {
@@ -83,8 +75,6 @@ describe('FacetFilterPanel filter group order', () => {
         onChange={() => {}}
         activeFormatId={null}
         onFormatChange={() => {}}
-        allArtworks
-        onAllArtworksChange={() => {}}
       />,
     );
 

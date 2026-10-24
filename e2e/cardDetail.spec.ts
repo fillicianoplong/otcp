@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 import { routeCardDetailCatalogFixture } from './fixtures/cardDetailCatalogRoute.ts';
-import { SEARCH_ALL_ART_OFF } from './helpers/searchAllArt.ts';
+import { SEARCH_PAGE } from './helpers/searchAllArt.ts';
 
 test.describe('Card detail prices', () => {
   test('opening a sample card shows market prices inside the sets section', async ({ page }) => {
-    await page.goto(SEARCH_ALL_ART_OFF);
+    await page.goto(SEARCH_PAGE);
     await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
       timeout: 15_000,
     });
@@ -35,7 +35,7 @@ test.describe('Card detail prices', () => {
   });
 
   test('card artwork zoom viewer opens and closes', async ({ page }) => {
-    await page.goto(SEARCH_ALL_ART_OFF);
+    await page.goto(SEARCH_PAGE);
     await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
       timeout: 15_000,
     });
@@ -204,7 +204,7 @@ test.describe('Card detail prices', () => {
   });
 
   test('store links open vendor search pages in a new tab', async ({ page }) => {
-    await page.goto(SEARCH_ALL_ART_OFF);
+    await page.goto(SEARCH_PAGE);
     await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
       timeout: 15_000,
     });

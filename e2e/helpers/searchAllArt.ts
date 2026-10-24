@@ -1,13 +1,10 @@
 import { expect, type Page } from '@playwright/test';
 
-/** Search URL with one gallery tile per matching card (card-level counts in e2e). */
-export const SEARCH_ALL_ART_OFF = '/otcp/search?allArt=0';
+export const SEARCH_PAGE = '/otcp/search';
 
-export function searchPathWithAllArtOff(query = ''): string {
-  const params = new URLSearchParams({ allArt: '0' });
-  if (query.length > 0) {
-    params.set('q', query);
-  }
+export function searchPath(query = ''): string {
+  if (query.length === 0) return '/otcp/search';
+  const params = new URLSearchParams({ q: query });
   return `/otcp/search?${params.toString()}`;
 }
 

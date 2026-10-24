@@ -27,7 +27,7 @@ export type FormatDefinition = {
   readonly detailSourceLinks?: readonly FormatDetailSourceLink[];
   /** Short line under the title on the Formats grid. */
   readonly cardSubtitle: string;
-  /** Shown after "Banlist ·" on the format detail page. */
+  /** Heading for the ban list block on the format detail page. */
   readonly banlistHeading: string;
   readonly deckRulesSummary: string;
   readonly poolRule: FormatPoolRule;
@@ -89,7 +89,7 @@ export const CORE_FORMAT_CATALOG: readonly FormatDefinition[] = [
     id: 'advanced',
     name: 'Advanced',
     description: 'Current TCG Advanced format using the live Konami Forbidden & Limited List.',
-    cardSubtitle: 'TCG Advanced · current',
+    cardSubtitle: 'TCG Advanced, current',
     banlistHeading: 'current TCG Forbidden & Limited List',
     deckRulesSummary: ADVANCED_DECK_RULES,
     poolRule: 'full-tcg',
@@ -152,7 +152,7 @@ export const CORE_FORMAT_CATALOG: readonly FormatDefinition[] = [
       { label: 'About', href: HAT_ABOUT_URL },
       { label: 'Format Library', href: FORMAT_LIBRARY_HAT_URL },
     ],
-    cardSubtitle: 'April 2014 list · July 2014 pool',
+    cardSubtitle: 'April 2014 list, July 2014 pool',
     banlistHeading: 'April 2014 TCG Forbidden & Limited List',
     deckRulesSummary: ADVANCED_DECK_RULES,
     poolRule: 'tcg-earliest-on-or-before',
@@ -171,7 +171,7 @@ export const CORE_FORMAT_CATALOG: readonly FormatDefinition[] = [
     description:
       'Tengu Plant revisits the metagame from YCS Toronto, when Reborn Tengu and Plant tuners toolboxed into Synchro bosses such as Trishula, Dragon of the Ice Barrier. Agents, Elemental HERO, T.G., and Chaos lists shared the top tables then and still see play online. The wide pool, first-wave XYZ tools, and Konami Time Wizard support make it a common choice for rogue brews and big events.',
     detailSourceLinks: [{ label: 'Format Library', href: FORMAT_LIBRARY_TENGU_URL }],
-    cardSubtitle: 'September 2011 list · Generation Force pool',
+    cardSubtitle: 'September 2011 list, Generation Force pool',
     banlistHeading: 'September 2011 TCG Forbidden & Limited List',
     deckRulesSummary: ADVANCED_DECK_RULES,
     poolRule: 'tcg-earliest-on-or-before',
@@ -190,7 +190,7 @@ export const CORE_FORMAT_CATALOG: readonly FormatDefinition[] = [
     description:
       'Edison is named for the Shonen Jump Championship in New Jersey where Jeff Jones’s Quickdraw Plant list took the title. Elemental HERO, Lightsworn, and Plant Synchro engines fought Blackwing and Machina strategies in one of the TCG’s most open deck-building windows. Community tours and a stable banlist keep it among the most played retro formats online.',
     detailSourceLinks: [{ label: 'Format Library', href: FORMAT_LIBRARY_EDISON_URL }],
-    cardSubtitle: 'March 2010 list · Duelist Pack: Kaiba pool',
+    cardSubtitle: 'March 2010 list, Duelist Pack: Kaiba pool',
     banlistHeading: 'March 2010 TCG Forbidden & Limited List',
     deckRulesSummary: ADVANCED_DECK_RULES,
     poolRule: 'tcg-earliest-on-or-before',
@@ -213,7 +213,7 @@ export const CORE_FORMAT_CATALOG: readonly FormatDefinition[] = [
       { label: 'Format Library', href: FORMAT_LIBRARY_GOAT_URL },
       { label: 'Goat Control', href: YUGIPEDIA_GOAT_CONTROL_URL },
     ],
-    cardSubtitle: 'April 2005 list · pool through Aug 2005',
+    cardSubtitle: 'April 2005 list, pool through Aug 2005',
     banlistHeading: 'April 2005 TCG Forbidden & Limited List',
     deckRulesSummary: ADVANCED_DECK_RULES,
     poolRule: 'tcg-earliest-on-or-before',
@@ -303,6 +303,9 @@ export function searchWithFormatPath(formatId: FormatId): string {
 }
 
 export function formatBanlistEffectiveDate(format: FormatDefinition): string | null {
+  if (format.banlistSource === 'genesys-points') {
+    return null;
+  }
   if (format.banlistSource === 'tcg-dated-list') {
     return format.banlistEffectiveDate ?? format.sortDate ?? null;
   }
