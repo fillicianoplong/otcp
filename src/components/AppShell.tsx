@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router';
 import { PRIMARY_NAV } from '../nav';
 import { ProfileViewPreferenceProvider } from '../shared/profile';
 import { APP_SHELL_CONTENT_CLASS } from './appShellLayout.ts';
+import { DocumentTitle } from './DocumentTitle.tsx';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -61,6 +62,7 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg text-text">
+      <DocumentTitle />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-heading focus:shadow-[0_0_0_2px_var(--color-border-strong)]"

@@ -6,6 +6,7 @@ export {
   GUEST_DECK_DRAFTS_STORAGE_VERSION,
   listGuestDeckDrafts,
   removeGuestDeckDraft,
+  subscribeGuestDeckDrafts,
   updateGuestDeckDraft,
 } from './guestDeckDraftStore.ts';
 export {
