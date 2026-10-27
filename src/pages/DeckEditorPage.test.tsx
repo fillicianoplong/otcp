@@ -207,6 +207,26 @@ describe('DeckEditorPage', () => {
     expect(screen.getByTestId('deck-zone-main-count')).toHaveTextContent(/^0/);
     expect(getGuestDeckDraft(draft.id)?.extra).toEqual([cardId('Stardust Dragon')]);
 
+    expect(within(dialog).queryByText(/Extra Deck monsters/)).toBeNull();
+    expect(within(dialog).queryByText(/Side needs Side/)).toBeNull();
+    const addTo = within(dialog).getByRole('radiogroup', { name: 'Add to' });
+    expect(addTo.className).toContain('inline-flex');
+    for (const name of ['Auto', 'Main', 'Extra', 'Side']) {
+      const radio = within(addTo).getByRole('radio', { name });
+      expect(radio.className).toContain('min-h-8');
+      expect(radio.className).not.toContain('touch-min');
+    }
+
+    await user.clear(within(dialog).getByRole('searchbox', { name: 'Search cards' }));
+    await user.type(
+      within(dialog).getByRole('searchbox', { name: 'Search cards' }),
+      'Dark Magician',
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Add Dark Magician' }));
+    expect(within(screen.getByTestId('deck-zone-main')).getByText('Dark Magician')).toBeTruthy();
+    expect(screen.getByTestId('deck-zone-main-count')).toHaveTextContent(/^1/);
+    expect(getGuestDeckDraft(draft.id)?.main).toEqual([cardId('Dark Magician')]);
+
     await user.click(within(dialog).getByRole('radio', { name: 'Side' }));
     await user.clear(within(dialog).getByRole('searchbox', { name: 'Search cards' }));
     await user.type(
@@ -216,7 +236,61 @@ describe('DeckEditorPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Add Polymerization' }));
 
     expect(within(screen.getByTestId('deck-zone-side')).getByText('Polymerization')).toBeTruthy();
-    expect(screen.getByTestId('deck-zone-main-count')).toHaveTextContent(/^0/);
+    expect(within(screen.getByTestId('deck-zone-main')).queryByText('Polymerization')).toBeNull();
+    expect(screen.getByTestId('deck-zone-main-count')).toHaveTextContent(/^1/);
     expect(getGuestDeckDraft(draft.id)?.side).toEqual([cardId('Polymerization')]);
+  });
+
+  it('picks a format from a short combobox and clears it from the chip', async () => {
+    mockViewport(true);
+    const draft = createGuestDeckDraft({ name: 'Locals', formatId: 'yugi-kaiba' });
+    const user = userEvent.setup();
+    renderEditor(draft.id);
+
+    expect(screen.queryByText(/Extra Deck monsters/)).toBeNull();
+    const field = screen.getByTestId('deck-format-field');
+    expect(field.className).not.toContain('p-4');
+    expect(field.querySelector('.w-56')).toBeTruthy();
+    expect(document.getElementById('deck-format-select')).toBeNull();
+
+    const combobox = screen.getByRole('combobox', { name: 'Format' });
+    expect((combobox as HTMLInputElement).value).toBe('Yugi-Kaiba');
+    expect(screen.queryByRole('button', { name: 'Clear format' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Show formats' })).toBeTruthy();
+
+    const chip = screen.getByRole('button', { name: /Remove Yugi-Kaiba format/ });
+    expect(chip.className).toContain('rounded-full');
+    await user.click(within(chip).getByText('×'));
+
+    expect(getGuestDeckDraft(draft.id)?.formatId).toBe('advanced');
+    expect((screen.getByRole('combobox', { name: 'Format' }) as HTMLInputElement).value).toBe(
+      'Advanced',
+    );
+    expect(screen.queryByRole('button', { name: /Remove Yugi-Kaiba format/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /Remove Advanced format/ })).toBeTruthy();
+
+    await user.click(screen.getByRole('combobox', { name: 'Format' }));
+    await user.keyboard('edison');
+    await user.keyboard('{Enter}');
+
+    expect(getGuestDeckDraft(draft.id)?.formatId).toBe('edison');
+    expect((screen.getByRole('combobox', { name: 'Format' }) as HTMLInputElement).value).toBe(
+      'Edison',
+    );
+    expect(screen.getByRole('button', { name: /Remove Edison format/ })).toBeTruthy();
+
+    cleanup();
+    clearGuestDeckDraftsStorage();
+    const genesys = createGuestDeckDraft({
+      name: 'Points',
+      formatId: 'genesys',
+      genesysCap: 80,
+    });
+    renderEditor(genesys.id);
+    await user.click(
+      within(screen.getByRole('button', { name: /Remove Genesys format/ })).getByText('×'),
+    );
+    expect(getGuestDeckDraft(genesys.id)?.formatId).toBe('advanced');
+    expect(getGuestDeckDraft(genesys.id)?.genesysCap).toBeUndefined();
   });
 });

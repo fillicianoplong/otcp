@@ -143,6 +143,22 @@ describe('FormatFilterGroup combobox', () => {
     expect(names).not.toContain('Advanced');
   });
 
+  it('omits the empty option when a format is required', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<FormatFilterGroup value="goat" onChange={onChange} allowEmpty={false} />);
+
+    const combobox = screen.getByRole('combobox', { name: 'Format' });
+    expect((combobox as HTMLInputElement).value).toBe('GOAT');
+    combobox.focus();
+    await user.keyboard('{Backspace}');
+    expect(onChange).not.toHaveBeenCalled();
+
+    await user.click(combobox);
+    expect(screen.queryByRole('option', { name: 'All formats' })).toBeNull();
+    expect(optionNames()[0]).toBe('Advanced');
+  });
+
   it('keeps the open list within the field width', async () => {
     const user = userEvent.setup();
     render(

@@ -8,6 +8,13 @@ const ALL_FORMATS_LABEL = 'All formats';
 type FormatFilterGroupProps = {
   value: FormatId | null;
   onChange: (formatId: FormatId | null) => void;
+  /**
+   * Search includes an empty option. A deck does not: Backspace will not clear,
+   * and the list has no "All formats" row.
+   */
+  allowEmpty?: boolean;
+  /** When set, the built-in label is omitted and this id names the combobox. */
+  labelledBy?: string;
 };
 
 type FormatOption = {
@@ -35,11 +42,16 @@ function optionClassName(selected: boolean, active: boolean): string {
   return `${base} text-text hover:bg-surface-2`;
 }
 
-export function FormatFilterGroup({ value, onChange }: FormatFilterGroupProps) {
+export function FormatFilterGroup({
+  value,
+  onChange,
+  allowEmpty = true,
+  labelledBy,
+}: FormatFilterGroupProps) {
   const rawId = useId().replace(/:/g, '');
   const inputId = `${rawId}-format`;
   const listId = `${rawId}-list`;
-  const labelId = `${rawId}-label`;
+  const labelId = labelledBy ?? `${rawId}-label`;
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -47,13 +59,10 @@ export function FormatFilterGroup({ value, onChange }: FormatFilterGroupProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const formats = useMemo(() => listFormatsNewestFirst(), []);
-  const options = useMemo<FormatOption[]>(
-    () => [
-      { id: null, name: ALL_FORMATS_LABEL },
-      ...formats.map((format) => ({ id: format.id, name: format.name })),
-    ],
-    [formats],
-  );
+  const options = useMemo<FormatOption[]>(() => {
+    const named = formats.map((format) => ({ id: format.id, name: format.name }));
+    return allowEmpty ? [{ id: null, name: ALL_FORMATS_LABEL }, ...named] : named;
+  }, [allowEmpty, formats]);
   const filtered = useMemo(
     () => filterFormatOptions(options, open ? query : ''),
     [open, options, query],
@@ -61,7 +70,9 @@ export function FormatFilterGroup({ value, onChange }: FormatFilterGroupProps) {
   const selectedIndex = options.findIndex((option) => option.id === value);
   const triggerLabel =
     value == null
-      ? ALL_FORMATS_LABEL
+      ? allowEmpty
+        ? ALL_FORMATS_LABEL
+        : ''
       : (formats.find((format) => format.id === value)?.name ?? value);
   const activeIndexClamped =
     filtered.length === 0 ? -1 : Math.min(Math.max(activeIndex, 0), filtered.length - 1);
@@ -167,7 +178,7 @@ export function FormatFilterGroup({ value, onChange }: FormatFilterGroupProps) {
 
     if (event.key === 'Backspace' && !open && value) {
       event.preventDefault();
-      onChange(null);
+      if (allowEmpty) onChange(null);
       return;
     }
 
@@ -190,9 +201,11 @@ export function FormatFilterGroup({ value, onChange }: FormatFilterGroupProps) {
         if (open) closeList();
       }}
     >
-      <label id={labelId} htmlFor={inputId} className="sr-only">
-        Format
-      </label>
+      {labelledBy ? null : (
+        <label id={labelId} htmlFor={inputId} className="sr-only">
+          Format
+        </label>
+      )}
       <div className="flex min-h-[var(--touch-min)] min-w-0 max-w-full items-center rounded-md border border-border bg-surface hover:border-border-strong focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-strong">
         <input
           ref={inputRef}
@@ -205,7 +218,7 @@ export function FormatFilterGroup({ value, onChange }: FormatFilterGroupProps) {
           aria-labelledby={labelId}
           type="text"
           value={open ? query : triggerLabel}
-          placeholder={open ? 'Search formats' : ALL_FORMATS_LABEL}
+          placeholder={open ? 'Search formats' : allowEmpty ? ALL_FORMATS_LABEL : 'Format'}
           autoComplete="off"
           spellCheck={false}
           onChange={(event) => {

@@ -25,7 +25,8 @@ import {
   resolveGenesysPointCap,
 } from '../format/formatEngine/genesysRules.ts';
 import { evaluateDeckAdd, type DeckListState } from '../format/formatEngine.ts';
-import { formatDisplayName, listFormats, type FormatId } from '../format/formatCatalog.ts';
+import { formatDisplayName, type FormatId } from '../format/formatCatalog.ts';
+import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
 import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
@@ -41,6 +42,12 @@ const SAMPLE_SKILL_IDS = {
   heroesUnite: 300302050,
   ancientFusion: 300302022,
 } as const;
+
+/** A deck stays on a format. The chip returns the choice to this baseline. */
+const CLEARED_DECK_FORMAT_ID: FormatId = 'advanced';
+
+const formatChipClassName =
+  'inline-flex min-h-8 max-w-full items-center gap-1 rounded-full border border-border bg-surface-2 px-3 text-sm text-text hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
 function listsFromDraft(draft: GuestDeckDraft): DeckCardLists {
   return {
@@ -135,6 +142,7 @@ export function DeckEditorPage() {
   const draggingCardId = useRef<number | null>(null);
   const filtersOpenRef = useRef(false);
   const libraryTitleId = useId();
+  const formatLabelId = useId();
 
   useEffect(() => {
     if (desktop || !libraryOpen) return undefined;
@@ -361,28 +369,39 @@ export function DeckEditorPage() {
             />
           </label>
         </form>
-        <p className="text-sm text-text-2">{formatDisplayName(draft.formatId)}</p>
+        <div className="flex min-w-0 flex-wrap items-center gap-2" data-testid="deck-format-field">
+          <span id={formatLabelId} className="text-sm text-text">
+            Format
+          </span>
+          <div className="relative z-30 w-56 min-w-0 max-w-full">
+            <FormatFilterGroup
+              value={draft.formatId}
+              allowEmpty={false}
+              labelledBy={formatLabelId}
+              onChange={(formatId) => {
+                if (formatId) handleFormatChange(formatId);
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (draft.formatId !== CLEARED_DECK_FORMAT_ID) {
+                handleFormatChange(CLEARED_DECK_FORMAT_ID);
+              }
+            }}
+            className={formatChipClassName}
+          >
+            <span className="truncate">{formatDisplayName(draft.formatId)}</span>
+            <span aria-hidden="true" className="text-text-2">
+              ×
+            </span>
+            <span className="sr-only">Remove {formatDisplayName(draft.formatId)} format</span>
+          </button>
+        </div>
         <p className="text-sm tabular-nums text-text-2">
           Main {draft.main.length} / Extra {draft.extra.length} / Side {draft.side.length}
         </p>
-      </div>
-
-      <div className={`${panelClassName} space-y-2`}>
-        <label className="flex flex-col gap-1 text-sm text-text" htmlFor="deck-format-select">
-          <span>Format</span>
-          <select
-            id="deck-format-select"
-            value={draft.formatId}
-            onChange={(event) => handleFormatChange(event.target.value as FormatId)}
-            className="min-h-[var(--touch-min)] rounded-md border border-border bg-bg px-3 text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-          >
-            {listFormats().map((format) => (
-              <option key={format.id} value={format.id}>
-                {format.name}
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
 
       {isGenesysFormat(draft.formatId) && genesysStatus ? (
