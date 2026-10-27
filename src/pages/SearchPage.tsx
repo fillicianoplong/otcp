@@ -79,13 +79,19 @@ export function SearchPage() {
     [profilePreferenceRevision, searchParams],
   );
   const viewMode = resolvedViewPreference.mode;
+  // Mirror the saved format in state. The chip is the clear control, and a saved
+  // format can be active when the URL has no format param. Clearing storage alone
+  // does not change the query string, so Search would keep the old selection.
+  const [storedFormatRaw, setStoredFormatRaw] = useState<string | null>(() =>
+    readFormatPreference(),
+  );
   const resolvedFormat = useMemo(
     () =>
       resolveFormatPreference({
         urlParam: searchParams.get(FORMAT_QUERY_KEY),
-        storedRaw: readFormatPreference(),
+        storedRaw: storedFormatRaw,
       }),
-    [searchParams],
+    [searchParams, storedFormatRaw],
   );
   const activeFormatId = resolvedFormat.formatId;
   const formatParam = activeFormatId;
@@ -230,11 +236,16 @@ export function SearchPage() {
     [location.pathname, location.state, navigate, searchParams],
   );
 
+  const persistFormatPreference = useCallback((formatId: FormatId | null) => {
+    writeFormatPreference(formatId);
+    setStoredFormatRaw(formatId);
+  }, []);
+
   const commitFilterAndFormat = useCallback(
     (nextFilterState: FilterState, formatId: FormatId | null) => {
       const resolved = formatId ? nextFilterState : clearBanStatusSelection(nextFilterState);
       filterStateRef.current = resolved;
-      writeFormatPreference(formatId);
+      persistFormatPreference(formatId);
       const params = new URLSearchParams(searchParams);
       writeFilterStateToParams(params, resolved);
       applyFormatToSearchParams(params, formatId);
@@ -245,7 +256,7 @@ export function SearchPage() {
         { replace: true, state: withoutSearchScrollRestore(location.state) },
       );
     },
-    [location.pathname, location.state, navigate, searchParams],
+    [location.pathname, location.state, navigate, persistFormatPreference, searchParams],
   );
 
   const setViewMode = useCallback(
@@ -268,7 +279,7 @@ export function SearchPage() {
 
   const setActiveFormat = useCallback(
     (formatId: FormatId | null) => {
-      writeFormatPreference(formatId);
+      persistFormatPreference(formatId);
       const params = new URLSearchParams(searchParams);
       applyFormatToSearchParams(params, formatId);
       if (!formatId) {
@@ -282,7 +293,7 @@ export function SearchPage() {
         { replace: true, state: withoutSearchScrollRestore(location.state) },
       );
     },
-    [location.pathname, location.state, navigate, searchParams],
+    [location.pathname, location.state, navigate, persistFormatPreference, searchParams],
   );
 
   const clearActiveFormat = useCallback(() => {

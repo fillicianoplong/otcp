@@ -13,6 +13,7 @@ import { CardCatalogProvider } from '../catalog/CardCatalogProvider.tsx';
 import { CATALOG_GRID_PAGE_SIZE } from '../catalog/gridPaging.ts';
 import { clearCardCatalogCache } from '../catalog/loadCatalog.ts';
 import { SEARCH_SCROLL_STATE_KEY } from '../catalog/searchScrollRestore.ts';
+import { FORMAT_STORAGE_KEY } from '../format/formatPreference.ts';
 import { CardDetailPage } from './CardDetailPage.tsx';
 import { SearchPage } from './SearchPage.tsx';
 
@@ -87,8 +88,21 @@ function renderSearchFlowWithRouter(initialEntries: InitialEntry[], initialIndex
 afterEach(() => {
   cleanup();
   clearCardCatalogCache();
+  localStorage.clear();
   vi.unstubAllGlobals();
 });
+
+function stubIntersectionObserver(): void {
+  class MockIntersectionObserver {
+    observe = vi.fn();
+    disconnect = vi.fn();
+    constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {
+      void _callback;
+      void _options;
+    }
+  }
+  vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
+}
 
 describe('Search scroll restore', () => {
   beforeEach(() => {
@@ -101,15 +115,7 @@ describe('Search scroll restore', () => {
       scrollY = y;
     }) as typeof window.scrollTo;
 
-    class MockIntersectionObserver {
-      observe = vi.fn();
-      disconnect = vi.fn();
-      constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {
-        void _callback;
-        void _options;
-      }
-    }
-    vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
+    stubIntersectionObserver();
   });
 
   it('restores loaded results and scroll position from saved history state', async () => {
@@ -150,5 +156,57 @@ describe('Search scroll restore', () => {
       expect(window.scrollY).toBe(0);
     });
     expect(within(document.body).queryByRole('link', { name: 'Sample Card 50' })).toBeNull();
+  });
+});
+
+describe('Search format chip', () => {
+  beforeEach(() => {
+    stubIntersectionObserver();
+  });
+
+  it('clears a stored format when the URL has no format param', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem(FORMAT_STORAGE_KEY, 'yugi-kaiba');
+    const router = renderSearchFlowWithRouter(['/search'], 0);
+
+    const chip = await screen.findByRole('button', { name: /Remove Yugi-Kaiba format/ });
+    const combobox = await screen.findByRole('combobox', { name: 'Format' });
+    expect((combobox as HTMLInputElement).value).toBe('Yugi-Kaiba');
+    expect(screen.queryByRole('button', { name: 'Clear format' })).toBeNull();
+
+    await user.click(within(chip).getByText('×'));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /Remove Yugi-Kaiba format/ })).toBeNull();
+    });
+    expect((screen.getByRole('combobox', { name: 'Format' }) as HTMLInputElement).value).toBe(
+      'All formats',
+    );
+    expect(localStorage.getItem(FORMAT_STORAGE_KEY)).toBeNull();
+    expect(router.state.location.search).not.toContain('format=');
+  });
+
+  it('clears a format that is selected in the URL', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem(FORMAT_STORAGE_KEY, 'yugi-kaiba');
+    const router = renderSearchFlowWithRouter(['/search?format=yugi-kaiba'], 0);
+
+    const chip = await screen.findByRole('button', { name: /Remove Yugi-Kaiba format/ });
+    expect(
+      ((await screen.findByRole('combobox', { name: 'Format' })) as HTMLInputElement).value,
+    ).toBe('Yugi-Kaiba');
+    expect(screen.queryByRole('button', { name: 'Clear format' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Show formats' })).toBeTruthy();
+
+    await user.click(within(chip).getByText('×'));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /Remove Yugi-Kaiba format/ })).toBeNull();
+    });
+    expect((screen.getByRole('combobox', { name: 'Format' }) as HTMLInputElement).value).toBe(
+      'All formats',
+    );
+    expect(localStorage.getItem(FORMAT_STORAGE_KEY)).toBeNull();
+    expect(router.state.location.search).not.toContain('format=');
   });
 });
