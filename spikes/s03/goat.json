@@ -1,0 +1,568 @@
+{
+  "formatId": "goat",
+  "name": "Goat",
+  "listName": "April 2005 TCG Forbidden/Limited List",
+  "effectiveDate": "2005-04-01",
+  "effectiveThrough": "2005-09-30",
+  "retrieved": "2026-10-28",
+  "source": {
+    "name": "GoatFormat.com",
+    "url": "https://www.goatformat.com/cardpool.html",
+    "statement": "All incarnations of Goat Format use the April 2005 Forbidden/Limited List for the TCG."
+  },
+  "listWindowSource": {
+    "name": "Yugipedia, April 2005 Lists",
+    "url": "https://yugipedia.com/wiki/April_2005_Lists",
+    "note": "Window April 1, 2005 through September 30, 2005. GoatFormat.com names the April 2005 TCG list and does not print those calendar dates. This spike did not reopen the Upper Deck appendix cited on that page."
+  },
+  "cardPool": {
+    "summary": "Cards that would have been legal for premier event play on August 17, 2005, limited to the sets and promos named on the source page.",
+    "sourceUrl": "https://www.goatformat.com/cardpool.html",
+    "sets": [
+      "Legend of Blue Eyes White Dragon (LOB)",
+      "Yugi and Kaiba Starter Decks (SDY/SDK)",
+      "Metal Raiders (MRD)",
+      "Magic/Spell Ruler (MRL/SRL)",
+      "Pharaoh's Servant (PSV)",
+      "Joey and Pegasus Starter Decks (SDJ/SDP)",
+      "Labyrinth of Nightmare (LON)",
+      "Legacy of Darkness (LOD)",
+      "Pharaonic Guardian (PGD)",
+      "Magician's Force (MFC)",
+      "Dark Crisis (DCR)",
+      "Yugi and Kaiba Evolution Decks (SYE/SKE)",
+      "Invasion of Chaos (IOC)",
+      "Ancient Sanctuary (AST)",
+      "Soul of the Duelist (SOD)",
+      "Dark Beginning 1 (DB1)",
+      "Rise of Destiny (RDS)",
+      "Flaming Eternity (FET)",
+      "Dark Revelation 1 (DR1)",
+      "The Lost Millennium (TLM)",
+      "Dragon's Roar (SD1)",
+      "Zombie Madness (SD2)",
+      "Blaze of Destruction (SD3)",
+      "Fury from the Deep (SD4)",
+      "Dark Beginning 2 (DB2)"
+    ],
+    "promos": "BPT, CMC, CT1, DBT, DDS, DMG, DL1, DL2, DL3, DL4, DL5, DL6, DL7, DL8, DOD, DOR, EDS, EP1, FMR, JMP (up to and including Archfiend of Gilfer), MC1, MOV, MP1, PCJ, PCK, PCY, ROD, SDD, SP1 (up to and including Embodiment of Apophis), TFK, TP1, TP2, TP3, TP4, TP5, TP6, TSC, WC4, WC5"
+  },
+  "crossCheck": {
+    "ygoprodeckBanlistInfoKeys": ["ban_goat", "ban_ocg", "ban_tcg"],
+    "banStatusField": "ban_goat",
+    "result": "All 73 community rows match ban_goat by name and status. Monster Reborn's card id differs between cardinfo.php and cardinfo.php?banlist=goat; see gaps.json G-04."
+  },
+  "cards": [
+    {
+      "id": 69243953,
+      "passcode": "69243953",
+      "name": "Butterfly Dagger - Elma",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 4031928,
+      "passcode": "04031928",
+      "name": "Change of Heart",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 82301904,
+      "passcode": "82301904",
+      "name": "Chaos Emperor Dragon - Envoy of the End",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 17375316,
+      "passcode": "17375316",
+      "name": "Confiscation",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 53129443,
+      "passcode": "53129443",
+      "name": "Dark Hole",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 78706415,
+      "passcode": "78706415",
+      "name": "Fiber Jar",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 18144507,
+      "passcode": "18144507",
+      "name": "Harpie's Feather Duster",
+      "status": "forbidden",
+      "note": "YGOPRODeck also lists image id 18144506 for this card. Snapshot id is the card id."
+    },
+    {
+      "id": 61740673,
+      "passcode": "61740673",
+      "name": "Imperial Order",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 34206604,
+      "passcode": "34206604",
+      "name": "Magical Scientist",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 21593977,
+      "passcode": "21593977",
+      "name": "Makyura the Destructor",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 41482598,
+      "passcode": "41482598",
+      "name": "Mirage of Nightmare",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 83764719,
+      "passcode": "83764719",
+      "name": "Monster Reborn",
+      "status": "forbidden",
+      "note": "Uncertain which id is primary. On 2026-10-28, cardinfo.php used card id 83764719 and cardinfo.php?banlist=goat used 83764718. Both are image ids on this card. Snapshot id is 83764719."
+    },
+    {
+      "id": 74191942,
+      "passcode": "74191942",
+      "name": "Painful Choice",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 12580477,
+      "passcode": "12580477",
+      "name": "Raigeki",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 42829885,
+      "passcode": "42829885",
+      "name": "The Forceful Sentry",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 78010363,
+      "passcode": "78010363",
+      "name": "Witch of the Black Forest",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 3078576,
+      "passcode": "03078576",
+      "name": "Yata-Garasu",
+      "status": "forbidden",
+      "note": ""
+    },
+    {
+      "id": 72989439,
+      "passcode": "72989439",
+      "name": "Black Luster Soldier - Envoy of the Beginning",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 71413901,
+      "passcode": "71413901",
+      "name": "Breaker the Magical Warrior",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 97077563,
+      "passcode": "97077563",
+      "name": "Call of the Haunted",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 72892473,
+      "passcode": "72892473",
+      "name": "Card Destruction",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 36468556,
+      "passcode": "36468556",
+      "name": "Ceasefire",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 34124316,
+      "passcode": "34124316",
+      "name": "Cyber Jar",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 7572887,
+      "passcode": "07572887",
+      "name": "D.D. Warrior Lady",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 40737112,
+      "passcode": "40737112",
+      "name": "Dark Magician of Chaos",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 35027493,
+      "passcode": "35027493",
+      "name": "Deck Devastation Virus",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 44763025,
+      "passcode": "44763025",
+      "name": "Delinquent Duo",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 74131780,
+      "passcode": "74131780",
+      "name": "Exiled Force",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 33396948,
+      "passcode": "33396948",
+      "name": "Exodia the Forbidden One",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 79571449,
+      "passcode": "79571449",
+      "name": "Graceful Charity",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 19613556,
+      "passcode": "19613556",
+      "name": "Heavy Storm",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 79575620,
+      "passcode": "79575620",
+      "name": "Injection Fairy Lily",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 77585513,
+      "passcode": "77585513",
+      "name": "Jinzo",
+      "status": "limited",
+      "note": "YGOPRODeck also lists image id 77585514 for this card. Snapshot id is the card id."
+    },
+    {
+      "id": 7902349,
+      "passcode": "07902349",
+      "name": "Left Arm of the Forbidden One",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 44519536,
+      "passcode": "44519536",
+      "name": "Left Leg of the Forbidden One",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 69162969,
+      "passcode": "69162969",
+      "name": "Lightning Vortex",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 83746708,
+      "passcode": "83746708",
+      "name": "Mage Power",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 62279055,
+      "passcode": "62279055",
+      "name": "Magic Cylinder",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 44095762,
+      "passcode": "44095762",
+      "name": "Mirror Force",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 33508719,
+      "passcode": "33508719",
+      "name": "Morphing Jar",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 5318639,
+      "passcode": "05318639",
+      "name": "Mystical Space Typhoon",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 55144522,
+      "passcode": "55144522",
+      "name": "Pot of Greed",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 70828912,
+      "passcode": "70828912",
+      "name": "Premature Burial",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 24221739,
+      "passcode": "24221739",
+      "name": "Protector of the Sanctuary",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 37576645,
+      "passcode": "37576645",
+      "name": "Reckless Greed",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 2851070,
+      "passcode": "02851070",
+      "name": "Reflect Bounder",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 70903634,
+      "passcode": "70903634",
+      "name": "Right Arm of the Forbidden One",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 8124921,
+      "passcode": "08124921",
+      "name": "Right Leg of the Forbidden One",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 83555666,
+      "passcode": "83555666",
+      "name": "Ring of Destruction",
+      "status": "limited",
+      "note": "YGOPRODeck also lists image id 83555667 for this card. Snapshot id is the card id."
+    },
+    {
+      "id": 61441708,
+      "passcode": "61441708",
+      "name": "Sacred Phoenix of Nephthys",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 26202165,
+      "passcode": "26202165",
+      "name": "Sangan",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 8131171,
+      "passcode": "08131171",
+      "name": "Sinister Serpent",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 45986603,
+      "passcode": "45986603",
+      "name": "Snatch Steal",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 72302403,
+      "passcode": "72302403",
+      "name": "Swords of Revealing Light",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 53582587,
+      "passcode": "53582587",
+      "name": "Torrential Tribute",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 33184167,
+      "passcode": "33184167",
+      "name": "Tribe-Infecting Virus",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 43586926,
+      "passcode": "43586926",
+      "name": "Twin-Headed Behemoth",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 56747793,
+      "passcode": "56747793",
+      "name": "United We Stand",
+      "status": "limited",
+      "note": ""
+    },
+    {
+      "id": 18318842,
+      "passcode": "18318842",
+      "name": "Abyss Soldier",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 31036355,
+      "passcode": "31036355",
+      "name": "Creature Swap",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 61587183,
+      "passcode": "61587183",
+      "name": "Dark Scorpion - Chick the Yellow",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 53046408,
+      "passcode": "53046408",
+      "name": "Emergency Provisions",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 9744376,
+      "passcode": "09744376",
+      "name": "Good Goblin Housekeeping",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 85742772,
+      "passcode": "85742772",
+      "name": "Gravity Bind",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 28566710,
+      "passcode": "28566710",
+      "name": "Last Turn",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 3136426,
+      "passcode": "03136426",
+      "name": "Level Limit - Area B",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 77121851,
+      "passcode": "77121851",
+      "name": "Manticore of Darkness",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 2460565,
+      "passcode": "02460565",
+      "name": "Marauding Captain",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 16226786,
+      "passcode": "16226786",
+      "name": "Night Assailant",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 71044499,
+      "passcode": "71044499",
+      "name": "Nobleman of Crossout",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 32807846,
+      "passcode": "32807846",
+      "name": "Reinforcement of the Army",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 70368879,
+      "passcode": "70368879",
+      "name": "Upstart Goblin",
+      "status": "semi-limited",
+      "note": ""
+    },
+    {
+      "id": 53839837,
+      "passcode": "53839837",
+      "name": "Vampire Lord",
+      "status": "semi-limited",
+      "note": ""
+    }
+  ]
+}
