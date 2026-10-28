@@ -1,0 +1,160 @@
+{
+  "retrieved": "2026-10-28",
+  "unmatchedPasscodes": [],
+  "items": [
+    {
+      "gapId": "G-01",
+      "formats": ["tengu"],
+      "flag": "disputed",
+      "status": "resolved",
+      "name": "Morphing Jar #2",
+      "cardId": 79106360,
+      "inSnapshot": false,
+      "detail": "Resolved. tenguformat.com/banlist/ and allCardsTengu.json list Morphing Jar #2 as semi-limited. The archived Konami list effective September 1, 2011 does not list it, and lists only Morphing Jar at limited. Format Library's Tengu list also omits Morphing Jar #2 and shows only Morphing Jar at limited. The community page entry is treated as an error. The card is not in the snapshot."
+    },
+    {
+      "gapId": "G-02",
+      "formats": ["tengu"],
+      "flag": "disputed",
+      "name": "Elemental HERO Grand Neos",
+      "cardId": 48996569,
+      "inSnapshot": false,
+      "detail": "allCardsTengu.json marks konamiCode 48996569 Limited (1). The banlist page, tengubanlist.ydk, and the archived Konami September 1, 2011 list do not list it. Left out of the snapshot."
+    },
+    {
+      "gapId": "G-03",
+      "formats": ["tengu"],
+      "flag": "uncertain",
+      "name": "Magical Scientist",
+      "cardId": 34206604,
+      "inSnapshot": true,
+      "detail": "The banlist page text ends a line at the word Magical, then continues with Magician of Faith. The page script loads tengubanlist.ydk id 34206604, allCardsTengu.json marks Magical Scientist Banned, and the archived Konami list forbids Magical Scientist. The snapshot uses that card. The HTML alone does not spell the full name."
+    },
+    {
+      "gapId": "G-04",
+      "formats": ["goat", "hat", "tengu"],
+      "flag": "uncertain",
+      "name": "Monster Reborn",
+      "cardId": 83764719,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck did not agree with itself on the card id. cardinfo.php returned 83764719. cardinfo.php?banlist=goat returned 83764718. Both numbers are image ids on the one card, and the goat status is Forbidden in both responses. Snapshot id is 83764719 from the unfiltered cardinfo response."
+    },
+    {
+      "gapId": "G-05",
+      "formats": ["goat", "hat", "tengu"],
+      "flag": "uncertain",
+      "name": "Harpie's Feather Duster",
+      "cardId": 18144507,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (18144507, 18144506). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-06",
+      "formats": ["goat"],
+      "flag": "uncertain",
+      "name": "Jinzo",
+      "cardId": 77585513,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (77585513, 77585514). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-07",
+      "formats": ["goat", "hat", "tengu"],
+      "flag": "uncertain",
+      "name": "Ring of Destruction",
+      "cardId": 83555666,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (83555666, 83555667). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-08",
+      "formats": ["hat", "tengu"],
+      "flag": "uncertain",
+      "name": "Crush Card Virus",
+      "cardId": 57728570,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (57728570, 57728571). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-09",
+      "formats": ["hat", "tengu"],
+      "flag": "uncertain",
+      "name": "Elemental HERO Stratos",
+      "cardId": 40044918,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (40044918, 40044919). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-10",
+      "formats": ["hat", "tengu"],
+      "flag": "uncertain",
+      "name": "Rescue Cat",
+      "cardId": 14878871,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (14878871, 14878872). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-11",
+      "formats": ["hat"],
+      "flag": "uncertain",
+      "name": "Ultimate Offering",
+      "cardId": 80604092,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (80604092, 80604091). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-12",
+      "formats": ["hat", "tengu"],
+      "flag": "uncertain",
+      "name": "Foolish Burial",
+      "cardId": 81439173,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (81439173, 81439174). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-13",
+      "formats": ["hat"],
+      "flag": "uncertain",
+      "name": "Red-Eyes Darkness Metal Dragon",
+      "cardId": 88264978,
+      "inSnapshot": true,
+      "detail": "YGOPRODeck lists more than one image id (88264978, 88264979). Snapshot uses the card id from cardinfo.php. Which number is printed on a copy from the format is not settled here."
+    },
+    {
+      "gapId": "G-14",
+      "formats": ["hat", "tengu"],
+      "flag": "uncertain",
+      "name": null,
+      "cardId": null,
+      "inSnapshot": false,
+      "detail": "YGOPRODeck banlist_info keys on 2026-10-28 were ban_tcg, ban_ocg, and ban_goat. There is no HAT or Tengu status to compare. Names were matched to card ids. HAT and Tengu statuses were checked against archived Konami pages instead."
+    },
+    {
+      "gapId": "G-15",
+      "formats": ["hat"],
+      "flag": "uncertain",
+      "name": null,
+      "cardId": null,
+      "inSnapshot": false,
+      "detail": "hatformat.com states the pool more than one way. The about page says May 16, 2014 through August 15, 2014, and says the site follows the July 11, 2014 NAWCQ. The cardpool page links a YGOPRODeck TCG search ending 2014-07-08. YGOPRODeck set dates put Super Starter: Space-Time Showdown on 2014-07-10, Astral Pack Five on 2014-07-25, Battle Pack 3: Monster League on 2014-07-31, and Duelist Alliance on 2014-08-14. This spike did not decide which of those sets are legal."
+    },
+    {
+      "gapId": "G-16",
+      "formats": ["tengu"],
+      "flag": "uncertain",
+      "name": null,
+      "cardId": null,
+      "inSnapshot": false,
+      "detail": "The home page says Generation Force is the latest set. The site's allCardsTengu.json (last-modified 2025-08-28) also contains Blizzard Princess (28348537, 2011-08-18, YG07-EN001), Meklord Emperor Wisel (68140974, 2011-09-01, JUMP-EN053), The Tyrant Neptune (88071625, 2011-11-01, JUMP-EN041), and Malefic Truth Dragon (37115575, 2012-10-26, JUMP-EN048). Those passcodes match the YGOPRODeck names. All four are Unlimited in that file. None is on the banlist. Whether they are in the format pool is not settled here."
+    },
+    {
+      "gapId": "G-17",
+      "formats": ["tengu"],
+      "flag": "uncertain",
+      "name": null,
+      "cardId": null,
+      "inSnapshot": false,
+      "detail": "allCardsTengu.json stores some cards twice, with konamiCode strings that are the same number with and without a leading zero, and the two rows disagree. Blackwing - Gale the Whirlwind: 2009101 Limited (1), 02009101 Unlimited. Destiny HERO - Malicious: 09411399 Semi-limited (2), 9411399 Unlimited. Level Limit - Area B: 03136426 Limited (1), 3136426 Unlimited. Yata-Garasu: 03078576 Banned, 3078576 Unlimited. The banlist page matches the non-Unlimited row in each pair. The snapshot follows the banlist page."
+    }
+  ]
+}
