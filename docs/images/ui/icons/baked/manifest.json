@@ -1,0 +1,2382 @@
+{
+  "threshold": 128,
+  "linkTipThreshold": 1,
+  "rowHeights": {
+    "1": 16,
+    "2": 32,
+    "3": 48
+  },
+  "detailHeights": {
+    "1": 18,
+    "2": 36,
+    "3": 54
+  },
+  "scale": "cover-max-alpha for nearest; LANCZOS solid-edge for circles",
+  "items": [
+    {
+      "source": "frame-mini/normal.png",
+      "stem": "frame-normal",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-normal.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-normal.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-normal.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-normal.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-normal.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-normal.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/effect.png",
+      "stem": "frame-effect",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-effect.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-effect.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-effect.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-effect.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-effect.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-effect.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/fusion.png",
+      "stem": "frame-fusion",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-fusion.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-fusion.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-fusion.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-fusion.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-fusion.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-fusion.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/synchro.png",
+      "stem": "frame-synchro",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-synchro.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-synchro.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-synchro.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-synchro.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-synchro.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-synchro.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/xyz.png",
+      "stem": "frame-xyz",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-xyz.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-xyz.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-xyz.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-xyz.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-xyz.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-xyz.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/link.png",
+      "stem": "frame-link",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-link.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-link.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-link.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-link.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-link.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-link.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/token.png",
+      "stem": "frame-token",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-token.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-token.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-token.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-token.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-token.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-token.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/spell.png",
+      "stem": "frame-spell",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-spell.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-spell.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-spell.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-spell.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-spell.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-spell.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/trap.png",
+      "stem": "frame-trap",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-trap.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-trap.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-trap.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-trap.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-trap.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-trap.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/pendulum-effect.png",
+      "stem": "frame-pendulum-effect",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-pendulum-effect.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-pendulum-effect.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-pendulum-effect.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-pendulum-effect.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-pendulum-effect.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-pendulum-effect.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "frame-mini/pendulum-xyz.png",
+      "stem": "frame-pendulum-xyz",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/frame-pendulum-xyz.png",
+          "size": [
+            12,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/frame-pendulum-xyz.png",
+          "size": [
+            24,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/frame-pendulum-xyz.png",
+          "size": [
+            36,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/frame-pendulum-xyz.png",
+          "size": [
+            14,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/frame-pendulum-xyz.png",
+          "size": [
+            27,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/frame-pendulum-xyz.png",
+          "size": [
+            41,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "attribute/dark.png",
+      "stem": "attr-dark",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/attr-dark.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/attr-dark.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/attr-dark.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/attr-dark.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/attr-dark.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/attr-dark.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "attribute/light.png",
+      "stem": "attr-light",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/attr-light.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/attr-light.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/attr-light.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/attr-light.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/attr-light.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/attr-light.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "attribute/earth.png",
+      "stem": "attr-earth",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/attr-earth.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/attr-earth.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/attr-earth.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/attr-earth.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/attr-earth.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/attr-earth.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "attribute/water.png",
+      "stem": "attr-water",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/attr-water.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/attr-water.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/attr-water.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/attr-water.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/attr-water.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/attr-water.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "attribute/fire.png",
+      "stem": "attr-fire",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/attr-fire.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/attr-fire.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/attr-fire.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/attr-fire.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/attr-fire.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/attr-fire.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "attribute/wind.png",
+      "stem": "attr-wind",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/attr-wind.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/attr-wind.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/attr-wind.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/attr-wind.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/attr-wind.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/attr-wind.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "attribute/divine.png",
+      "stem": "attr-divine",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/attr-divine.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/attr-divine.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/attr-divine.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/attr-divine.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/attr-divine.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/attr-divine.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "race/dragon.png",
+      "stem": "race-dragon",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/race-dragon.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/race-dragon.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/race-dragon.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/race-dragon.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/race-dragon.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/race-dragon.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "race/zombie.png",
+      "stem": "race-zombie",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/race-zombie.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/race-zombie.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/race-zombie.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/race-zombie.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/race-zombie.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/race-zombie.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "race/fairy.png",
+      "stem": "race-fairy",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/race-fairy.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/race-fairy.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/race-fairy.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/race-fairy.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/race-fairy.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/race-fairy.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "race/cyberse.png",
+      "stem": "race-cyberse",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/race-cyberse.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/race-cyberse.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/race-cyberse.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/race-cyberse.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/race-cyberse.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/race-cyberse.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "race/fiend.png",
+      "stem": "race-fiend",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/race-fiend.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/race-fiend.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/race-fiend.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/race-fiend.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/race-fiend.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/race-fiend.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "race/warrior.png",
+      "stem": "race-warrior",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/race-warrior.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/race-warrior.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/race-warrior.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/race-warrior.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/race-warrior.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/race-warrior.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "race/spellcaster.png",
+      "stem": "race-spellcaster",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/race-spellcaster.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/race-spellcaster.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/race-spellcaster.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/race-spellcaster.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/race-spellcaster.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/race-spellcaster.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "race/machine.png",
+      "stem": "race-machine",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/race-machine.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/race-machine.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/race-machine.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/race-machine.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/race-machine.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/race-machine.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "spell-trap/normal.png",
+      "stem": "prop-normal",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/prop-normal.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/prop-normal.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/prop-normal.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/prop-normal.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/prop-normal.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/prop-normal.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "spell-trap/continuous.png",
+      "stem": "prop-continuous",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/prop-continuous.png",
+          "size": [
+            15,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/prop-continuous.png",
+          "size": [
+            30,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/prop-continuous.png",
+          "size": [
+            46,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/prop-continuous.png",
+          "size": [
+            17,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/prop-continuous.png",
+          "size": [
+            34,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/prop-continuous.png",
+          "size": [
+            51,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "spell-trap/quick-play.png",
+      "stem": "prop-quick-play",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/prop-quick-play.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/prop-quick-play.png",
+          "size": [
+            31,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/prop-quick-play.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/prop-quick-play.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/prop-quick-play.png",
+          "size": [
+            35,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/prop-quick-play.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "spell-trap/equip.png",
+      "stem": "prop-equip",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/prop-equip.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/prop-equip.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/prop-equip.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/prop-equip.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/prop-equip.png",
+          "size": [
+            37,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/prop-equip.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "spell-trap/field.png",
+      "stem": "prop-field",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/prop-field.png",
+          "size": [
+            17,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/prop-field.png",
+          "size": [
+            33,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/prop-field.png",
+          "size": [
+            50,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/prop-field.png",
+          "size": [
+            19,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/prop-field.png",
+          "size": [
+            38,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/prop-field.png",
+          "size": [
+            57,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "spell-trap/ritual.png",
+      "stem": "prop-ritual",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/prop-ritual.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/prop-ritual.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/prop-ritual.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/prop-ritual.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/prop-ritual.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/prop-ritual.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "spell-trap/counter.png",
+      "stem": "prop-counter",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/prop-counter.png",
+          "size": [
+            17,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/prop-counter.png",
+          "size": [
+            34,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/prop-counter.png",
+          "size": [
+            50,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/prop-counter.png",
+          "size": [
+            19,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/prop-counter.png",
+          "size": [
+            38,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/prop-counter.png",
+          "size": [
+            57,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "level/level.png",
+      "stem": "level",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/level.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/level.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/level.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/level.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/level.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/level.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "link/link-marker.png",
+      "stem": "link-base",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/link-base.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/link-base.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/link-base.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/link-base.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/link-base.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/link-base.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "link/link-1-bottom.png",
+      "stem": "link-1-bottom",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/link-1-bottom.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/link-1-bottom.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/link-1-bottom.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/link-1-bottom.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/link-1-bottom.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/link-1-bottom.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "link/link-3-top-bl-br.png",
+      "stem": "link-3-top-bl-br",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/link-3-top-bl-br.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/link-3-top-bl-br.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/link-3-top-bl-br.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/link-3-top-bl-br.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/link-3-top-bl-br.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/link-3-top-bl-br.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "link/link-4-left-right-bl-br.png",
+      "stem": "link-4-left-right-bl-br",
+      "nearest": true,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/link-4-left-right-bl-br.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/link-4-left-right-bl-br.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/link-4-left-right-bl-br.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/link-4-left-right-bl-br.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/link-4-left-right-bl-br.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/link-4-left-right-bl-br.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "misc/atk.png",
+      "stem": "atk",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/atk.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/atk.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/atk.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/atk.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/atk.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/atk.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "misc/def.png",
+      "stem": "def",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/def.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/def.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/def.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/def.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/def.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/def.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "ban/limited.png",
+      "stem": "ban-limited",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/ban-limited.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/ban-limited.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/ban-limited.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/ban-limited.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/ban-limited.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/ban-limited.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "ban/semi-limited.png",
+      "stem": "ban-semi-limited",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/ban-semi-limited.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/ban-semi-limited.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/ban-semi-limited.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/ban-semi-limited.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/ban-semi-limited.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/ban-semi-limited.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    },
+    {
+      "source": "ban/forbidden.png",
+      "stem": "ban-forbidden",
+      "nearest": false,
+      "outputs": {
+        "row-16": {
+          "path": "baked/row-16/ban-forbidden.png",
+          "size": [
+            16,
+            16
+          ],
+          "y0": 0,
+          "y1": 15
+        },
+        "row-32": {
+          "path": "baked/row-32/ban-forbidden.png",
+          "size": [
+            32,
+            32
+          ],
+          "y0": 0,
+          "y1": 31
+        },
+        "row-48": {
+          "path": "baked/row-48/ban-forbidden.png",
+          "size": [
+            48,
+            48
+          ],
+          "y0": 0,
+          "y1": 47
+        },
+        "detail-18": {
+          "path": "baked/detail-18/ban-forbidden.png",
+          "size": [
+            18,
+            18
+          ]
+        },
+        "detail-36": {
+          "path": "baked/detail-36/ban-forbidden.png",
+          "size": [
+            36,
+            36
+          ]
+        },
+        "detail-54": {
+          "path": "baked/detail-54/ban-forbidden.png",
+          "size": [
+            54,
+            54
+          ]
+        }
+      }
+    }
+  ]
+}

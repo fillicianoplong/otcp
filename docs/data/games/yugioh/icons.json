@@ -1,0 +1,328 @@
+{
+  "game": "yugioh",
+  "iconSet": {
+    "id": "yugioh-official-konami",
+    "status": "approved",
+    "approvedAt": "2026-10-28",
+    "decision": "Owner-supplied official Konami icon pack (2026-10-28) + Link marker (2026-10-28). Attribute/race/spell-trap normalized; MD ban + ATK/DEF kept; Link marker pixel-art with per-arrow red active state. LIST and GRID: bare ban on thumbnail/art top-left.",
+    "copyright": "Konami / 4K Media; used as-is for OTCP mockups and product UI.",
+    "sourcesDoc": "docs/images/ui/icons/SOURCES.md",
+    "basePath": "docs/images/ui/icons",
+    "sourceOwner": "docs/images/ui/icons/source-owner/",
+    "kinds": {
+      "attribute": {
+        "path": "attribute/{id}.png",
+        "ids": [
+          "dark",
+          "light",
+          "earth",
+          "water",
+          "fire",
+          "wind",
+          "divine"
+        ],
+        "scales": [
+          "",
+          "@2x",
+          "@3x"
+        ],
+        "sizes": [
+          64,
+          128,
+          192
+        ],
+        "note": "Official attribute emblems; transparent circular PNG from owner pack."
+      },
+      "race": {
+        "path": "race/{id}.png",
+        "ids": [
+          "aqua",
+          "beast",
+          "beast-warrior",
+          "cyberse",
+          "dinosaur",
+          "divine-beast",
+          "dragon",
+          "fairy",
+          "fiend",
+          "fish",
+          "illusion",
+          "insect",
+          "machine",
+          "plant",
+          "psychic",
+          "pyro",
+          "reptile",
+          "rock",
+          "sea-serpent",
+          "spellcaster",
+          "thunder",
+          "warrior",
+          "winged-beast",
+          "wyrm",
+          "zombie"
+        ],
+        "scales": [
+          "",
+          "@2x",
+          "@3x"
+        ],
+        "sizes": [
+          64,
+          128,
+          192
+        ],
+        "note": "Monster types (race)."
+      },
+      "property": {
+        "path": "spell-trap/{id}.png",
+        "ids": [
+          "normal",
+          "continuous",
+          "quick-play",
+          "equip",
+          "field",
+          "ritual",
+          "counter"
+        ],
+        "scales": [
+          "",
+          "@2x",
+          "@3x"
+        ],
+        "sizes": [
+          64,
+          128,
+          192
+        ],
+        "note": "Spell/Trap property icons from owner Race/ folder."
+      },
+      "cardType": {
+        "path": "frame-mini/{id}.png",
+        "ids": [
+          "normal",
+          "effect",
+          "fusion",
+          "synchro",
+          "xyz",
+          "link",
+          "token",
+          "spell",
+          "trap",
+          "pendulum-effect",
+          "pendulum-xyz"
+        ],
+        "scales": [
+          "",
+          "@2x",
+          "@3x"
+        ],
+        "sizes": "native ~44\u00d758 (1\u00d7); nearest-neighbor 2\u00d7/3\u00d7",
+        "orderInRow": "first",
+        "missingFromPack": [
+          "ritual",
+          "pendulum-normal",
+          "pendulum-synchro",
+          "pendulum-fusion"
+        ],
+        "note": "Master Duel-style mini card-frame glyphs from owner Frames-mini screenshots (2026-10-28). Tight bbox, transparent BG. FIRST icon in every list/finder/editor row and detail chip row. Replaces prior spell-trap/spell.png + trap.png type badges (moved to fallback/pre-frame-mini-spell-trap-type-20261028/). Full-size frame art remains under frame/."
+      },
+      "level": {
+        "path": "level/level.png",
+        "scales": [
+          "level/level.png",
+          "level/level@2x.png",
+          "level/level@3x.png"
+        ],
+        "note": "Level/Rank star. Owner pack level.png is 20\u00d720 (identical to prior); kept. No sharper Rank/Link marker in pack. Number rendered beside icon."
+      },
+      "atk": {
+        "path": "misc/atk.png",
+        "note": "Master Duel ATK \u2014 geom-v2 flaring pointed outlined blade (approved). Unchanged this pass.",
+        "scales": [
+          "misc/atk.png",
+          "misc/atk@2x.png",
+          "misc/atk@3x.png"
+        ],
+        "svg": "svg/misc-atk.svg"
+      },
+      "def": {
+        "path": "misc/def.png",
+        "note": "Master Duel DEF shield (approved). Unchanged this pass.",
+        "scales": [
+          "misc/def.png",
+          "misc/def@2x.png",
+          "misc/def@3x.png"
+        ],
+        "svg": "svg/misc-def.svg"
+      },
+      "banLimited": {
+        "path": "ban/limited.png",
+        "label": "Limited",
+        "note": "Master Duel Limited (1) kept. Owner Limit/limited_1.png archived under source-owner/limit/ and fallback/pre-owner-pack-20261028/owner-limit/; MD set is complete (Forbidden + Unlimited) and already approved.",
+        "scales": [
+          "ban/limited.png",
+          "ban/limited@2x.png",
+          "ban/limited@3x.png"
+        ],
+        "svg": "svg/ban-limited.svg"
+      },
+      "banSemiLimited": {
+        "path": "ban/semi-limited.png",
+        "label": "Semi-Limited",
+        "note": "Master Duel Semi-Limited (2) kept (see banLimited note).",
+        "scales": [
+          "ban/semi-limited.png",
+          "ban/semi-limited@2x.png",
+          "ban/semi-limited@3x.png"
+        ],
+        "svg": "svg/ban-semi-limited.svg"
+      },
+      "banForbidden": {
+        "path": "ban/forbidden.png",
+        "label": "Forbidden",
+        "note": "Master Duel Forbidden kept. Owner Limit pack has no Forbidden equivalent.",
+        "scales": [
+          "ban/forbidden.png",
+          "ban/forbidden@2x.png",
+          "ban/forbidden@3x.png"
+        ],
+        "svg": "svg/ban-forbidden.svg"
+      },
+      "banUnlimited": {
+        "path": "ban/unlimited.png",
+        "label": "Unlimited",
+        "note": "Master Duel Unlimited (3) kept; detail-only. Owner Limit pack has limited_0 only (not used).",
+        "display": {
+          "list": false,
+          "grid": false,
+          "detail": true,
+          "deckList": false,
+          "deckGrid": false
+        },
+        "scales": [
+          "ban/unlimited.png",
+          "ban/unlimited@2x.png",
+          "ban/unlimited@3x.png"
+        ],
+        "svg": "svg/ban-unlimited.svg"
+      },
+      "rarity": {
+        "path": "rarity/{id}.png",
+        "ids": [
+          "normal",
+          "rare",
+          "super-rare",
+          "ultra-rare"
+        ],
+        "note": "Stored for future list/detail rarity marks; not used in current Ink mocks."
+      },
+      "frame": {
+        "path": "frame/{id}.png",
+        "ids": [
+          "effect-monster",
+          "link-monster",
+          "pendulum-effect-monster",
+          "spell-card",
+          "synchro-monster",
+          "trap-card",
+          "xyz-monster"
+        ],
+        "note": "Full card-frame type art (not the mini glyphs). Mini list/detail type icons are under frame-mini/ (kinds.cardType)."
+      },
+      "cardBack": {
+        "path": "misc/card-back.jpg",
+        "thumbs": [
+          "misc/card-back-thumb.jpg",
+          "misc/card-back-thumb@2x.jpg",
+          "misc/card-back-thumb@3x.jpg"
+        ],
+        "note": "Official card back; used as ART thumbnail / grid tile placeholder in Ink mocks."
+      },
+      "link": {
+        "path": "link/",
+        "svg": "link/base.svg",
+        "map": "link/link-marker-map.json",
+        "generator": "docs/data/games/yugioh/render_link_marker.py",
+        "note": "Owner pixel-art Link marker. PNGs trimmed to visible arrow-tip bounds. Rows: 16 CSS px square (same visible height as attribute/race/frame-mini/level/ATK/DEF); no Link-N text. Detail chips: 18 CSS px + Link-N label. RUNTIME: base.svg per-arrow groups lit from card linkmarkers. Do not pre-render all 255 combos until real card data (see fallback/link-combos-unused/).",
+        "directions": [
+          "top",
+          "top-right",
+          "right",
+          "bottom-right",
+          "bottom",
+          "bottom-left",
+          "left",
+          "top-left"
+        ],
+        "scales": [
+          "",
+          "@2x",
+          "@3x"
+        ],
+        "presets": [
+          "link-marker",
+          "link-1-bottom",
+          "link-3-top-bl-br",
+          "link-4-left-right-bl-br"
+        ],
+        "sourceOwner": "icons/source-owner/link/",
+        "nativeSize": 29,
+        "rowDisplayCssPx": 16
+      }
+    },
+    "usage": [
+      "card detail labeled chips (same order)",
+      "compact ban markers bare on thumbnail/art top-left (LIST + GRID); never Unlimited 3",
+      "grid/list ART placeholders use misc/card-back-thumb.jpg",
+      "Link monsters: marker icon only in list/finder/editor rows (24 CSS px); detail chips keep Link-N label; arrows lit at runtime from card linkmarkers via base.svg groups"
+    ],
+    "adr": "ADR-012 (game extension declares its own presentation assets with filter declarations)",
+    "banMarkers": {
+      "Limited": {
+        "icon": "ban/limited.png",
+        "aria": "Limited"
+      },
+      "Semi-Limited": {
+        "icon": "ban/semi-limited.png",
+        "aria": "Semi-Limited"
+      },
+      "Forbidden": {
+        "icon": "ban/forbidden.png",
+        "aria": "Forbidden"
+      },
+      "Unlimited": {
+        "icon": "ban/unlimited.png",
+        "aria": "Unlimited",
+        "listGrid": "hidden-implied",
+        "detail": "shown"
+      },
+      "visibility": "Deck views always; search/browse/collection/Lists only when a format filter is active. Unlimited (3) never on list/grid.",
+      "note": "Bare MD icon on thumbnail/art top-left in LIST and GRID (no colored container; subtle drop-shadow). Full word in title/aria-label (NFR-11). Never Unlimited on list/grid."
+    },
+    "frameMini": {
+      "sourceOwner": "docs/images/ui/icons/source-owner/frame-mini/",
+      "cut": "docs/images/ui/icons/frame-mini/",
+      "cropCheck": "docs/images/ui/icons/frame-mini-crop-check.png",
+      "received": "2026-10-28"
+    },
+    "rowAlignment": {
+      "approved": "2026-10-28",
+      "rowVisibleHeightCssPx": 16,
+      "detailVisibleHeightCssPx": 18,
+      "rule": "Every meta icon in a row shares the same visible top and bottom (identical visible height), vertically centered. Driven by visible (non-transparent) bounds, not file box padding.",
+      "checkPng": "docs/images/ui/icons/icon-row-alignment-check.png",
+      "link": "PNGs trimmed to arrow-tip bbox; displayed at 16\u00d716 (rows) / 18\u00d718 (detail chips); nearest-neighbor scales.",
+      "rowCssPx": 16,
+      "detailCssPx": 18,
+      "bakedDir": "docs/images/ui/icons/baked/",
+      "baker": "docs/data/games/yugioh/bake_icons.py",
+      "solidThreshold": 128,
+      "linkTipThreshold": 1,
+      "linkScale": "cover-max-alpha NN (preserves sparse tip pixels)",
+      "circleScale": "LANCZOS + solid-edge fit",
+      "linkTips8xPng": "docs/images/ui/icons/link-marker-tips-8x.png",
+      "notes": "All 8 Link arrow tips (incl. gray) stay inside the img box; outermost tip pixels on shared top/bottom. Ritual frame-mini still missing from owner pack."
+    }
+  }
+}

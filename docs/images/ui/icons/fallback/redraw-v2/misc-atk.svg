@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="ring" x1="0.15" y1="0.05" x2="0.85" y2="0.95">
+      <stop offset="0%" stop-color="#f3f5f8"/>
+      <stop offset="30%" stop-color="#c5ccd6"/>
+      <stop offset="65%" stop-color="#8a929f"/>
+      <stop offset="100%" stop-color="#e2e6ec"/>
+    </linearGradient>
+    <radialGradient id="face" cx="48%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#505866"/>
+      <stop offset="40%" stop-color="#222730"/>
+      <stop offset="100%" stop-color="#090a0e"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30.5" fill="url(#ring)"/>
+  <circle cx="32" cy="32" r="26.9" fill="url(#face)"/>
+  <ellipse cx="24" cy="21" rx="9" ry="5.5" fill="#fff" opacity="0.055"/>
+  <g transform="translate(32,32) rotate(45) scale(0.92) translate(-32,-32)">
+    <path d="
+      M 26.4,14.0
+      L 28.0,11.2
+      L 32.0,9.6
+      L 36.0,11.2
+      L 37.6,14.0
+      L 37.6,31.2
+      L 26.4,31.2
+      Z"
+      fill="#12151a" stroke="#ffffff" stroke-width="3.55"
+      stroke-linejoin="miter" stroke-miterlimit="2.2"/>
+    <rect x="22.0" y="30.5" width="20.0" height="5.0" rx="0.25" fill="#ffffff"/>
+    <path d="
+      M 28.6,35.3
+      L 35.4,35.3
+      L 35.4,44.0
+      L 36.4,46.6
+      L 27.6,46.6
+      L 28.6,44.0
+      Z" fill="#ffffff"/>
+  </g>
+</svg>

@@ -1,0 +1,48 @@
+@startuml otcp_component
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam dpi 100
+package "Browser (GitHub Pages /otcp/)" {
+  [AppShell] as Shell
+  [SearchIndex] as Search
+  [CardCatalog] as Catalog
+  [FormatEngine] as Fmt
+  [DeckBuilder] as Deck
+  [ExportCodec] as Exp
+  [PriceView] as Price
+  [AuthClient] as Auth
+  [DeckStore] as Store
+  [ShareService] as Share
+  [SchemaCore] as Schema
+}
+package "Build time (GitHub Actions)" {
+  [DataPipeline] as Pipe
+}
+cloud "Supabase" {
+  database "Auth + decks\n+ share tokens" as SB
+}
+cloud "YGOPRODeck" as YGO
+folder "Published static\nJSON + images" as Pub
+Shell --> Search
+Shell --> Catalog
+Shell --> Deck
+Shell --> Auth
+Deck --> Fmt
+Deck --> Exp
+Deck --> Store
+Catalog --> Search
+Catalog --> Price
+Catalog --> Schema
+Fmt --> Schema
+Exp --> Schema
+Store --> Auth
+Share --> Store
+Auth --> SB
+Store --> SB
+Share --> SB
+Pipe --> YGO : fetch (build only)
+Pipe --> Pub : validate + publish
+Catalog --> Pub : load
+Shell ..> Pub : same-origin images
+@enduml
