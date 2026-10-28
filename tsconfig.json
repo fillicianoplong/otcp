@@ -18,5 +18,5 @@
     "noUncheckedSideEffectImports": true,
     "types": ["node"]
   },
-  "include": ["src", "tests", "e2e", "vitest.config.ts", "playwright.config.ts"]
+  "include": ["src", "tests", "e2e", "spikes", "vitest.config.ts", "playwright.config.ts"]
 }
