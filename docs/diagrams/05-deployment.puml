@@ -1,0 +1,30 @@
+@startuml otcp_deployment
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam dpi 100
+left to right direction
+node "User browser" {
+  artifact "OTCP SPA (/otcp/)" as SPA
+}
+cloud "GitHub Pages" {
+  artifact "Static site JSON and images" as Pages
+  artifact "404.html fallback" as F404
+}
+cloud "GitHub Actions" {
+  component "DataPipeline" as Pipe
+}
+database "Repo curated formats" as Repo
+cloud "Supabase" {
+  component "Auth" as Auth
+  database "decks and share_tokens" as DB
+}
+cloud "YGOPRODeck" as YGO
+SPA --> Pages : HTTPS
+SPA --> Auth : HTTPS
+SPA --> DB : HTTPS RLS
+Pipe --> YGO : build-time fetch
+Pipe --> Repo : read curated
+Pipe --> Pages : publish if valid
+note bottom of Pipe : On failure prior set stays live
+@enduml

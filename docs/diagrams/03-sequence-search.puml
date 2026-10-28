@@ -1,0 +1,17 @@
+@startuml otcp_sequence_search
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam dpi 100
+actor User
+participant AppShell as Shell
+participant SearchIndex as Index
+participant CardCatalog as Catalog
+User -> Shell : type query
+Shell -> Index : lookup(query)
+Index --> Shell : card ids (< 100 ms target)
+Shell -> Catalog : resolve rows
+Catalog --> Shell : name, ban badge, art path
+Shell --> User : result list
+note right of Index : Index already in memory\n(QS-01)
+@enduml
