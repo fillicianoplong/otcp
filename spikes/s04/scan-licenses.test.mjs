@@ -180,8 +180,8 @@ test('the repo allowlist accepts the main lockfile', () => {
   const lock = JSON.parse(readFileSync(join(repoRoot, 'package-lock.json'), 'utf8'));
   const result = checkLock(lock, projectAllow, null);
   assert.equal(result.ok, true);
-  assert.equal(result.rows.length, 268);
-  assert.equal(result.rows.filter((row) => row.scope === 'runtime').length, 3);
+  assert.equal(result.rows.length, 326);
+  assert.equal(result.rows.filter((row) => row.scope === 'runtime').length, 6);
   const mpl = result.rows.filter((row) => row.license === 'MPL-2.0');
   assert.equal(mpl.length, 12);
   assert.ok(mpl.every((row) => row.scope === 'dev' && row.name.startsWith('lightningcss')));
