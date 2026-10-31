@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts', 'tests/**/*.test.ts', 'spikes/**/*.test.ts'],
+    setupFiles: ['tests/setup.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'tests/**/*.test.ts', 'spikes/**/*.test.ts'],
   },
 });
