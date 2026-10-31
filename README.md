@@ -2,7 +2,23 @@
 
 Fast web card lookup for trading card game players — search, formats, banlists, deck builder, Lists, and collection. Yu-Gi-Oh! first. Hosted under `/otcp/` on GitHub Pages.
 
-**Status:** Docs 1.0. M0 in progress. CI is set up.
+**Status:** Docs 1.0. **M1 (Runnable shell)** is live at [https://fillicianoplong.github.io/otcp/](https://fillicianoplong.github.io/otcp/). CI is set up.
+
+## Getting started
+
+Requires **Node 22** (see `.nvmrc` and `package.json` `engines`).
+
+| Script | Purpose |
+|---|---|
+| `npm start` | Dev server (same as `npm run dev`) |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright smoke tests (Chromium) |
+| `npm run check` | Typecheck, lint, format check, unit tests, and license scan |
+| `npm run notices:generate` | Regenerate `src/data/notices.json` from dependencies |
+
+Pushes to **`main`** deploy the app to GitHub Pages via [`.github/workflows/pages.yml`](.github/workflows/pages.yml). The workflow runs a post-deploy smoke check against the published URL.
 
 ## Docs (1.0)
 
