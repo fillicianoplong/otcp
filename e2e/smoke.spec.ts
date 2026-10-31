@@ -25,6 +25,14 @@ test.describe('smoke', () => {
     await expect(page.getByRole('button', { name: 'Open menu' })).toBeHidden();
   });
 
+  test('notices page shows the heading', async ({ page }) => {
+    await page.goto('/otcp/notices');
+    await expect(page.getByRole('heading', { level: 1, name: 'Notices' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Card data and images' }),
+    ).toBeVisible();
+  });
+
   test('phone hamburger nav at 375px', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/otcp/search');
