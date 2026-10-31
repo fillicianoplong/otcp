@@ -14,10 +14,10 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'node scripts/serve-smoke.mjs',
-    url: `http://${host}:${port}`,
+    command: `npm run build && npm run preview -- --host ${host} --port ${port} --strictPort`,
+    url: `http://${host}:${port}/otcp/`,
     reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    timeout: 120_000,
   },
   projects: [
     {
