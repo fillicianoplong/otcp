@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-10-28T12:00:00.000Z",
+  "source": "https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes",
+  "cards": [
+    {
+      "schemaVersion": "1.0.0",
+      "id": 89631139,
+      "name": "Blue-Eyes White Dragon",
+      "type": "Normal Monster",
+      "text": "This legendary dragon is a powerful engine of destruction.",
+      "images": {
+        "small": "/otcp/card-images/89631139.jpg",
+        "large": "/otcp/card-images/89631139.jpg"
+      },
+      "sets": [],
+      "passcode": 89631139,
+      "attribute": "LIGHT",
+      "level": 8,
+      "atk": 3000,
+      "def": 2500,
+      "race": "Dragon",
+      "archetype": "Blue-Eyes"
+    }
+  ]
+}
