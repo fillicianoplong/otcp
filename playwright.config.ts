@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 const host = '127.0.0.1';
 const port = 4173;
+const baseURL = process.env.BASE_URL ?? `http://${host}:${port}`;
 
 export default defineConfig({
   testDir: 'e2e',
@@ -10,15 +11,19 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: `http://${host}:${port}`,
+    baseURL,
     trace: 'on-first-retry',
   },
-  webServer: {
-    command: `npm run build && npm run preview -- --host ${host} --port ${port} --strictPort`,
-    url: `http://${host}:${port}/otcp/`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  ...(process.env.BASE_URL
+    ? {}
+    : {
+        webServer: {
+          command: `npm run build && npm run preview -- --host ${host} --port ${port} --strictPort`,
+          url: `http://${host}:${port}/otcp/`,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      }),
   projects: [
     {
       name: 'chromium',
