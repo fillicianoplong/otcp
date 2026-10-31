@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": 16178681,
+  "name": "Odd-Eyes Pendulum Dragon",
+  "type": "Pendulum Effect Monster",
+  "text": "Pendulum Effect: You can reduce the battle damage you take from an attack involving a Pendulum Monster you control to 0.\nMonster Effect: If this card battles an opponent's monster, any battle damage this card inflicts to your opponent is doubled unless this card battled a Pendulum Monster.",
+  "images": {
+    "small": "/otcp/card-images/16178681.jpg",
+    "large": "/otcp/card-images/16178681.jpg"
+  },
+  "sets": [
+    {
+      "setCode": "YS16-EN001",
+      "setName": "Starter Deck: Yuya",
+      "setRarity": "Common"
+    }
+  ],
+  "passcode": 16178681,
+  "attribute": "DARK",
+  "level": 7,
+  "scale": 4,
+  "atk": 2500,
+  "def": 2000,
+  "race": "Dragon",
+  "archetype": "Odd-Eyes"
+}

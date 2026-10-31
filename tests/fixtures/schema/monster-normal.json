@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": 46986420,
+  "name": "Dark Magician",
+  "type": "Normal Monster",
+  "text": "The ultimate wizard in terms of attack and defense.",
+  "images": {
+    "small": "/otcp/card-images/46986420.jpg",
+    "large": "/otcp/card-images/46986420.jpg"
+  },
+  "sets": [
+    {
+      "setCode": "SDY-006",
+      "setName": "Starter Deck: Yugi",
+      "setRarity": "Ultra Rare"
+    }
+  ],
+  "prices": {
+    "tcgplayer": 1.23
+  },
+  "passcode": 46986420,
+  "attribute": "DARK",
+  "level": 7,
+  "atk": 2500,
+  "def": 2100,
+  "race": "Spellcaster",
+  "archetype": "Dark Magician"
+}
