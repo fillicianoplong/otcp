@@ -17,7 +17,11 @@ import { fetchCardDump, type FetchCardDumpOptions } from './fetchCardDump.ts';
 import { ensureCardImages } from './fetchCardImages.ts';
 import { sha256HexFile } from './hash.ts';
 import { buildDatasetEnvelope, mapYgoprodeckResponse } from './mapYgoprodeck.ts';
-import { type PublishedPointer } from './pointer.ts';
+import {
+  type PublishedPointer,
+  resolveDatasetRepoPath,
+  siteRelativeDatasetFile,
+} from './pointer.ts';
 
 export type PipelinePaths = {
   dataDir: string;
@@ -129,10 +133,7 @@ export async function runPipeline(
   atomicWriteJson(datasetPath, envelope);
 
   const sha256 = sha256HexFile(datasetPath);
-  const datasetRelative = join(DEFAULT_DATA_DIR, DATASETS_SUBDIR, datasetFile).replaceAll(
-    '\\',
-    '/',
-  );
+  const datasetRelative = siteRelativeDatasetFile(datasetFile);
 
   const pointer: PublishedPointer = {
     schemaVersion: envelope.schemaVersion,
@@ -152,7 +153,9 @@ export function loadPublishedPointer(repoRoot: string): PublishedPointer | null 
 }
 
 export function resolveDatasetPath(repoRoot: string, pointer: PublishedPointer): string {
-  return join(repoRoot, pointer.datasetFile);
+  return resolveDatasetRepoPath(repoRoot, pointer.datasetFile);
 }
+
+export { resolveDatasetRepoPath } from './pointer.ts';
 
 export { YGOPRODECK_CARDINFO_URL };

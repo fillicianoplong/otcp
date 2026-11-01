@@ -41,7 +41,7 @@ describe('loadCardCatalog', () => {
         'data/current.json': () =>
           jsonResponse({
             schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
-            datasetFile: 'public/data/datasets/sample-dev.json',
+            datasetFile: 'data/datasets/sample-dev.json',
             sha256: 'abc',
             publishedAt: '2026-10-28T12:00:00.000Z',
             cardCount: 1,
@@ -55,6 +55,26 @@ describe('loadCardCatalog', () => {
     if (result.status !== 'ready') return;
     expect(result.cards).toHaveLength(1);
     expect(result.cards[0]?.name).toBe('Blue-Eyes White Dragon');
+  });
+
+  it('accepts legacy public/ datasetFile paths', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch({
+        'data/current.json': () =>
+          jsonResponse({
+            schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+            datasetFile: 'data/datasets/sample-dev.json',
+            sha256: 'abc',
+            publishedAt: '2026-10-28T12:00:00.000Z',
+            cardCount: 1,
+          }),
+        'data/datasets/sample-dev.json': () => jsonResponse(validDataset),
+      }),
+    );
+
+    const result = await loadCardCatalog();
+    expect(result.status).toBe('ready');
   });
 
   it('returns empty when the pointer is missing', async () => {
@@ -104,7 +124,7 @@ describe('getCardCatalog session cache', () => {
       'data/current.json': () =>
         jsonResponse({
           schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
-          datasetFile: 'public/data/datasets/sample-dev.json',
+          datasetFile: 'data/datasets/sample-dev.json',
           sha256: 'abc',
           publishedAt: '2026-10-28T12:00:00.000Z',
           cardCount: 1,

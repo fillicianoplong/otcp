@@ -7,7 +7,7 @@ import { atomicWriteUtf8 } from '../../src/shared/fs/atomicWrite.ts';
 import { OTCP_DATASET_SCHEMA_VERSION } from '../../src/shared/schema/constants.ts';
 import { sha256Hex } from '../../pipeline/hash.ts';
 import { localImagePath } from '../../pipeline/fetchCardImages.ts';
-import type { PublishedPointer } from '../../pipeline/pointer.ts';
+import { datasetFileToRepoRelative, type PublishedPointer } from '../../pipeline/pointer.ts';
 import {
   defaultPipelinePaths,
   loadPublishedPointer,
@@ -67,7 +67,7 @@ function seedImageWithSidecar(root: string, cardId: number, variant: 'large' | '
 
 function seedPointer(root: string, cardCount = 1): PublishedPointer {
   const paths = defaultPipelinePaths(root);
-  const priorDatasetRel = 'public/data/datasets/cards-prior.json';
+  const priorDatasetRel = 'data/datasets/cards-prior.json';
   const priorEnvelope = {
     schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
     generatedAt: '2026-01-01T00:00:00.000Z',
@@ -87,7 +87,7 @@ function seedPointer(root: string, cardCount = 1): PublishedPointer {
       },
     ],
   };
-  const datasetPath = join(root, priorDatasetRel);
+  const datasetPath = join(root, datasetFileToRepoRelative(priorDatasetRel));
   atomicWriteUtf8(datasetPath, `${JSON.stringify(priorEnvelope, null, 2)}\n`);
   const pointer: PublishedPointer = {
     schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
@@ -126,6 +126,7 @@ describe('DataPipeline', () => {
 
     const pointer = loadPublishedPointer(root);
     expect(pointer?.datasetFile).not.toBe(prior.datasetFile);
+    expect(pointer?.datasetFile).toMatch(/^data\/datasets\/cards-/);
     expect(pointer?.cardCount).toBe(2);
     expect(pointer?.sha256).toMatch(/^[a-f0-9]{64}$/);
 
