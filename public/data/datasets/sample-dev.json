@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-10-28T12:00:00.000Z",
+  "source": "tests/fixtures/schema (dev sample)",
+  "cards": [
+    {
+      "schemaVersion": "1.0.0",
+      "id": 89631139,
+      "name": "Blue-Eyes White Dragon",
+      "type": "Normal Monster",
+      "text": "This legendary dragon is a powerful engine of destruction.",
+      "images": {
+        "small": "/otcp/card-images/small/89631139.jpg",
+        "large": "/otcp/card-images/89631139.jpg"
+      },
+      "sets": [],
+      "passcode": 89631139,
+      "attribute": "LIGHT",
+      "level": 8,
+      "atk": 3000,
+      "def": 2500,
+      "race": "Dragon",
+      "archetype": "Blue-Eyes"
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 46986420,
+      "name": "Dark Magician",
+      "type": "Normal Monster",
+      "text": "The ultimate wizard in terms of attack and defense.",
+      "images": {
+        "small": "/otcp/card-images/small/46986420.jpg",
+        "large": "/otcp/card-images/46986420.jpg"
+      },
+      "sets": [
+        {
+          "setCode": "SDY-006",
+          "setName": "Starter Deck: Yugi",
+          "setRarity": "Ultra Rare"
+        }
+      ],
+      "prices": {
+        "tcgplayer": 1.23
+      },
+      "passcode": 46986420,
+      "attribute": "DARK",
+      "level": 7,
+      "atk": 2500,
+      "def": 2100,
+      "race": "Spellcaster",
+      "archetype": "Dark Magician"
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 83764719,
+      "name": "Monster Reborn",
+      "type": "Spell Card",
+      "text": "Target 1 monster in either GY; Special Summon it.",
+      "images": {
+        "small": "/otcp/card-images/small/83764719.jpg",
+        "large": "/otcp/card-images/83764719.jpg"
+      },
+      "sets": [
+        {
+          "setCode": "SDY-035",
+          "setName": "Starter Deck: Yugi",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 83764719,
+      "race": "Normal",
+      "banlistInfo": {
+        "banTcg": "Limited"
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 44095762,
+      "name": "Mirror Force",
+      "type": "Trap Card",
+      "text": "When an opponent's monster declares an attack: Destroy all Attack Position monsters your opponent controls.",
+      "images": {
+        "small": "/otcp/card-images/small/44095762.jpg",
+        "large": "/otcp/card-images/44095762.jpg"
+      },
+      "sets": [
+        {
+          "setCode": "SDY-041",
+          "setName": "Starter Deck: Yugi",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 44095762,
+      "race": "Normal"
+    }
+  ]
+}

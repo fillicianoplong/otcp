@@ -5,7 +5,9 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { CardCatalogProvider } from '../catalog';
+import { clearCardCatalogCache } from '../catalog/loadCatalog.ts';
 import { AppShell } from './AppShell';
 import { PRIMARY_NAV } from '../nav';
 import { SearchPage } from '../pages/SearchPage';
@@ -13,22 +15,39 @@ import { SearchPage } from '../pages/SearchPage';
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/formats" element={<h1>Formats</h1>} />
-          <Route path="/decks" element={<h1>Decks</h1>} />
-          <Route path="/collection" element={<h1>Collection</h1>} />
-          <Route path="/lists" element={<h1>Lists</h1>} />
-          <Route path="/account" element={<h1>Account</h1>} />
-        </Route>
-      </Routes>
+      <CardCatalogProvider>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/formats" element={<h1>Formats</h1>} />
+            <Route path="/decks" element={<h1>Decks</h1>} />
+            <Route path="/collection" element={<h1>Collection</h1>} />
+            <Route path="/lists" element={<h1>Lists</h1>} />
+            <Route path="/account" element={<h1>Account</h1>} />
+          </Route>
+        </Routes>
+      </CardCatalogProvider>
     </MemoryRouter>,
   );
 }
 
 afterEach(() => {
   cleanup();
+  clearCardCatalogCache();
+  vi.unstubAllGlobals();
+});
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('data/current.json')) {
+        return new Response('', { status: 404 });
+      }
+      throw new Error(`unexpected fetch in test: ${url}`);
+    }),
+  );
 });
 
 describe('AppShell', () => {
