@@ -1,0 +1,47 @@
+name: Data refresh
+
+on:
+  schedule:
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Fetch, validate, publish pointer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Run DataPipeline
+        run: npm run pipeline:refresh
+
+      - name: Open pull request with updated data
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'chore(data): refresh card catalog from YGOPRODeck'
+          title: 'chore(data): refresh card catalog from YGOPRODeck'
+          body: |
+            Scheduled card catalog refresh from the DataPipeline workflow.
+
+            - Source: YGOPRODeck cardinfo (`misc=yes`)
+            - Validation: SchemaCore (fail closed; prior pointer kept on error)
+          branch: bot/data-refresh
+          delete-branch: true

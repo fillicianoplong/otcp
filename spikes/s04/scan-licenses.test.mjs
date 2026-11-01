@@ -180,7 +180,7 @@ test('the repo allowlist accepts the main lockfile', () => {
   const lock = JSON.parse(readFileSync(join(repoRoot, 'package-lock.json'), 'utf8'));
   const result = checkLock(lock, projectAllow, null);
   assert.equal(result.ok, true);
-  assert.equal(result.rows.length, 326);
+  assert.equal(result.rows.length, 327);
   assert.equal(result.rows.filter((row) => row.scope === 'runtime').length, 7);
   const mpl = result.rows.filter((row) => row.license === 'MPL-2.0');
   assert.equal(mpl.length, 12);
