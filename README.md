@@ -2,7 +2,11 @@
 
 Fast web card lookup for trading card game players — search, formats, banlists, deck builder, Lists, and collection. Yu-Gi-Oh! first. Hosted under `/otcp/` on GitHub Pages.
 
-**Status:** Docs 1.0. **M1 (Runnable shell)** is live at [https://fillicianoplong.github.io/otcp/](https://fillicianoplong.github.io/otcp/). CI is set up.
+**Status:** Docs 1.0. **M1 (Runnable shell)** and **M2 (Card data and search)** are live at [https://fillicianoplong.github.io/otcp/](https://fillicianoplong.github.io/otcp/). CI is set up.
+
+**Search (M2)** loads the full YGOPRODeck catalog (about 14.5k cards) with name and passcode search, infinite scroll in batches, and a card detail page. Detail shows snapshot prices from TCGplayer, CoolStuffInc, and Cardmarket, plus store links that open in a new tab. Card art uses same-origin small images served from the site.
+
+**Card data:** [`.github/workflows/data-refresh.yml`](.github/workflows/data-refresh.yml) runs weekly and on manual dispatch. It fetches the catalog, validates it through the DataPipeline, re-hosts images, and publishes to the **`data-refresh`** branch. The [Pages deploy workflow](.github/workflows/pages.yml) overlays that published data (and small card images) onto each production build. For local dev, `public/data/current.json` points at the small sample dataset in `public/data/datasets/sample-dev.json`.
 
 ## Getting started
 
