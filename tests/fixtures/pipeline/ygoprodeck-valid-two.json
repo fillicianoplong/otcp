@@ -1,0 +1,37 @@
+{
+  "data": [
+    {
+      "id": 46986420,
+      "name": "Dark Magician",
+      "desc": "The ultimate wizard in terms of attack and defense.",
+      "type": "Normal Monster",
+      "race": "Spellcaster",
+      "attribute": "DARK",
+      "level": 7,
+      "atk": 2500,
+      "def": 2100,
+      "archetype": "Dark Magician",
+      "card_sets": [
+        {
+          "set_name": "Starter Deck: Yugi",
+          "set_code": "SDY-006",
+          "set_rarity": "Ultra Rare"
+        }
+      ],
+      "card_prices": [{ "tcgplayer_price": "1.23" }]
+    },
+    {
+      "id": 89631139,
+      "name": "Blue-Eyes White Dragon",
+      "desc": "This legendary dragon is a powerful engine of destruction.",
+      "type": "Normal Monster",
+      "race": "Dragon",
+      "attribute": "LIGHT",
+      "level": 8,
+      "atk": 3000,
+      "def": 2500,
+      "archetype": "Blue-Eyes",
+      "card_sets": []
+    }
+  ]
+}
