@@ -4,6 +4,7 @@ import {
   type CardPrices,
   type CardSet,
   type DatasetEnvelope,
+  type SetIndex,
   type YugiohCard,
 } from '../src/shared/schema/index.ts';
 import { YGOPRODECK_CARDINFO_URL } from './constants.ts';
@@ -133,12 +134,17 @@ export function mapYgoprodeckCard(card: YgoApiCard, publicBaseUrl: string): Yugi
   return mapped;
 }
 
-export function buildDatasetEnvelope(cards: YugiohCard[], generatedAt: string): DatasetEnvelope {
+export function buildDatasetEnvelope(
+  cards: YugiohCard[],
+  generatedAt: string,
+  setIndex?: SetIndex,
+): DatasetEnvelope {
   return {
     schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
     generatedAt,
     source: YGOPRODECK_CARDINFO_URL,
     cards,
+    ...(setIndex && Object.keys(setIndex).length > 0 ? { setIndex } : {}),
   };
 }
 
