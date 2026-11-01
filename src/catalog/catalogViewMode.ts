@@ -12,7 +12,11 @@ export function isCatalogViewMode(value: string): value is CatalogViewMode {
   return value === 'grid' || value === 'list' || value === 'table';
 }
 
-/** Table lands in issue #29; keep grid when table is requested until then. */
-export function effectiveCatalogViewMode(mode: CatalogViewMode): 'grid' | 'list' {
-  return mode === 'list' ? 'list' : 'grid';
+/** When Table is unavailable (narrow viewport), fall back to List. */
+export function effectiveCatalogViewMode(
+  mode: CatalogViewMode,
+  options?: { tableAvailable?: boolean },
+): CatalogViewMode {
+  if (mode === 'table' && options?.tableAvailable === false) return 'list';
+  return mode;
 }
