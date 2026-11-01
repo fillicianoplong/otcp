@@ -1,13 +1,14 @@
 import type { PublishedPointer } from '../../pipeline/pointer.ts';
 import { OTCP_DATASET_SCHEMA_VERSION } from '../shared/schema/constants.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import type { SetIndex } from '../shared/schema/setIndex.ts';
 import { validateDatasetEnvelope } from '../shared/schema/validate.ts';
 import { CURRENT_POINTER_URL, publicDataUrl } from './paths.ts';
 
 export type CatalogState =
   | { status: 'loading' }
   | { status: 'empty' }
-  | { status: 'ready'; cards: YugiohCard[]; generatedAt: string }
+  | { status: 'ready'; cards: YugiohCard[]; generatedAt: string; setIndex?: SetIndex }
   | { status: 'error'; message: string };
 
 type CatalogCache = Exclude<CatalogState, { status: 'loading' }>;
@@ -68,6 +69,7 @@ export async function loadCardCatalog(fetchImpl: typeof fetch = fetch): Promise<
     status: 'ready',
     cards: validated.data.cards,
     generatedAt: validated.data.generatedAt,
+    ...(validated.data.setIndex ? { setIndex: validated.data.setIndex } : {}),
   };
 }
 

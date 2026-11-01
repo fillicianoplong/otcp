@@ -72,4 +72,15 @@ describe('SchemaCore dataset envelope', () => {
     const result = validateDatasetEnvelope(loadFixture('dataset-valid.json'));
     expect(result.ok, result.ok ? '' : JSON.stringify(result.errors)).toBe(true);
   });
+
+  it('accepts an optional setIndex map on the envelope', () => {
+    const base = loadFixture('dataset-valid.json') as Record<string, unknown>;
+    const result = validateDatasetEnvelope({
+      ...base,
+      setIndex: {
+        'Starter Deck: Yugi': { tcgDate: '2002-03-08', numOfCards: 50 },
+      },
+    });
+    expect(result.ok, result.ok ? '' : JSON.stringify(result.errors)).toBe(true);
+  });
 });

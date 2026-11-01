@@ -2,6 +2,36 @@
   "schemaVersion": "1.0.0",
   "generatedAt": "2026-10-28T12:00:00.000Z",
   "source": "tests/fixtures/schema (dev sample)",
+  "setIndex": {
+    "Legend of Blue Eyes White Dragon": {
+      "tcgDate": "2002-03-08",
+      "numOfCards": 126
+    },
+    "Starter Deck: Yugi": {
+      "tcgDate": "2002-03-08",
+      "numOfCards": 50
+    },
+    "Metal Raiders": {
+      "tcgDate": "2002-06-26",
+      "numOfCards": 140
+    },
+    "The Duelist Genesis": {
+      "tcgDate": "2008-06-18",
+      "numOfCards": 100
+    },
+    "Duelist Revolution": {
+      "tcgDate": "2010-08-18",
+      "numOfCards": 100
+    },
+    "Maximum Crisis": {
+      "tcgDate": "2017-05-05",
+      "numOfCards": 100
+    },
+    "Phantom Nightmare": {
+      "tcgDate": "2024-02-09",
+      "numOfCards": 101
+    }
+  },
   "cards": [
     {
       "schemaVersion": "1.0.0",
