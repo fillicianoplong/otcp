@@ -7,3 +7,11 @@ export const OTCP_PIPELINE_USER_AGENT = 'OTCP/0.1.0 (+https://github.com/fillici
 export const DEFAULT_POINTER_REL = 'public/data/current.json';
 export const DEFAULT_DATA_DIR = 'public/data';
 export const DATASETS_SUBDIR = 'datasets';
+export const CARD_IMAGES_SUBDIR = 'card-images';
+
+/** Upper bound per re-hosted image file (ADR-003 / SR-07). */
+export const MAX_CARD_IMAGE_LARGE_BYTES = 3_000_000;
+export const MAX_CARD_IMAGE_SMALL_BYTES = 500_000;
+
+/** Polite spacing between upstream image requests during refresh. */
+export const IMAGE_FETCH_DELAY_MS = 100;

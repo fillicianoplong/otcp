@@ -11,6 +11,8 @@ const result = await runPipeline(repoRoot);
 if (!result.ok) {
   if (result.reason === 'fetch') {
     console.error(`DataPipeline fetch failed: ${result.error ?? 'unknown error'}`);
+  } else if (result.reason === 'images') {
+    console.error(`DataPipeline image step failed: ${result.error ?? 'unknown error'}`);
   } else {
     console.error('DataPipeline validation failed:');
     for (const issue of result.issues ?? []) {

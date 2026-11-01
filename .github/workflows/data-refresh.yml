@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   refresh:
-    name: Fetch, validate, publish pointer
+    name: Fetch, validate, re-host images, publish pointer
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -36,12 +36,16 @@ jobs:
       - name: Open pull request with updated data
         uses: peter-evans/create-pull-request@v7
         with:
-          commit-message: 'chore(data): refresh card catalog from YGOPRODeck'
-          title: 'chore(data): refresh card catalog from YGOPRODeck'
+          commit-message: 'chore(data): refresh card catalog and images from YGOPRODeck'
+          title: 'chore(data): refresh card catalog and images from YGOPRODeck'
           body: |
             Scheduled card catalog refresh from the DataPipeline workflow.
 
-            - Source: YGOPRODeck cardinfo (`misc=yes`)
+            - Source: YGOPRODeck cardinfo (`misc=yes`) and card images (same-origin re-host)
+            - Art: `public/card-images/` (incremental; hashed sidecars)
             - Validation: SchemaCore (fail closed; prior pointer kept on error)
           branch: bot/data-refresh
           delete-branch: true
+          add-paths: |
+            public/data/**
+            public/card-images/**

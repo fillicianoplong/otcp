@@ -5,7 +5,7 @@
   "type": "Normal Monster",
   "text": "The ultimate wizard in terms of attack and defense.",
   "images": {
-    "small": "/otcp/card-images/46986420.jpg",
+    "small": "/otcp/card-images/small/46986420.jpg",
     "large": "/otcp/card-images/46986420.jpg"
   },
   "sets": [
