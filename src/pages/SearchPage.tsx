@@ -7,6 +7,7 @@ import {
   CATALOG_VIEW_QUERY_KEY,
   parseCatalogViewMode,
   type CatalogViewMode,
+  effectiveCatalogViewMode,
 } from '../catalog/catalogViewMode.ts';
 import { FORMAT_QUERY_KEY } from '../catalog/formatBanContext.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
@@ -29,6 +30,16 @@ import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
 import { readSetFacetSortMode, writeSetFacetSortMode } from '../catalog/setFacetSort.ts';
 import type { SetFacetSortMode } from '../catalog/facetOptionOrdering.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
+import { CatalogTableColumnsMenu } from '../catalog/CatalogTableColumnsMenu.tsx';
+import {
+  DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
+  type CatalogTableColumnVisibility,
+} from '../catalog/catalogTableColumns.ts';
+import {
+  DEFAULT_CATALOG_TABLE_SORT,
+  type CatalogTableSortState,
+} from '../catalog/catalogTableSort.ts';
+import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { buildSearchIndex } from '../search/index.ts';
 
@@ -55,6 +66,17 @@ export function SearchPage() {
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
   const [setSortMode, setSetSortMode] = useState<SetFacetSortMode>(() => readSetFacetSortMode());
+  const tableViewportOk = useMinViewportWidth(640);
+  const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
+    () => ({ ...DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY }),
+  );
+  const [tableSort, setTableSort] = useState<CatalogTableSortState>(() => ({
+    ...DEFAULT_CATALOG_TABLE_SORT,
+  }));
+
+  const effectiveViewMode = effectiveCatalogViewMode(viewMode, {
+    tableAvailable: tableViewportOk,
+  });
 
   const catalogSetIndex = catalogState.status === 'ready' ? catalogState.setIndex : undefined;
 
@@ -143,6 +165,11 @@ export function SearchPage() {
   );
 
   useEffect(() => {
+    if (tableViewportOk || viewMode !== 'table') return;
+    setViewMode('list');
+  }, [tableViewportOk, setViewMode, viewMode]);
+
+  useEffect(() => {
     const next = trimmedQuery;
     const current = searchParams.get('q') ?? '';
     if (next === current) return;
@@ -223,7 +250,15 @@ export function SearchPage() {
               <p className="text-sm text-text-2" aria-live="polite">
                 {formatCardCount(matchCount)}
               </p>
-              <CatalogViewToggle value={viewMode} onChange={setViewMode} />
+              <div className="flex flex-wrap items-center gap-2">
+                {effectiveViewMode === 'table' ? (
+                  <CatalogTableColumnsMenu
+                    visibility={tableColumnVisibility}
+                    onChange={setTableColumnVisibility}
+                  />
+                ) : null}
+                <CatalogViewToggle value={viewMode} onChange={setViewMode} />
+              </div>
             </div>
             {chips.length > 0 ? <FilterChips chips={chips} onChange={commitFilterState} /> : null}
           </div>
@@ -235,6 +270,10 @@ export function SearchPage() {
             showResultCount={false}
             viewMode={viewMode}
             formatParam={formatParam}
+            tableAvailable={tableViewportOk}
+            tableColumnVisibility={tableColumnVisibility}
+            tableSort={tableSort}
+            onTableSortChange={setTableSort}
           />
         </div>
       </div>
