@@ -1,24 +1,48 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 
 import { cardDetailImageFallback, cardDetailImageSrc } from '../catalog/cardArtUrl.ts';
+import { CardImageZoomViewer } from '../components/CardImageZoomViewer.tsx';
 import { PriceView } from '../components/PriceView.tsx';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
 function CardDetailArt({ card }: { card: YugiohCard }) {
   const [src, setSrc] = useState(() => cardDetailImageSrc(card));
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const openViewer = () => setViewerOpen(true);
+  const closeViewer = () => setViewerOpen(false);
 
   return (
-    <img
-      src={src}
-      alt={card.name}
-      onError={() => {
-        const fallback = cardDetailImageFallback(card, src);
-        if (fallback) setSrc(fallback);
-      }}
-      className="mx-auto w-full max-w-[280px] rounded-md bg-surface-2 object-contain shadow-sm sm:max-w-[360px]"
-    />
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={openViewer}
+        className="block w-full cursor-zoom-in rounded-md bg-surface-2 p-0 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+        aria-label={`View larger artwork for ${card.name}`}
+      >
+        <img
+          src={src}
+          alt={card.name}
+          onError={() => {
+            const fallback = cardDetailImageFallback(card, src);
+            if (fallback) setSrc(fallback);
+          }}
+          className="pointer-events-none mx-auto w-full max-w-full rounded-md object-contain sm:max-w-[435px]"
+        />
+      </button>
+      {viewerOpen ? (
+        <CardImageZoomViewer
+          src={src}
+          alt={card.name}
+          onClose={closeViewer}
+          triggerRef={triggerRef}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -93,7 +117,7 @@ export function CardDetailPage() {
         ← Back to Search
       </Link>
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-        <div className="shrink-0 sm:w-[min(100%,280px)]">
+        <div className="w-full shrink-0 sm:max-w-[435px]">
           <CardDetailArt card={card} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-6 sm:max-w-xl">
