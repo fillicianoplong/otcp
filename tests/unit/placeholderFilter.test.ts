@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { R2_CARD_IMAGES_PUBLIC_BASE_URL } from '../../pipeline/constants.ts';
 import { logYgoprodeckDropCounts } from '../../pipeline/logDropCounts.ts';
 import { mapYgoprodeckResponse } from '../../pipeline/mapYgoprodeck.ts';
 import { isYgoprodeckPlaceholderRow } from '../../pipeline/placeholderFilter.ts';
@@ -16,7 +17,10 @@ describe('placeholder catalog filter', () => {
     const noSetCard = placeholderFixture.data[1] as YgoApiCard;
     expect(isYgoprodeckPlaceholderRow(noSetCard)).toBe(false);
 
-    const { cards, dropped } = mapYgoprodeckResponse(placeholderFixture.data as YgoApiCard[]);
+    const { cards, dropped } = mapYgoprodeckResponse(
+      placeholderFixture.data as YgoApiCard[],
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
+    );
     expect(dropped.placeholder).toBe(1);
     expect(dropped.unsupported).toBe(0);
     expect(cards).toHaveLength(1);

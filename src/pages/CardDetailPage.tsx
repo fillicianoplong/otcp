@@ -17,7 +17,7 @@ function CardDetailArt({ card }: { card: YugiohCard }) {
         const fallback = cardDetailImageFallback(card, src);
         if (fallback) setSrc(fallback);
       }}
-      className="mx-auto w-full max-w-[280px] rounded-md bg-surface-2 object-cover shadow-sm sm:max-w-none"
+      className="mx-auto w-full max-w-[280px] rounded-md bg-surface-2 object-contain shadow-sm sm:max-w-[360px]"
     />
   );
 }

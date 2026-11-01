@@ -7,7 +7,9 @@ import { runPipeline } from './runPipeline.ts';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const result = await runPipeline(repoRoot);
+const result = await runPipeline(repoRoot, {
+  r2: { env: process.env },
+});
 
 if (!result.ok) {
   if (result.reason === 'fetch') {

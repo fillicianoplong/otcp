@@ -7,7 +7,7 @@ import {
   type YugiohCard,
 } from '../src/shared/schema/index.ts';
 import { YGOPRODECK_CARDINFO_URL } from './constants.ts';
-import { sameOriginImagePaths } from './imagePaths.ts';
+import { publishedImagePaths } from './imagePaths.ts';
 import { isYgoprodeckPlaceholderRow } from './placeholderFilter.ts';
 import type { YgoApiCard, YgoBanlistInfo } from './ygoprodeckTypes.ts';
 
@@ -87,8 +87,8 @@ function mapPrices(card: YgoApiCard): CardPrices | undefined {
   return Object.keys(prices).length > 0 ? prices : undefined;
 }
 
-function sameOriginImages(cardId: number): YugiohCard['images'] {
-  return sameOriginImagePaths(cardId);
+function publishedImages(cardId: number, publicBaseUrl: string): YugiohCard['images'] {
+  return publishedImagePaths(cardId, publicBaseUrl);
 }
 
 /** Drop Rush Duel and other rows outside the v1 Yu-Gi-Oh! extension (FR-50). */
@@ -99,14 +99,14 @@ export function isSupportedYugiohRow(card: YgoApiCard): boolean {
   return type.includes('Monster');
 }
 
-export function mapYgoprodeckCard(card: YgoApiCard): YugiohCard {
+export function mapYgoprodeckCard(card: YgoApiCard, publicBaseUrl: string): YugiohCard {
   const mapped: YugiohCard = {
     schemaVersion: OTCP_CARD_SCHEMA_VERSION,
     id: card.id,
     name: card.name,
     type: card.type ?? '',
     text: normalizeText(card.desc),
-    images: sameOriginImages(card.id),
+    images: publishedImages(card.id, publicBaseUrl),
     sets: mapSets(card),
   };
 
@@ -142,7 +142,10 @@ export function buildDatasetEnvelope(cards: YugiohCard[], generatedAt: string): 
   };
 }
 
-export function mapYgoprodeckResponse(rows: YgoApiCard[]): {
+export function mapYgoprodeckResponse(
+  rows: YgoApiCard[],
+  publicBaseUrl: string,
+): {
   cards: YugiohCard[];
   dropped: YgoprodeckDropCounts;
 } {
@@ -157,7 +160,7 @@ export function mapYgoprodeckResponse(rows: YgoApiCard[]): {
       dropped.placeholder += 1;
       continue;
     }
-    cards.push(mapYgoprodeckCard(row));
+    cards.push(mapYgoprodeckCard(row, publicBaseUrl));
   }
   return { cards, dropped };
 }

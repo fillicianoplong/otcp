@@ -1,10 +1,11 @@
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { atomicWriteUtf8 } from '../../src/shared/fs/atomicWrite.ts';
 import { OTCP_DATASET_SCHEMA_VERSION } from '../../src/shared/schema/constants.ts';
+import { R2_CARD_IMAGES_PUBLIC_BASE_URL } from '../../pipeline/constants.ts';
 import { sha256Hex } from '../../pipeline/hash.ts';
 import { localImagePath } from '../../pipeline/fetchCardImages.ts';
 import { datasetFileToRepoRelative, type PublishedPointer } from '../../pipeline/pointer.ts';
@@ -136,6 +137,7 @@ describe('DataPipeline', () => {
     expect(datasetText).toContain('Dark Magician');
     expect(datasetText).not.toContain('images.ygoprodeck.com');
     expect(datasetText).toContain('/otcp/card-images/small/46986420.jpg');
+    expect(datasetText).toContain(`${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/46986420.webp`);
     expect(readFileSync(paths.pointerPath, 'utf8')).toContain(pointer!.datasetFile);
 
     const datasets = readdirSync(paths.datasetsDir);
@@ -265,5 +267,24 @@ describe('DataPipeline', () => {
 
     expect(result.ok).toBe(true);
     expect(imageFetches).toBe(0);
+  });
+
+  it('logs and skips R2 upload when credentials are missing', async () => {
+    const root = makeTempRoot();
+    roots.push(root);
+    seedPointer(root);
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const result = await runPipeline(root, {
+      now: () => new Date('2026-11-01T12:00:00.000Z'),
+      fetch: { fetchImpl: createMockFetch() },
+      r2: { env: {} },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(logSpy).toHaveBeenCalledWith(
+      'Skipping R2 large image upload: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, or R2_SECRET_ACCESS_KEY is not set.',
+    );
+    logSpy.mockRestore();
   });
 });

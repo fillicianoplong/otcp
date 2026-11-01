@@ -6,7 +6,9 @@ Fast web card lookup for trading card game players — search, formats, banlists
 
 **Search (M2)** loads the full YGOPRODeck catalog (about 14.5k cards) with name and passcode search, infinite scroll in batches, and a card detail page. Detail shows snapshot prices from TCGplayer, CoolStuffInc, and Cardmarket, plus store links that open in a new tab. Card art uses same-origin small images served from the site.
 
-**Card data:** [`.github/workflows/data-refresh.yml`](.github/workflows/data-refresh.yml) runs weekly and on manual dispatch. It fetches the catalog, validates it through the DataPipeline, re-hosts images, and publishes to the **`data-refresh`** branch. The [Pages deploy workflow](.github/workflows/pages.yml) overlays that published data (and small card images) onto each production build. For local dev, `public/data/current.json` points at the small sample dataset in `public/data/datasets/sample-dev.json`.
+**Card data:** [`.github/workflows/data-refresh.yml`](.github/workflows/data-refresh.yml) runs weekly and on manual dispatch. It fetches the catalog, validates it through the DataPipeline, re-hosts small images on GitHub Pages, uploads full-size art to Cloudflare R2 as WebP, and publishes to the **`data-refresh`** branch. The [Pages deploy workflow](.github/workflows/pages.yml) overlays that published data (and small card images) onto each production build. For local dev, `public/data/current.json` points at the small sample dataset in `public/data/datasets/sample-dev.json`.
+
+**R2 large images:** Full-size card art is stored in the `otcp-card-images` bucket and served from the public R2 base URL configured in the data-refresh workflow (`R2_PUBLIC_BASE_URL`). The scheduled refresh step needs repository secrets `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY` (Object Read & Write on that bucket). Forks and pull request CI omit those secrets, so the pipeline skips the upload and still publishes the catalog with R2 URLs in `images.large`.
 
 ## Getting started
 
