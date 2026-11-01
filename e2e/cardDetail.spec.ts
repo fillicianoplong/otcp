@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 test.describe('Card detail prices', () => {
   test('opening a sample card shows all three storefront prices', async ({ page }) => {
     await page.goto('/otcp/search');
-    await expect(page.getByText('Dark Magician')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('link', { name: 'Dark Magician' })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.getByRole('link', { name: 'Dark Magician' }).click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);

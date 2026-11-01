@@ -4,6 +4,8 @@ export type SearchScrollRestore = {
   loadedCount: number;
   scrollY: number;
   query: string;
+  /** Serialized filter state signature; empty string when no filters. */
+  filtersKey?: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -13,6 +15,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function parseSearchScrollRestore(
   state: unknown,
   query: string,
+  filtersKey = '',
 ): SearchScrollRestore | null {
   if (!isRecord(state)) return null;
   const raw = state[SEARCH_SCROLL_STATE_KEY];
@@ -20,6 +23,7 @@ export function parseSearchScrollRestore(
   const loadedCount = raw.loadedCount;
   const scrollY = raw.scrollY;
   const savedQuery = raw.query;
+  const savedFiltersKey = typeof raw.filtersKey === 'string' ? raw.filtersKey : '';
   if (typeof loadedCount !== 'number' || !Number.isFinite(loadedCount) || loadedCount < 0) {
     return null;
   }
@@ -27,7 +31,8 @@ export function parseSearchScrollRestore(
     return null;
   }
   if (typeof savedQuery !== 'string' || savedQuery !== query) return null;
-  return { loadedCount, scrollY, query: savedQuery };
+  if (savedFiltersKey !== filtersKey) return null;
+  return { loadedCount, scrollY, query: savedQuery, filtersKey: savedFiltersKey };
 }
 
 export function mergeSearchScrollRestore(
