@@ -52,10 +52,10 @@ jobs:
       - name: Copy published data into dist
         if: steps.published_data.outcome == 'success'
         run: |
-          mkdir -p dist/data dist/card-images
+          mkdir -p dist/data dist/card-images/small
           cp -a _published_data/public/data/. dist/data/
-          if [ -d _published_data/public/card-images ]; then
-            cp -a _published_data/public/card-images/. dist/card-images/
+          if [ -d _published_data/public/card-images/small ]; then
+            cp -a _published_data/public/card-images/small/. dist/card-images/small/
           fi
 
       - name: Configure Pages

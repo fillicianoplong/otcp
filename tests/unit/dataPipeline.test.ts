@@ -221,7 +221,6 @@ describe('DataPipeline', () => {
     seedPointer(root);
 
     for (const cardId of CARD_IDS) {
-      seedImageWithSidecar(root, cardId, 'large');
       seedImageWithSidecar(root, cardId, 'small');
     }
 

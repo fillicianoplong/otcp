@@ -45,7 +45,8 @@ jobs:
         run: |
           git config user.name 'Filliciano Plong'
           git config user.email '62613238+fillicianoplong@users.noreply.github.com'
-          git add public/data public/card-images
+          git add public/data
+          git add -f public/card-images/small
           if git diff --staged --quiet; then
             echo 'No catalog changes to publish.'
             exit 0

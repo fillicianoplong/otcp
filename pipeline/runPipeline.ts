@@ -91,6 +91,7 @@ export async function runPipeline(
   const imageResult = await ensureCardImages({
     repoRoot,
     cardIds: cards.map((card) => card.id),
+    variants: ['small'],
     fetchImpl: options.fetch?.fetchImpl,
     userAgent: options.fetch?.userAgent,
     maxAttempts: options.fetch?.maxAttempts,
