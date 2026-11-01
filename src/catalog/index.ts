@@ -11,3 +11,20 @@ export {
   type CatalogState,
 } from './loadCatalog.ts';
 export { CURRENT_POINTER_URL, publicDataUrl } from './paths.ts';
+export {
+  CORE_FACET_DEFINITIONS,
+  YUGIOH_FACET_DEFINITIONS,
+  facetDefinitionsForGame,
+  type FacetDefinition,
+  type FacetFieldId,
+} from './facets.ts';
+export {
+  FilterEngine,
+  buildFilterEngine,
+  emptyFilterState,
+  parseFilterState,
+  serializeFilterState,
+  type FilterApplyResult,
+  type FilterState,
+  type FacetGroupCounts,
+} from './filterEngine.ts';

@@ -36,6 +36,21 @@ export function popcount(bits: Uint32Array): number {
   return total;
 }
 
+export function andPopcount(left: Uint32Array, right: Uint32Array): number {
+  let total = 0;
+  const pop = POP;
+  for (let i = 0; i < left.length; i++) {
+    const value = (left[i] & right[i]) >>> 0;
+    total +=
+      pop[value & 255] + pop[(value >>> 8) & 255] + pop[(value >>> 16) & 255] + pop[value >>> 24];
+  }
+  return total;
+}
+
+export function notInPlace(target: Uint32Array, universe: Uint32Array): void {
+  for (let i = 0; i < target.length; i++) target[i] = (~target[i] & universe[i]) >>> 0;
+}
+
 /** Walk set bits. Returning false from `fn` stops the walk. */
 export function forEachSetBit(
   bits: Uint32Array,
