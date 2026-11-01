@@ -2,6 +2,7 @@
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
+import { logYgoprodeckDropCounts } from './logDropCounts.ts';
 import { runPipeline } from './runPipeline.ts';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -21,6 +22,7 @@ if (!result.ok) {
   }
   process.exitCode = 1;
 } else {
+  logYgoprodeckDropCounts(result.dropped);
   console.log(
     `Published ${result.pointer.cardCount} cards → ${result.pointer.datasetFile} (sha256 ${result.pointer.sha256})`,
   );
