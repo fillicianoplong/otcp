@@ -7,14 +7,23 @@ import {
   R2_LARGE_IMAGE_UPLOAD_CONCURRENCY,
   YGOPRODECK_IMAGE_MAX_INTERVAL_MS,
   MAX_CARD_IMAGE_LARGE_BYTES,
+  MAX_CARD_IMAGE_SMALL_BYTES,
   OTCP_PIPELINE_USER_AGENT,
 } from './constants.ts';
-import { r2LargeObjectKey, ygoprodeckLargeImageUrl } from './imagePaths.ts';
+import {
+  r2LargeObjectKey,
+  r2SmallObjectKey,
+  ygoprodeckLargeImageUrl,
+  ygoprodeckSmallImageUrl,
+} from './imagePaths.ts';
 
 export type R2UploadEnv = Record<string, string | undefined>;
 
-export type UploadLargeCardImagesR2Options = {
+export type CardImageR2Variant = 'large' | 'small';
+
+export type UploadCardImagesR2Options = {
   cardIds: number[];
+  variants?: readonly CardImageR2Variant[];
   env?: R2UploadEnv;
   s3Client?: S3Client;
   fetchImpl?: typeof fetch;
@@ -26,14 +35,22 @@ export type UploadLargeCardImagesR2Options = {
   webpQuality?: number;
 };
 
-export type UploadLargeCardImagesR2Result =
+/** @deprecated Use {@link UploadCardImagesR2Options} */
+export type UploadLargeCardImagesR2Options = Omit<UploadCardImagesR2Options, 'variants'>;
+
+export type UploadCardImagesR2Result =
   | { ok: true; uploaded: number; skipped: number; skippedStep?: false }
   | { ok: true; uploaded: 0; skipped: 0; skippedStep: true }
-  | { ok: false; error: string; cardId?: number };
+  | { ok: false; error: string; cardId?: number; variant?: CardImageR2Variant };
+
+/** @deprecated Use {@link UploadCardImagesR2Result} */
+export type UploadLargeCardImagesR2Result = UploadCardImagesR2Result;
 
 export type SharpWebpConverter = (jpeg: Buffer, quality: number) => Promise<Buffer>;
 
 const DEFAULT_WEBP_QUALITY = 75;
+
+const DEFAULT_VARIANTS: readonly CardImageR2Variant[] = ['large', 'small'];
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -95,6 +112,22 @@ function isAllowedImageContentType(contentType: string | null): boolean {
   return normalized === 'image/jpeg' || normalized === 'image/png' || normalized === 'image/webp';
 }
 
+function r2ListPrefix(variant: CardImageR2Variant): string {
+  return variant === 'large' ? 'ygo/large/' : 'ygo/small/';
+}
+
+function r2ObjectKey(cardId: number, variant: CardImageR2Variant): string {
+  return variant === 'large' ? r2LargeObjectKey(cardId) : r2SmallObjectKey(cardId);
+}
+
+function ygoprodeckImageUrl(cardId: number, variant: CardImageR2Variant): string {
+  return variant === 'large' ? ygoprodeckLargeImageUrl(cardId) : ygoprodeckSmallImageUrl(cardId);
+}
+
+function maxBytesForVariant(variant: CardImageR2Variant): number {
+  return variant === 'large' ? MAX_CARD_IMAGE_LARGE_BYTES : MAX_CARD_IMAGE_SMALL_BYTES;
+}
+
 class FetchRateLimiter {
   private chain = Promise.resolve();
 
@@ -113,7 +146,7 @@ class FetchRateLimiter {
   }
 }
 
-async function listExistingLargeKeys(client: S3Client): Promise<Set<string>> {
+async function listExistingKeys(client: S3Client, prefix: string): Promise<Set<string>> {
   const keys = new Set<string>();
   let continuationToken: string | undefined;
 
@@ -121,7 +154,7 @@ async function listExistingLargeKeys(client: S3Client): Promise<Set<string>> {
     const response = await client.send(
       new ListObjectsV2Command({
         Bucket: R2_CARD_IMAGES_BUCKET,
-        Prefix: 'ygo/large/',
+        Prefix: prefix,
         ContinuationToken: continuationToken,
       }),
     );
@@ -134,16 +167,15 @@ async function listExistingLargeKeys(client: S3Client): Promise<Set<string>> {
   return keys;
 }
 
-async function downloadLargeJpeg(
+async function downloadYgoprodeckJpeg(
   cardId: number,
+  variant: CardImageR2Variant,
   options: Required<
-    Pick<
-      UploadLargeCardImagesR2Options,
-      'fetchImpl' | 'userAgent' | 'maxAttempts' | 'initialBackoffMs'
-    >
+    Pick<UploadCardImagesR2Options, 'fetchImpl' | 'userAgent' | 'maxAttempts' | 'initialBackoffMs'>
   >,
 ): Promise<Buffer> {
-  const url = ygoprodeckLargeImageUrl(cardId);
+  const url = ygoprodeckImageUrl(cardId, variant);
+  const maxBytes = maxBytesForVariant(variant);
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= options.maxAttempts; attempt += 1) {
@@ -176,7 +208,7 @@ async function downloadLargeJpeg(
       }
 
       const buffer = Buffer.from(await response.arrayBuffer());
-      if (buffer.length === 0 || buffer.length > MAX_CARD_IMAGE_LARGE_BYTES) {
+      if (buffer.length === 0 || buffer.length > maxBytes) {
         throw new Error(`image size out of bounds (${buffer.length} bytes)`);
       }
       return buffer;
@@ -192,11 +224,16 @@ async function downloadLargeJpeg(
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
-async function uploadWebp(client: S3Client, cardId: number, body: Buffer): Promise<void> {
+async function uploadWebp(
+  client: S3Client,
+  cardId: number,
+  variant: CardImageR2Variant,
+  body: Buffer,
+): Promise<void> {
   await client.send(
     new PutObjectCommand({
       Bucket: R2_CARD_IMAGES_BUCKET,
-      Key: r2LargeObjectKey(cardId),
+      Key: r2ObjectKey(cardId, variant),
       Body: body,
       ContentType: 'image/webp',
       CacheControl: R2_LARGE_IMAGE_CACHE_CONTROL,
@@ -204,9 +241,11 @@ async function uploadWebp(client: S3Client, cardId: number, body: Buffer): Promi
   );
 }
 
-export async function uploadLargeCardImagesR2(
-  options: UploadLargeCardImagesR2Options,
-): Promise<UploadLargeCardImagesR2Result> {
+type UploadWorkItem = { cardId: number; variant: CardImageR2Variant };
+
+export async function uploadCardImagesR2(
+  options: UploadCardImagesR2Options,
+): Promise<UploadCardImagesR2Result> {
   const env = options.env ?? {};
   if (!hasR2UploadCredentials(env)) {
     return { ok: true, uploaded: 0, skipped: 0, skippedStep: true };
@@ -219,13 +258,28 @@ export async function uploadLargeCardImagesR2(
   const concurrency = options.concurrency ?? R2_LARGE_IMAGE_UPLOAD_CONCURRENCY;
   const minFetchIntervalMs = options.minFetchIntervalMs ?? YGOPRODECK_IMAGE_MAX_INTERVAL_MS;
   const webpQuality = options.webpQuality ?? DEFAULT_WEBP_QUALITY;
+  const variants = options.variants ?? DEFAULT_VARIANTS;
 
   const client = options.s3Client ?? createR2S3Client(env);
-  const existingKeys = await listExistingLargeKeys(client);
+  const existingByVariant = new Map<CardImageR2Variant, Set<string>>();
+  for (const variant of variants) {
+    existingByVariant.set(variant, await listExistingKeys(client, r2ListPrefix(variant)));
+  }
 
   const uniqueIds = [...new Set(options.cardIds)].sort((a, b) => a - b);
-  const toUpload = uniqueIds.filter((cardId) => !existingKeys.has(r2LargeObjectKey(cardId)));
-  const skipped = uniqueIds.length - toUpload.length;
+  const toUpload: UploadWorkItem[] = [];
+  let skipped = 0;
+
+  for (const cardId of uniqueIds) {
+    for (const variant of variants) {
+      const existing = existingByVariant.get(variant)!;
+      if (existing.has(r2ObjectKey(cardId, variant))) {
+        skipped += 1;
+      } else {
+        toUpload.push({ cardId, variant });
+      }
+    }
+  }
 
   if (toUpload.length === 0) {
     return { ok: true, uploaded: 0, skipped };
@@ -233,7 +287,7 @@ export async function uploadLargeCardImagesR2(
 
   const limiter = new FetchRateLimiter(minFetchIntervalMs);
   let uploaded = 0;
-  let failure: { error: string; cardId: number } | undefined;
+  let failure: { error: string; cardId: number; variant: CardImageR2Variant } | undefined;
   let workIndex = 0;
 
   async function worker(): Promise<void> {
@@ -242,22 +296,23 @@ export async function uploadLargeCardImagesR2(
       workIndex += 1;
       if (current >= toUpload.length) break;
 
-      const cardId = toUpload[current]!;
+      const { cardId, variant } = toUpload[current]!;
 
       try {
         await limiter.wait();
-        const jpeg = await downloadLargeJpeg(cardId, {
+        const jpeg = await downloadYgoprodeckJpeg(cardId, variant, {
           fetchImpl,
           userAgent,
           maxAttempts,
           initialBackoffMs,
         });
         const webp = await jpegToWebpAtQuality(jpeg, webpQuality);
-        await uploadWebp(client, cardId, webp);
+        await uploadWebp(client, cardId, variant, webp);
         uploaded += 1;
       } catch (error) {
         failure = {
           cardId,
+          variant,
           error: error instanceof Error ? error.message : String(error),
         };
       }
@@ -267,10 +322,16 @@ export async function uploadLargeCardImagesR2(
   await Promise.all(Array.from({ length: Math.min(concurrency, toUpload.length) }, () => worker()));
 
   if (failure) {
-    return { ok: false, error: failure.error, cardId: failure.cardId };
+    return { ok: false, error: failure.error, cardId: failure.cardId, variant: failure.variant };
   }
 
   return { ok: true, uploaded, skipped };
+}
+
+export async function uploadLargeCardImagesR2(
+  options: UploadLargeCardImagesR2Options,
+): Promise<UploadLargeCardImagesR2Result> {
+  return uploadCardImagesR2({ ...options, variants: ['large'] });
 }
 
 export { DEFAULT_WEBP_QUALITY, defaultSharpWebp };

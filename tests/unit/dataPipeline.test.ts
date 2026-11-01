@@ -1,13 +1,13 @@
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { ListObjectsV2Command, PutObjectCommand, type S3Client } from '@aws-sdk/client-s3';
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { atomicWriteUtf8 } from '../../src/shared/fs/atomicWrite.ts';
 import { OTCP_DATASET_SCHEMA_VERSION } from '../../src/shared/schema/constants.ts';
 import { R2_CARD_IMAGES_PUBLIC_BASE_URL } from '../../pipeline/constants.ts';
-import { sha256Hex } from '../../pipeline/hash.ts';
-import { localImagePath } from '../../pipeline/fetchCardImages.ts';
+import { r2LargeObjectKey, r2SmallObjectKey } from '../../pipeline/imagePaths.ts';
 import { datasetFileToRepoRelative, type PublishedPointer } from '../../pipeline/pointer.ts';
 import {
   defaultPipelinePaths,
@@ -20,6 +20,12 @@ import invalidFixture from '../fixtures/pipeline/ygoprodeck-invalid-name.json';
 import placeholderFixture from '../fixtures/pipeline/ygoprodeck-placeholder-and-no-set.json';
 
 const CARD_IDS = [46986420, 89631139] as const;
+
+const R2_ENV = {
+  R2_ACCOUNT_ID: 'acct',
+  R2_ACCESS_KEY_ID: 'key',
+  R2_SECRET_ACCESS_KEY: 'secret',
+};
 
 function makeTempRoot(): string {
   return mkdtempSync(join(tmpdir(), 'otcp-pipeline-'));
@@ -59,12 +65,25 @@ function createMockFetch(options: MockFetchOptions = {}): typeof fetch {
   }) as typeof fetch;
 }
 
-function seedImageWithSidecar(root: string, cardId: number, variant: 'large' | 'small'): void {
-  const path = localImagePath(root, cardId, variant);
-  mkdirSync(dirname(path), { recursive: true });
-  const bytes = Buffer.from(`seed-${cardId}-${variant}`);
-  writeFileSync(path, bytes);
-  writeFileSync(`${path}.sha256`, `${sha256Hex(bytes)}\n`);
+function createMockS3(initialKeys: string[] = []): S3Client {
+  const keys = new Set(initialKeys);
+
+  return {
+    send: async (command: unknown) => {
+      if (command instanceof ListObjectsV2Command) {
+        const prefix = command.input.Prefix ?? '';
+        return {
+          Contents: [...keys].filter((Key) => Key.startsWith(prefix)).map((Key) => ({ Key })),
+          IsTruncated: false,
+        };
+      }
+      if (command instanceof PutObjectCommand) {
+        if (command.input.Key) keys.add(command.input.Key);
+        return {};
+      }
+      throw new Error(`unexpected S3 command: ${String(command)}`);
+    },
+  } as unknown as S3Client;
 }
 
 function seedPointer(root: string, cardCount = 1): PublishedPointer {
@@ -82,8 +101,8 @@ function seedPointer(root: string, cardCount = 1): PublishedPointer {
         type: 'Normal Monster',
         text: 'unchanged',
         images: {
-          small: '/otcp/card-images/small/1.jpg',
-          large: '/otcp/card-images/1.jpg',
+          small: `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/small/1.webp`,
+          large: `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/1.webp`,
         },
         sets: [],
       },
@@ -136,7 +155,7 @@ describe('DataPipeline', () => {
     const datasetText = readFileSync(datasetPath, 'utf8');
     expect(datasetText).toContain('Dark Magician');
     expect(datasetText).not.toContain('images.ygoprodeck.com');
-    expect(datasetText).toContain('/otcp/card-images/small/46986420.jpg');
+    expect(datasetText).toContain(`${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/small/46986420.webp`);
     expect(datasetText).toContain(`${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/46986420.webp`);
     expect(readFileSync(paths.pointerPath, 'utf8')).toContain(pointer!.datasetFile);
 
@@ -233,6 +252,7 @@ describe('DataPipeline', () => {
           failImageUrl: (url) => url.includes('/46986420.jpg'),
         }),
       },
+      r2: { env: R2_ENV, s3Client: createMockS3() },
     });
 
     expect(result.ok).toBe(false);
@@ -244,14 +264,15 @@ describe('DataPipeline', () => {
     expect(readdirSync(paths.datasetsDir)).toEqual(beforeDatasets);
   });
 
-  it('skips upstream image fetches when hashed files already exist', async () => {
+  it('skips upstream image fetches when objects already exist in R2', async () => {
     const root = makeTempRoot();
     roots.push(root);
     seedPointer(root);
 
-    for (const cardId of CARD_IDS) {
-      seedImageWithSidecar(root, cardId, 'small');
-    }
+    const existingKeys = CARD_IDS.flatMap((cardId) => [
+      r2LargeObjectKey(cardId),
+      r2SmallObjectKey(cardId),
+    ]);
 
     let imageFetches = 0;
     const result = await runPipeline(root, {
@@ -263,6 +284,7 @@ describe('DataPipeline', () => {
           },
         }),
       },
+      r2: { env: R2_ENV, s3Client: createMockS3(existingKeys) },
     });
 
     expect(result.ok).toBe(true);
@@ -283,7 +305,7 @@ describe('DataPipeline', () => {
 
     expect(result.ok).toBe(true);
     expect(logSpy).toHaveBeenCalledWith(
-      'Skipping R2 large image upload: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, or R2_SECRET_ACCESS_KEY is not set.',
+      'Skipping R2 card image upload: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, or R2_SECRET_ACCESS_KEY is not set.',
     );
     logSpy.mockRestore();
   });
