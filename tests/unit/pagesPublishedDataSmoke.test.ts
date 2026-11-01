@@ -2,14 +2,18 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
+import { R2_CARD_IMAGES_PUBLIC_BASE_URL } from '../../pipeline/constants.ts';
 import {
   fetchPointerUntilExpected,
   nextPointerRetryBackoffMs,
   pickCardWithArtifactSmallImage,
+  pickCardWithRemoteSmallImage,
   pointersMatch,
   runPagesPublishedDataSmoke,
   withCacheBust,
 } from '../../scripts/pagesPublishedDataSmoke.ts';
+
+const R2_SMALL_URL = `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/small/89631139.webp`;
 
 describe('pages published data smoke helpers', () => {
   it('adds a cache-busting query parameter', () => {
@@ -22,11 +26,7 @@ describe('pages published data smoke helpers', () => {
     expect(
       pointersMatch(
         {
-          schemaVersion: '1.0.0',
           datasetFile: 'data/datasets/cards-new.json',
-          sha256: 'abc',
-          publishedAt: '2026-11-01T00:00:00.000Z',
-          cardCount: 10,
         },
         'data/datasets/cards-new.json',
       ),
@@ -34,11 +34,7 @@ describe('pages published data smoke helpers', () => {
     expect(
       pointersMatch(
         {
-          schemaVersion: '1.0.0',
           datasetFile: 'data/datasets/cards-old.json',
-          sha256: 'abc',
-          publishedAt: '2026-11-01T00:00:00.000Z',
-          cardCount: 10,
         },
         'data/datasets/cards-new.json',
       ),
@@ -50,15 +46,13 @@ describe('pages published data smoke helpers', () => {
     expect(nextPointerRetryBackoffMs(6)).toBe(30_000);
   });
 
-  it('skips cards whose small image is not in the artifact', () => {
-    const artifact = new Set(['89631139.jpg']);
+  it('picks the first card whose small image is an absolute URL', () => {
     const cards = [
       { images: { small: '/otcp/card-images/small/149694341.jpg' } },
-      { images: { small: '/otcp/card-images/small/89631139.jpg' } },
+      { images: { small: R2_SMALL_URL } },
     ];
-    expect(pickCardWithArtifactSmallImage(cards, artifact)?.images.small).toBe(
-      '/otcp/card-images/small/89631139.jpg',
-    );
+    expect(pickCardWithRemoteSmallImage(cards)?.images.small).toBe(R2_SMALL_URL);
+    expect(pickCardWithArtifactSmallImage(cards)?.images.small).toBe(R2_SMALL_URL);
   });
 });
 
@@ -142,7 +136,7 @@ describe('fetchPointerUntilExpected', () => {
 });
 
 describe('runPagesPublishedDataSmoke', () => {
-  it('fails when the verified card image is missing after the pointer matches', async () => {
+  it('fails when the verified R2 small image is missing', async () => {
     const sampleDataset = JSON.parse(
       readFileSync(join(process.cwd(), 'public/data/datasets/sample-dev.json'), 'utf8'),
     ) as {
@@ -151,9 +145,15 @@ describe('runPagesPublishedDataSmoke', () => {
       source: string;
       cards: unknown[];
     };
-    const extraCard = JSON.parse(
-      readFileSync(join(process.cwd(), 'tests/fixtures/schema/link-monster.json'), 'utf8'),
-    );
+    const extraCard = {
+      ...JSON.parse(
+        readFileSync(join(process.cwd(), 'tests/fixtures/schema/link-monster.json'), 'utf8'),
+      ),
+      images: {
+        small: R2_SMALL_URL,
+        large: `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/86066372.webp`,
+      },
+    };
     const cards = [...sampleDataset.cards, extraCard];
 
     const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
@@ -191,7 +191,6 @@ describe('runPagesPublishedDataSmoke', () => {
         baseUrl: 'https://example.com/otcp/',
         expectedDatasetFile: 'data/datasets/cards-live.json',
         fetchImpl: fetchImpl as unknown as typeof fetch,
-        publishedArtifactPublicDir: undefined,
         now: () => 1,
         sleep: async () => {},
       }),

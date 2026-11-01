@@ -7,7 +7,9 @@ import {
 } from '../../pipeline/constants.ts';
 import {
   publicLargeImageUrl,
+  publicSmallImageUrl,
   r2LargeObjectKey,
+  r2SmallObjectKey,
   resolveR2PublicBaseUrl,
 } from '../../pipeline/imagePaths.ts';
 import {
@@ -15,6 +17,7 @@ import {
   hasR2UploadCredentials,
   jpegToWebpAtQuality,
   r2S3Endpoint,
+  uploadCardImagesR2,
   uploadLargeCardImagesR2,
 } from '../../pipeline/uploadLargeCardImagesR2.ts';
 
@@ -22,6 +25,12 @@ const TINY_JPEG = Buffer.from(
   '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAAA//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AL+AAf/Z',
   'base64',
 );
+
+const R2_ENV = {
+  R2_ACCOUNT_ID: 'acct',
+  R2_ACCESS_KEY_ID: 'key',
+  R2_SECRET_ACCESS_KEY: 'secret',
+};
 
 function imageResponse(body = TINY_JPEG): Response {
   return new Response(body, {
@@ -48,8 +57,9 @@ function createMockS3(initialKeys: string[] = []): {
   const client = {
     send: async (command: unknown) => {
       if (command instanceof ListObjectsV2Command) {
+        const prefix = command.input.Prefix ?? '';
         return {
-          Contents: [...keys].map((Key) => ({ Key })),
+          Contents: [...keys].filter((Key) => Key.startsWith(prefix)).map((Key) => ({ Key })),
           IsTruncated: false,
         };
       }
@@ -74,8 +84,12 @@ function createMockS3(initialKeys: string[] = []): {
 describe('imagePaths R2 URLs', () => {
   it('builds object keys and public URLs from the configured base', () => {
     expect(r2LargeObjectKey(46986420)).toBe('ygo/large/46986420.webp');
+    expect(r2SmallObjectKey(46986420)).toBe('ygo/small/46986420.webp');
     expect(publicLargeImageUrl(46986420, R2_CARD_IMAGES_PUBLIC_BASE_URL)).toBe(
       `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/large/46986420.webp`,
+    );
+    expect(publicSmallImageUrl(46986420, R2_CARD_IMAGES_PUBLIC_BASE_URL)).toBe(
+      `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/small/46986420.webp`,
     );
   });
 
@@ -86,16 +100,10 @@ describe('imagePaths R2 URLs', () => {
   });
 });
 
-describe('uploadLargeCardImagesR2', () => {
+describe('uploadCardImagesR2', () => {
   it('detects missing credentials', () => {
     expect(hasR2UploadCredentials({})).toBe(false);
-    expect(
-      hasR2UploadCredentials({
-        R2_ACCOUNT_ID: 'acct',
-        R2_ACCESS_KEY_ID: 'key',
-        R2_SECRET_ACCESS_KEY: 'secret',
-      }),
-    ).toBe(true);
+    expect(hasR2UploadCredentials(R2_ENV)).toBe(true);
   });
 
   it('builds the R2 S3 endpoint from the account id', () => {
@@ -103,7 +111,7 @@ describe('uploadLargeCardImagesR2', () => {
   });
 
   it('skips the step when credentials are missing', async () => {
-    const result = await uploadLargeCardImagesR2({ cardIds: [1, 2], env: {} });
+    const result = await uploadCardImagesR2({ cardIds: [1, 2], env: {} });
     expect(result).toEqual({ ok: true, uploaded: 0, skipped: 0, skippedStep: true });
   });
 
@@ -117,17 +125,14 @@ describe('uploadLargeCardImagesR2', () => {
     expect(convert).toHaveBeenCalledOnce();
   });
 
-  it('skips objects that already exist in R2', async () => {
+  it('skips large objects that already exist in R2', async () => {
     const { client, puts } = createMockS3(['ygo/large/46986420.webp']);
     const fetchImpl = vi.fn(async () => imageResponse());
 
-    const result = await uploadLargeCardImagesR2({
+    const result = await uploadCardImagesR2({
       cardIds: [46986420, 89631139],
-      env: {
-        R2_ACCOUNT_ID: 'acct',
-        R2_ACCESS_KEY_ID: 'key',
-        R2_SECRET_ACCESS_KEY: 'secret',
-      },
+      variants: ['large'],
+      env: R2_ENV,
       s3Client: client,
       fetchImpl: fetchImpl as typeof fetch,
       concurrency: 2,
@@ -143,5 +148,50 @@ describe('uploadLargeCardImagesR2', () => {
     expect(puts[0]?.ContentType).toBe('image/webp');
     expect(puts[0]?.CacheControl).toBe(R2_LARGE_IMAGE_CACHE_CONTROL);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('uploads small WebP objects under ygo/small/', async () => {
+    const { client, puts } = createMockS3();
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      expect(url).toContain('cards_small/89631139.jpg');
+      return imageResponse();
+    });
+
+    const result = await uploadCardImagesR2({
+      cardIds: [89631139],
+      variants: ['small'],
+      env: R2_ENV,
+      s3Client: client,
+      fetchImpl: fetchImpl as typeof fetch,
+      minFetchIntervalMs: 0,
+    });
+
+    expect(result).toEqual({ ok: true, uploaded: 1, skipped: 0 });
+    expect(puts).toHaveLength(1);
+    expect(puts[0]?.Key).toBe('ygo/small/89631139.webp');
+  });
+});
+
+describe('uploadLargeCardImagesR2', () => {
+  it('uploads only large variants', async () => {
+    const { client, puts } = createMockS3();
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+      expect(String(input)).toContain('/cards/89631139.jpg');
+      expect(String(input)).not.toContain('cards_small');
+      return imageResponse();
+    });
+
+    const result = await uploadLargeCardImagesR2({
+      cardIds: [89631139],
+      env: R2_ENV,
+      s3Client: client,
+      fetchImpl: fetchImpl as typeof fetch,
+      minFetchIntervalMs: 0,
+    });
+
+    expect(result).toEqual({ ok: true, uploaded: 1, skipped: 0 });
+    expect(puts).toHaveLength(1);
+    expect(puts[0]?.Key).toBe('ygo/large/89631139.webp');
   });
 });
