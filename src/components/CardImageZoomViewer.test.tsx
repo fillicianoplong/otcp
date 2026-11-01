@@ -7,7 +7,12 @@ import userEvent from '@testing-library/user-event';
 import { useRef, useState } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { CARD_IMAGE_VIEWER_FIT_IMAGE_CLASS, CardImageZoomViewer } from './CardImageZoomViewer.tsx';
+import {
+  CARD_IMAGE_VIEWER_ACTUAL_STAGE_CLASS,
+  CARD_IMAGE_VIEWER_FIT_IMAGE_CLASS,
+  CARD_IMAGE_VIEWER_FIT_STAGE_CLASS,
+  CardImageZoomViewer,
+} from './CardImageZoomViewer.tsx';
 
 function ViewerHarness() {
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -43,13 +48,46 @@ describe('CardImageZoomViewer', () => {
     screen.getByRole('dialog', { name: 'Zoomed artwork for Dark Magician' });
   });
 
-  it('applies the viewport height constraint in fit mode', () => {
+  it('uses a nearly opaque backdrop', () => {
+    render(<ViewerHarness />);
+
+    const dialog = screen.getByRole('dialog', { name: 'Zoomed artwork for Dark Magician' });
+    expect(dialog.className).toContain('bg-black/90');
+  });
+
+  it('applies the padded stage constraint in fit mode', () => {
     render(<ViewerHarness />);
 
     const img = screen.getByRole('img', { name: 'Dark Magician' });
     for (const token of CARD_IMAGE_VIEWER_FIT_IMAGE_CLASS.split(/\s+/)) {
       expect(img.className).toContain(token);
     }
+
+    const stage = document.querySelector('[data-viewer-stage]');
+    expect(stage).toBeTruthy();
+    for (const token of CARD_IMAGE_VIEWER_FIT_STAGE_CLASS.split(/\s+/)) {
+      expect(stage!.className).toContain(token);
+    }
+  });
+
+  it('centers artwork in actual-size mode with a full-size stage and auto margins', async () => {
+    const user = userEvent.setup();
+    render(<ViewerHarness />);
+
+    await user.click(screen.getByRole('button', { name: 'Show artwork at actual size' }));
+
+    const stage = document.querySelector('[data-viewer-stage]');
+    expect(stage).toBeTruthy();
+    for (const token of CARD_IMAGE_VIEWER_ACTUAL_STAGE_CLASS.split(/\s+/)) {
+      expect(stage!.className).toContain(token);
+    }
+
+    const artworkControl = screen.getByRole('button', { name: 'Fit artwork to screen' });
+    expect(artworkControl.className).toContain('m-auto');
+
+    const scroll = stage!.parentElement;
+    expect(scroll?.className).toContain('overflow-auto');
+    expect(scroll!.scrollLeft).toBe(0);
   });
 
   it('closes from the close button and returns focus to the trigger', async () => {
@@ -80,8 +118,7 @@ describe('CardImageZoomViewer', () => {
     const user = userEvent.setup();
     render(<ViewerHarness />);
 
-    const dialog = screen.getByRole('dialog', { name: 'Zoomed artwork for Dark Magician' });
-    const backdrop = dialog.querySelector('.items-center.justify-center.p-4');
+    const backdrop = document.querySelector('[data-viewer-stage]');
     expect(backdrop).toBeTruthy();
     await user.click(backdrop!);
 
