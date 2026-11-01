@@ -16,11 +16,9 @@ function CardArt({ card }: { card: YugiohCard }) {
 
   if (missing) {
     return (
-      <div
-        className="flex aspect-[59/86] w-full items-center justify-center rounded-sm bg-surface-2 text-xs text-text-2"
-        aria-hidden
-      >
-        No image
+      <div className="flex aspect-[59/86] w-full flex-col items-center justify-center gap-1 rounded-sm bg-surface-2 px-2 text-center text-xs text-text-2">
+        <span>No image</span>
+        <span className="font-medium text-heading">{card.name}</span>
       </div>
     );
   }
@@ -32,7 +30,7 @@ function CardArt({ card }: { card: YugiohCard }) {
       loading="lazy"
       decoding="async"
       onError={() => setMissing(true)}
-      className="aspect-[59/86] w-full rounded-sm bg-surface-2 object-cover"
+      className="aspect-[59/86] w-full object-cover"
     />
   );
 }
@@ -47,10 +45,10 @@ function CardTile({ card, searchQuery }: { card: YugiohCard; searchQuery: string
     <li>
       <Link
         to={detailPath}
-        className="flex flex-col gap-2 rounded-md border border-border bg-surface p-3 shadow-sm transition-colors hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+        aria-label={card.name}
+        className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
       >
         <CardArt card={card} />
-        <p className="text-sm font-medium text-heading">{card.name}</p>
       </Link>
     </li>
   );
