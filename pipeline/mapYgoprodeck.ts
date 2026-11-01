@@ -7,6 +7,7 @@ import {
   type YugiohCard,
 } from '../src/shared/schema/index.ts';
 import { YGOPRODECK_CARDINFO_URL } from './constants.ts';
+import { sameOriginImagePaths } from './imagePaths.ts';
 import type { YgoApiCard, YgoBanlistInfo } from './ygoprodeckTypes.ts';
 
 const BAN_VALUES = new Set(['Forbidden', 'Limited', 'Semi-Limited']);
@@ -81,8 +82,7 @@ function mapPrices(card: YgoApiCard): CardPrices | undefined {
 }
 
 function sameOriginImages(cardId: number): YugiohCard['images'] {
-  const path = `/otcp/card-images/${cardId}.jpg`;
-  return { small: path, large: path };
+  return sameOriginImagePaths(cardId);
 }
 
 /** Drop Rush Duel and other rows outside the v1 Yu-Gi-Oh! extension (FR-50). */

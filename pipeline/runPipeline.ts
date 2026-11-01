@@ -14,6 +14,7 @@ import {
   YGOPRODECK_CARDINFO_URL,
 } from './constants.ts';
 import { fetchCardDump, type FetchCardDumpOptions } from './fetchCardDump.ts';
+import { ensureCardImages } from './fetchCardImages.ts';
 import { sha256HexFile } from './hash.ts';
 import { buildDatasetEnvelope, mapYgoprodeckResponse } from './mapYgoprodeck.ts';
 import { type PublishedPointer } from './pointer.ts';
@@ -32,7 +33,12 @@ export type RunPipelineOptions = {
 
 export type RunPipelineResult =
   | { ok: true; pointer: PublishedPointer; datasetPath: string }
-  | { ok: false; reason: 'fetch' | 'validation'; issues?: ValidationIssue[]; error?: string };
+  | {
+      ok: false;
+      reason: 'fetch' | 'validation' | 'images';
+      issues?: ValidationIssue[];
+      error?: string;
+    };
 
 export function defaultPipelinePaths(repoRoot: string): PipelinePaths {
   const dataDir = join(repoRoot, DEFAULT_DATA_DIR);
@@ -77,6 +83,23 @@ export async function runPipeline(
 
   const generatedAt = (options.now?.() ?? new Date()).toISOString();
   const { cards } = mapYgoprodeckResponse(response.data);
+
+  const imageResult = await ensureCardImages({
+    repoRoot,
+    cardIds: cards.map((card) => card.id),
+    fetchImpl: options.fetch?.fetchImpl,
+    userAgent: options.fetch?.userAgent,
+    maxAttempts: options.fetch?.maxAttempts,
+    initialBackoffMs: options.fetch?.initialBackoffMs,
+    delayMs: 0,
+  });
+  if (!imageResult.ok) {
+    return {
+      ok: false,
+      reason: 'images',
+      error: imageResult.error,
+    };
+  }
 
   const cardIssues: ValidationIssue[] = [];
   for (let index = 0; index < cards.length; index += 1) {

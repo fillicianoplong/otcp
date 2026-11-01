@@ -1,10 +1,12 @@
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { atomicWriteUtf8 } from '../../src/shared/fs/atomicWrite.ts';
 import { OTCP_DATASET_SCHEMA_VERSION } from '../../src/shared/schema/constants.ts';
+import { sha256Hex } from '../../pipeline/hash.ts';
+import { localImagePath } from '../../pipeline/fetchCardImages.ts';
 import type { PublishedPointer } from '../../pipeline/pointer.ts';
 import {
   defaultPipelinePaths,
@@ -15,8 +17,52 @@ import {
 import validFixture from '../fixtures/pipeline/ygoprodeck-valid-two.json';
 import invalidFixture from '../fixtures/pipeline/ygoprodeck-invalid-name.json';
 
+const CARD_IDS = [46986420, 89631139] as const;
+
 function makeTempRoot(): string {
   return mkdtempSync(join(tmpdir(), 'otcp-pipeline-'));
+}
+
+function imageResponse(body = Buffer.from([0xff, 0xd8, 0xff, 0xd9])): Response {
+  return new Response(body, {
+    status: 200,
+    headers: { 'Content-Type': 'image/jpeg' },
+  });
+}
+
+type MockFetchOptions = {
+  cardDump?: unknown;
+  failImageUrl?: (url: string) => boolean;
+  onImageFetch?: (url: string) => void;
+};
+
+function createMockFetch(options: MockFetchOptions = {}): typeof fetch {
+  const cardDump = options.cardDump ?? validFixture;
+  return (async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.includes('cardinfo.php')) {
+      return new Response(JSON.stringify(cardDump), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (url.includes('images.ygoprodeck.com')) {
+      options.onImageFetch?.(url);
+      if (options.failImageUrl?.(url)) {
+        return new Response('nope', { status: 500 });
+      }
+      return imageResponse();
+    }
+    throw new Error(`unexpected fetch URL: ${url}`);
+  }) as typeof fetch;
+}
+
+function seedImageWithSidecar(root: string, cardId: number, variant: 'large' | 'small'): void {
+  const path = localImagePath(root, cardId, variant);
+  mkdirSync(dirname(path), { recursive: true });
+  const bytes = Buffer.from(`seed-${cardId}-${variant}`);
+  writeFileSync(path, bytes);
+  writeFileSync(`${path}.sha256`, `${sha256Hex(bytes)}\n`);
 }
 
 function seedPointer(root: string, cardCount = 1): PublishedPointer {
@@ -33,7 +79,10 @@ function seedPointer(root: string, cardCount = 1): PublishedPointer {
         name: 'Prior',
         type: 'Normal Monster',
         text: 'unchanged',
-        images: { small: '/otcp/card-images/1.jpg', large: '/otcp/card-images/1.jpg' },
+        images: {
+          small: '/otcp/card-images/small/1.jpg',
+          large: '/otcp/card-images/1.jpg',
+        },
         sets: [],
       },
     ],
@@ -69,13 +118,7 @@ describe('DataPipeline', () => {
 
     const result = await runPipeline(root, {
       now: () => new Date('2026-11-01T12:00:00.000Z'),
-      fetch: {
-        fetchImpl: async () =>
-          new Response(JSON.stringify(validFixture), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          }),
-      },
+      fetch: { fetchImpl: createMockFetch() },
     });
 
     expect(result.ok).toBe(true);
@@ -87,7 +130,10 @@ describe('DataPipeline', () => {
     expect(pointer?.sha256).toMatch(/^[a-f0-9]{64}$/);
 
     const datasetPath = resolveDatasetPath(root, pointer!);
-    expect(readFileSync(datasetPath, 'utf8')).toContain('Dark Magician');
+    const datasetText = readFileSync(datasetPath, 'utf8');
+    expect(datasetText).toContain('Dark Magician');
+    expect(datasetText).not.toContain('images.ygoprodeck.com');
+    expect(datasetText).toContain('/otcp/card-images/small/46986420.jpg');
     expect(readFileSync(paths.pointerPath, 'utf8')).toContain(pointer!.datasetFile);
 
     const datasets = readdirSync(paths.datasetsDir);
@@ -103,11 +149,7 @@ describe('DataPipeline', () => {
 
     const result = await runPipeline(root, {
       fetch: {
-        fetchImpl: async () =>
-          new Response(JSON.stringify(invalidFixture), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          }),
+        fetchImpl: createMockFetch({ cardDump: invalidFixture }),
       },
     });
 
@@ -145,5 +187,56 @@ describe('DataPipeline', () => {
     const pointer = loadPublishedPointer(root);
     expect(pointer?.datasetFile).toBe(prior.datasetFile);
     expect(readdirSync(paths.datasetsDir)).toEqual(beforeDatasets);
+  });
+
+  it('keeps the prior pointer when an image download fails', async () => {
+    const root = makeTempRoot();
+    roots.push(root);
+    const prior = seedPointer(root);
+    const paths = defaultPipelinePaths(root);
+    const beforeDatasets = readdirSync(paths.datasetsDir);
+
+    const result = await runPipeline(root, {
+      fetch: {
+        maxAttempts: 1,
+        fetchImpl: createMockFetch({
+          failImageUrl: (url) => url.includes('/46986420.jpg'),
+        }),
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe('images');
+
+    const pointer = loadPublishedPointer(root);
+    expect(pointer?.datasetFile).toBe(prior.datasetFile);
+    expect(readdirSync(paths.datasetsDir)).toEqual(beforeDatasets);
+  });
+
+  it('skips upstream image fetches when hashed files already exist', async () => {
+    const root = makeTempRoot();
+    roots.push(root);
+    seedPointer(root);
+
+    for (const cardId of CARD_IDS) {
+      seedImageWithSidecar(root, cardId, 'large');
+      seedImageWithSidecar(root, cardId, 'small');
+    }
+
+    let imageFetches = 0;
+    const result = await runPipeline(root, {
+      now: () => new Date('2026-11-01T12:00:00.000Z'),
+      fetch: {
+        fetchImpl: createMockFetch({
+          onImageFetch: () => {
+            imageFetches += 1;
+          },
+        }),
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(imageFetches).toBe(0);
   });
 });

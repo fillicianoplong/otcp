@@ -8,3 +8,7 @@ blob-report/
 coverage/
 .DS_Store
 *.local
+
+# Re-hosted card art lands on bot/data-refresh, not feature branches on main
+/public/card-images/**/*.jpg
+/public/card-images/**/*.sha256
