@@ -52,4 +52,9 @@ jobs:
             exit 0
           fi
           git commit -m 'chore(data): refresh card catalog and images from YGOPRODeck'
-          git push origin HEAD:data-refresh
+          data_refresh_sha="$(git ls-remote --heads origin data-refresh | cut -f1)"
+          if [ -n "$data_refresh_sha" ]; then
+            git push --force-with-lease="refs/heads/data-refresh:${data_refresh_sha}" origin HEAD:refs/heads/data-refresh
+          else
+            git push origin HEAD:data-refresh
+          fi
