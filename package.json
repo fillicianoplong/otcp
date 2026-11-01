@@ -20,6 +20,7 @@
     "licenses": "node --test spikes/s04/scan-licenses.test.mjs && node spikes/s04/scan-licenses.mjs --check",
     "notices:generate": "node scripts/generate-notices.mjs",
     "spike:s01": "playwright test -c spikes/s01/playwright.config.ts",
+    "search:bench": "tsx scripts/search-index-bench.ts",
     "pipeline:refresh": "tsx pipeline/run.ts",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run licenses"
   },
