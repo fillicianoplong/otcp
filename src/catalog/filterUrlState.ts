@@ -1,3 +1,5 @@
+import { formatFacetRangeChipLabel } from './facetRangeLabels.ts';
+import { formatFacetOptionLabel } from './facetOptionOrdering.ts';
 import { facetDefinitionById, type FacetFieldId } from './facets.ts';
 import {
   emptyFilterState,
@@ -24,7 +26,9 @@ function hasActiveFilterSelections(state: FilterState): boolean {
     return (
       (selection.include?.length ?? 0) > 0 ||
       (selection.exclude?.length ?? 0) > 0 ||
-      selection.mode === 'and'
+      selection.mode === 'and' ||
+      selection.range?.min != null ||
+      selection.range?.max != null
     );
   });
 }
@@ -49,6 +53,7 @@ export function countActiveFacetSelections(state: FilterState): number {
     if (!selection) continue;
     count += selection.include?.length ?? 0;
     count += selection.exclude?.length ?? 0;
+    if (selection.range?.min != null || selection.range?.max != null) count += 1;
   }
   return count;
 }
@@ -56,7 +61,7 @@ export function countActiveFacetSelections(state: FilterState): number {
 export type FilterChip = {
   id: string;
   fieldId: FacetFieldId;
-  kind: 'include' | 'exclude' | 'mode';
+  kind: 'include' | 'exclude' | 'mode' | 'range';
   value?: string;
   label: string;
 };
@@ -76,7 +81,7 @@ export function filterStateToChips(state: FilterState): FilterChip[] {
         fieldId,
         kind: 'include',
         value,
-        label: `${fieldLabel}: ${value}`,
+        label: def?.control === 'range' ? formatFacetOptionLabel(fieldId, value) : value,
       });
     }
     for (const value of selection.exclude ?? []) {
@@ -85,7 +90,15 @@ export function filterStateToChips(state: FilterState): FilterChip[] {
         fieldId,
         kind: 'exclude',
         value,
-        label: `Not ${fieldLabel}: ${value}`,
+        label: `Not ${value}`,
+      });
+    }
+    if (selection.range?.min != null || selection.range?.max != null) {
+      chips.push({
+        id: `${fieldId}:range`,
+        fieldId,
+        kind: 'range',
+        label: formatFacetRangeChipLabel(fieldId, selection.range),
       });
     }
     if (selection.mode === 'and' && def?.allowAndOr) {

@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 import { CardCatalogView } from '../catalog/CardCatalogView';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
-import { buildFilterEngine, emptyFilterState, type FilterState } from '../catalog/filterEngine.ts';
+import {
+  buildFilterEngine,
+  emptyFilterState,
+  resolveFilterStateUpdater,
+  type FilterState,
+  type FilterStateUpdater,
+} from '../catalog/filterEngine.ts';
+import { formatCardCount } from '../catalog/formatCardCount.ts';
 import {
   countActiveFacetSelections,
   filterStateToChips,
@@ -26,6 +33,10 @@ export function SearchPage() {
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const filterState = useMemo(() => readFilterStateFromParams(searchParams), [searchParams]);
+  const filterStateRef = useRef(filterState);
+  useEffect(() => {
+    filterStateRef.current = filterState;
+  }, [filterState]);
   const { state: catalogState } = useCardCatalog();
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
@@ -47,18 +58,42 @@ export function SearchPage() {
     return searchIndex.query(trimmedQuery).ids;
   }, [searchIndex, trimmedQuery]);
 
+  const searchApplyOptions = useMemo(() => (searchIds ? { searchIds } : {}), [searchIds]);
+
+  const catalogFieldIds = useMemo(() => {
+    if (!filterEngine) return [];
+    return filterEngine.fieldsWithCatalog();
+  }, [filterEngine]);
+
+  const facetGroupCounts = useMemo(() => {
+    if (!filterEngine) return [];
+    return filterEngine.recount(filterState, searchApplyOptions);
+  }, [filterEngine, filterState, searchApplyOptions]);
+
+  const draftFacetGroupCounts = useMemo(() => {
+    if (!filterEngine) return [];
+    return filterEngine.recount(phoneDraft, searchApplyOptions);
+  }, [filterEngine, phoneDraft, searchApplyOptions]);
+
   const draftMatchCount = useMemo(() => {
     if (!filterEngine) return 0;
-    return filterEngine.apply(phoneDraft, searchIds ? { searchIds } : {}).count;
-  }, [filterEngine, phoneDraft, searchIds]);
+    return filterEngine.apply(phoneDraft, searchApplyOptions).count;
+  }, [filterEngine, phoneDraft, searchApplyOptions]);
+
+  const matchCount = useMemo(() => {
+    if (!filterEngine) return 0;
+    return filterEngine.apply(filterState, searchApplyOptions).count;
+  }, [filterEngine, filterState, searchApplyOptions]);
 
   const activeFilterCount = countActiveFacetSelections(filterState);
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
 
   const commitFilterState = useCallback(
-    (next: FilterState) => {
+    (next: FilterStateUpdater) => {
+      const resolved = resolveFilterStateUpdater(next, filterStateRef.current);
+      filterStateRef.current = resolved;
       const params = new URLSearchParams(searchParams);
-      writeFilterStateToParams(params, next);
+      writeFilterStateToParams(params, resolved);
       const search = params.toString();
       navigate(
         { pathname: location.pathname, search: search ? `?${search}` : '' },
@@ -113,13 +148,13 @@ export function SearchPage() {
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         {filterEngine ? (
-          <aside aria-label="Filter sidebar" className="hidden w-64 shrink-0 lg:block">
-            <div className="sticky top-[calc(var(--touch-min)+1rem)] max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-md border border-border bg-surface px-3 py-4">
+          <aside aria-label="Filter sidebar" className="hidden w-72 shrink-0 lg:block">
+            <div className="sticky top-[calc(var(--touch-min)+1rem)] max-h-[calc(100dvh-6rem)] overflow-y-auto pr-1">
               <FacetFilterPanel
-                engine={filterEngine}
                 filterState={filterState}
+                groupCounts={facetGroupCounts}
+                catalogFieldIds={catalogFieldIds}
                 onChange={commitFilterState}
-                searchIds={searchIds}
               />
             </div>
           </aside>
@@ -141,12 +176,26 @@ export function SearchPage() {
             </button>
           </div>
 
-          <FilterChips filterState={filterState} chips={chips} onChange={commitFilterState} />
+          <div className="flex flex-col gap-2">
+            {chips.length > 0 ? (
+              <>
+                <p className="text-sm text-text-2" aria-live="polite">
+                  {formatCardCount(matchCount)}
+                </p>
+                <FilterChips chips={chips} onChange={commitFilterState} />
+              </>
+            ) : (
+              <p className="text-sm text-text-2" aria-live="polite">
+                {formatCardCount(matchCount)}
+              </p>
+            )}
+          </div>
 
           <CardCatalogView
             headingId={headingId}
             searchQuery={debouncedQuery}
             filterState={filterState}
+            showResultCount={false}
           />
         </div>
       </div>
@@ -156,15 +205,15 @@ export function SearchPage() {
           open={phoneFiltersOpen}
           onClose={() => setPhoneFiltersOpen(false)}
           draftState={phoneDraft}
-          onDraftChange={setPhoneDraft}
+          onDraftChange={(next) => setPhoneDraft((prev) => resolveFilterStateUpdater(next, prev))}
           onReset={() => setPhoneDraft(emptyFilterState())}
           onApply={() => {
             commitFilterState(phoneDraft);
             setPhoneFiltersOpen(false);
           }}
           resultCount={draftMatchCount}
-          engine={filterEngine}
-          searchIds={searchIds}
+          draftGroupCounts={draftFacetGroupCounts}
+          catalogFieldIds={catalogFieldIds}
         />
       ) : null}
     </div>
