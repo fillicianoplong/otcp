@@ -15,7 +15,7 @@ const eurFormatter = new Intl.NumberFormat('en-US', {
 export type StorePriceCurrency = 'USD' | 'EUR';
 
 export function formatStorePrice(value: number | undefined, currency: StorePriceCurrency): string {
-  if (value === undefined) return '—';
+  if (value === undefined || value === 0) return '—';
   const formatter = currency === 'EUR' ? eurFormatter : usdFormatter;
   return formatter.format(value);
 }
