@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_run:
+    workflows: ['Data refresh']
+    types: [completed]
 
 permissions:
   contents: read
@@ -16,6 +19,7 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -32,6 +36,27 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Overlay published card data from data-refresh
+        id: published_data
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: data-refresh
+          path: _published_data
+          sparse-checkout: |
+            public/data
+            public/card-images
+          sparse-checkout-cone-mode: false
+
+      - name: Copy published data into dist
+        if: steps.published_data.outcome == 'success'
+        run: |
+          mkdir -p dist/data dist/card-images
+          cp -a _published_data/public/data/. dist/data/
+          if [ -d _published_data/public/card-images ]; then
+            cp -a _published_data/public/card-images/. dist/card-images/
+          fi
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -73,6 +98,11 @@ jobs:
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Verify published catalog on Pages
+        env:
+          BASE_URL: ${{ needs.deploy.outputs.page_url }}
+        run: npm run pages:smoke-data
 
       - name: Smoke test against Pages URL
         env:

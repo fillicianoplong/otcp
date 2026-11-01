@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: data-refresh
@@ -20,6 +19,15 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore prior published data from data-refresh
+        run: |
+          if git ls-remote --exit-code --heads origin data-refresh >/dev/null 2>&1; then
+            git fetch origin data-refresh --depth=1
+            git checkout origin/data-refresh -- public/data public/card-images
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -33,19 +41,14 @@ jobs:
       - name: Run DataPipeline
         run: npm run pipeline:refresh
 
-      - name: Open pull request with updated data
-        uses: peter-evans/create-pull-request@v7
-        with:
-          commit-message: 'chore(data): refresh card catalog and images from YGOPRODeck'
-          title: 'chore(data): refresh card catalog and images from YGOPRODeck'
-          body: |
-            Scheduled card catalog refresh from the DataPipeline workflow.
-
-            - Source: YGOPRODeck cardinfo (`misc=yes`) and card images (same-origin re-host)
-            - Art: `public/card-images/` (incremental; hashed sidecars)
-            - Validation: SchemaCore (fail closed; prior pointer kept on error)
-          branch: bot/data-refresh
-          delete-branch: true
-          add-paths: |
-            public/data/**
-            public/card-images/**
+      - name: Commit and push to data-refresh
+        run: |
+          git config user.name 'Filliciano Plong'
+          git config user.email '62613238+fillicianoplong@users.noreply.github.com'
+          git add public/data public/card-images
+          if git diff --staged --quiet; then
+            echo 'No catalog changes to publish.'
+            exit 0
+          fi
+          git commit -m 'chore(data): refresh card catalog and images from YGOPRODeck'
+          git push origin HEAD:data-refresh
