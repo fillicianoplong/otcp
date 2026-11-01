@@ -18,7 +18,13 @@
           "set_rarity": "Ultra Rare"
         }
       ],
-      "card_prices": [{ "tcgplayer_price": "1.23" }]
+      "card_prices": [
+        {
+          "tcgplayer_price": "1.23",
+          "coolstuffinc_price": "1.10",
+          "cardmarket_price": "0.95"
+        }
+      ]
     },
     {
       "id": 89631139,

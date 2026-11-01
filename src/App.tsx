@@ -8,6 +8,7 @@ import { FormatsPage } from './pages/FormatsPage';
 import { ListsPage } from './pages/ListsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { NoticesPage } from './pages/NoticesPage';
+import { CardDetailPage } from './pages/CardDetailPage';
 import { SearchPage } from './pages/SearchPage';
 
 export function App() {
@@ -18,6 +19,7 @@ export function App() {
           <Route element={<AppShell />}>
             <Route index element={<Navigate to="/search" replace />} />
             <Route path="search" element={<SearchPage />} />
+            <Route path="search/card/:id" element={<CardDetailPage />} />
             <Route path="formats" element={<FormatsPage />} />
             <Route path="decks" element={<DecksPage />} />
             <Route path="collection" element={<CollectionPage />} />
