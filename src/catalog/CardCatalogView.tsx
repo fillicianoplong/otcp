@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router';
 
 import { buildSearchIndex } from '../search/index.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
@@ -9,6 +9,12 @@ import {
   nextGridVisibleCount,
   sliceGridCards,
 } from './gridPaging.ts';
+import {
+  mergeSearchScrollRestore,
+  parseSearchScrollRestore,
+  SEARCH_SCROLL_STATE_KEY,
+  withoutSearchScrollRestore,
+} from './searchScrollRestore.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
 
 function CardArt({ card }: { card: YugiohCard }) {
@@ -35,7 +41,15 @@ function CardArt({ card }: { card: YugiohCard }) {
   );
 }
 
-function CardTile({ card, searchQuery }: { card: YugiohCard; searchQuery: string }) {
+function CardTile({
+  card,
+  searchQuery,
+  onBeforeNavigate,
+}: {
+  card: YugiohCard;
+  searchQuery: string;
+  onBeforeNavigate: () => void;
+}) {
   const detailPath =
     searchQuery.length > 0
       ? `/search/card/${card.id}?q=${encodeURIComponent(searchQuery)}`
@@ -45,6 +59,8 @@ function CardTile({ card, searchQuery }: { card: YugiohCard; searchQuery: string
     <li>
       <Link
         to={detailPath}
+        state={{ fromSearch: true }}
+        onClick={onBeforeNavigate}
         aria-label={card.name}
         className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
       >
@@ -80,13 +96,24 @@ function CardCatalogGrid({
   visibleCards,
   matchCount,
   searchQuery,
+  initialVisibleCount,
+  restoreScrollY,
+  onBeforeNavigate,
 }: {
   visibleCards: YugiohCard[];
   matchCount: number;
   searchQuery: string;
+  initialVisibleCount?: number;
+  restoreScrollY?: number | null;
+  onBeforeNavigate: (loadedCount: number) => void;
 }) {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const [visibleCount, setVisibleCount] = useState(() => initialGridVisibleCount(matchCount));
+  const [visibleCount, setVisibleCount] = useState(() => {
+    if (initialVisibleCount !== undefined) {
+      return Math.min(Math.max(0, initialVisibleCount), matchCount);
+    }
+    return initialGridVisibleCount(matchCount);
+  });
 
   useEffect(() => {
     const node = loadMoreRef.current;
@@ -105,13 +132,27 @@ function CardCatalogGrid({
     return () => observer.disconnect();
   }, [matchCount, visibleCount]);
 
+  useLayoutEffect(() => {
+    if (restoreScrollY == null) return;
+    window.scrollTo(0, restoreScrollY);
+  }, [restoreScrollY, visibleCount]);
+
+  const saveScrollState = () => {
+    onBeforeNavigate(visibleCount);
+  };
+
   const renderedCards = sliceGridCards(visibleCards, visibleCount);
 
   return (
     <>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {renderedCards.map((card) => (
-          <CardTile key={card.id} card={card} searchQuery={searchQuery} />
+          <CardTile
+            key={card.id}
+            card={card}
+            searchQuery={searchQuery}
+            onBeforeNavigate={saveScrollState}
+          />
         ))}
       </ul>
       {gridHasMore(visibleCount, matchCount) ? (
@@ -130,6 +171,36 @@ export function CardCatalogView({
 }) {
   const { state, retry } = useCardCatalog();
   const trimmedQuery = searchQuery.trim();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
+    return () => {
+      window.history.scrollRestoration = previous;
+    };
+  }, []);
+
+  const scrollRestore = useMemo(
+    () => parseSearchScrollRestore(location.state, trimmedQuery),
+    [location.state, trimmedQuery],
+  );
+
+  useEffect(() => {
+    if (scrollRestore) return;
+    window.scrollTo(0, 0);
+  }, [scrollRestore, trimmedQuery]);
+
+  useEffect(() => {
+    if (parseSearchScrollRestore(location.state, trimmedQuery)) return;
+    if (typeof location.state !== 'object' || location.state === null) return;
+    if (!(SEARCH_SCROLL_STATE_KEY in location.state)) return;
+    navigate(
+      { pathname: location.pathname, search: location.search, hash: location.hash },
+      { replace: true, state: withoutSearchScrollRestore(location.state) },
+    );
+  }, [location, navigate, trimmedQuery]);
 
   const searchIndex = useMemo(() => {
     if (state.status !== 'ready') return null;
@@ -150,6 +221,20 @@ export function CardCatalogView({
       .filter((card): card is YugiohCard => card !== undefined);
     return { visibleCards, matchCount: result.count };
   }, [searchIndex, state, trimmedQuery]);
+
+  const persistScrollRestore = (loadedCount: number) => {
+    navigate(
+      { pathname: location.pathname, search: location.search, hash: location.hash },
+      {
+        replace: true,
+        state: mergeSearchScrollRestore(location.state, {
+          loadedCount,
+          scrollY: window.scrollY,
+          query: trimmedQuery,
+        }),
+      },
+    );
+  };
 
   if (state.status === 'loading') {
     return (
@@ -202,6 +287,9 @@ export function CardCatalogView({
           visibleCards={visibleCards}
           matchCount={matchCount}
           searchQuery={trimmedQuery}
+          initialVisibleCount={scrollRestore?.loadedCount}
+          restoreScrollY={scrollRestore?.scrollY ?? null}
+          onBeforeNavigate={persistScrollRestore}
         />
       )}
     </section>

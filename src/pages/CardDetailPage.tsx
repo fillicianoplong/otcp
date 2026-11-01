@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import { cardDetailImageFallback, cardDetailImageSrc } from '../catalog/cardArtUrl.ts';
 import { CardImageZoomViewer } from '../components/CardImageZoomViewer.tsx';
@@ -55,6 +55,34 @@ function DetailMessage({ title, children }: { title: string; children: string })
   );
 }
 
+const backLinkClassName =
+  'w-fit text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
+
+function BackToSearchControl({ searchQuery }: { searchQuery: string | null }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const fromSearch = (location.state as { fromSearch?: boolean } | null)?.fromSearch === true;
+
+  if (fromSearch) {
+    return (
+      <button type="button" onClick={() => navigate(-1)} className={backLinkClassName}>
+        ← Back to Search
+      </button>
+    );
+  }
+
+  const backHref =
+    searchQuery && searchQuery.length > 0
+      ? `/search?q=${encodeURIComponent(searchQuery)}`
+      : '/search';
+
+  return (
+    <Link to={backHref} className={backLinkClassName}>
+      ← Back to Search
+    </Link>
+  );
+}
+
 export function CardDetailPage() {
   const { id: idParam } = useParams();
   const [searchParams] = useSearchParams();
@@ -62,10 +90,6 @@ export function CardDetailPage() {
 
   const cardId = Number.parseInt(idParam ?? '', 10);
   const searchQuery = searchParams.get('q');
-  const backHref =
-    searchQuery && searchQuery.length > 0
-      ? `/search?q=${encodeURIComponent(searchQuery)}`
-      : '/search';
 
   if (state.status === 'loading') {
     return (
@@ -98,24 +122,14 @@ export function CardDetailPage() {
         <DetailMessage title="Card not found">
           No card in the published dataset matches that passcode.
         </DetailMessage>
-        <Link
-          to={backHref}
-          className="text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-        >
-          Back to Search
-        </Link>
+        <BackToSearchControl searchQuery={searchQuery} />
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        to={backHref}
-        className="w-fit text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-      >
-        ← Back to Search
-      </Link>
+      <BackToSearchControl searchQuery={searchQuery} />
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
         <div className="w-full shrink-0 sm:max-w-[435px]">
           <CardDetailArt card={card} />
