@@ -13,14 +13,24 @@
         "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/89631139.webp",
         "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/89631139.webp"
       },
-      "sets": [],
+      "sets": [
+        {
+          "setCode": "LOB-001",
+          "setName": "Legend of Blue Eyes White Dragon",
+          "setRarity": "Ultra Rare"
+        }
+      ],
       "passcode": 89631139,
       "attribute": "LIGHT",
       "level": 8,
       "atk": 3000,
       "def": 2500,
       "race": "Dragon",
-      "archetype": "Blue-Eyes"
+      "archetype": "Blue-Eyes",
+      "prices": {
+        "tcgplayer": 45.5,
+        "cardmarket": 38.2
+      }
     },
     {
       "schemaVersion": "1.0.0",
@@ -39,18 +49,18 @@
           "setRarity": "Ultra Rare"
         }
       ],
-      "prices": {
-        "tcgplayer": 1.23,
-        "coolstuffinc": 1.1,
-        "cardmarket": 0.95
-      },
       "passcode": 46986420,
       "attribute": "DARK",
       "level": 7,
       "atk": 2500,
       "def": 2100,
       "race": "Spellcaster",
-      "archetype": "Dark Magician"
+      "archetype": "Dark Magician",
+      "prices": {
+        "tcgplayer": 1.23,
+        "coolstuffinc": 1.1,
+        "cardmarket": 0.95
+      }
     },
     {
       "schemaVersion": "1.0.0",
@@ -71,6 +81,9 @@
       ],
       "passcode": 83764719,
       "race": "Normal",
+      "prices": {
+        "tcgplayer": 0.35
+      },
       "banlistInfo": {
         "banTcg": "Limited"
       }
@@ -93,7 +106,480 @@
         }
       ],
       "passcode": 44095762,
-      "race": "Normal"
+      "race": "Normal",
+      "prices": {
+        "tcgplayer": 2.75
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 74677422,
+      "name": "Red-Eyes Black Dragon",
+      "type": "Normal Monster",
+      "text": "A ferocious dragon with a deadly attack.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/74677422.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/74677422.webp"
+      },
+      "sets": [
+        {
+          "setCode": "LOB-070",
+          "setName": "Legend of Blue Eyes White Dragon",
+          "setRarity": "Secret Rare"
+        }
+      ],
+      "passcode": 74677422,
+      "attribute": "DARK",
+      "level": 7,
+      "atk": 2400,
+      "def": 2000,
+      "race": "Dragon",
+      "archetype": "Red-Eyes",
+      "prices": {
+        "tcgplayer": 12.5
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 70278545,
+      "name": "Summoned Skull",
+      "type": "Normal Monster",
+      "text": "A fiend with dark powers for confusing the enemy.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/70278545.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/70278545.webp"
+      },
+      "sets": [
+        {
+          "setCode": "MRD-003",
+          "setName": "Metal Raiders",
+          "setRarity": "Rare"
+        }
+      ],
+      "passcode": 70278545,
+      "attribute": "DARK",
+      "level": 6,
+      "atk": 2500,
+      "def": 1200,
+      "race": "Fiend",
+      "prices": {
+        "tcgplayer": 0.89
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 40374923,
+      "name": "Mystical Space Typhoon",
+      "type": "Quick-Play Spell Card",
+      "text": "Target 1 Spell/Trap on the field; destroy that target.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/40374923.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/40374923.webp"
+      },
+      "sets": [
+        {
+          "setCode": "MRD-049",
+          "setName": "Metal Raiders",
+          "setRarity": "Ultra Rare"
+        }
+      ],
+      "passcode": 40374923,
+      "race": "Normal",
+      "prices": {
+        "tcgplayer": 1.75
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 12580477,
+      "name": "Raigeki",
+      "type": "Spell Card",
+      "text": "Destroy all monsters your opponent controls.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/12580477.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/12580477.webp"
+      },
+      "sets": [
+        {
+          "setCode": "LOB-053",
+          "setName": "Legend of Blue Eyes White Dragon",
+          "setRarity": "Rare"
+        }
+      ],
+      "passcode": 12580477,
+      "race": "Normal",
+      "prices": {
+        "tcgplayer": 0.42
+      },
+      "banlistInfo": {
+        "banTcg": "Limited"
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 24094653,
+      "name": "Polymerization",
+      "type": "Spell Card",
+      "text": "Fusion Summon 1 Fusion Monster from your Extra Deck, using monsters from your hand or field as Fusion Material.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/24094653.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/24094653.webp"
+      },
+      "sets": [
+        {
+          "setCode": "MRD-043",
+          "setName": "Metal Raiders",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 24094653,
+      "race": "Normal",
+      "prices": {
+        "tcgplayer": 0.15
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 64366838,
+      "name": "Stardust Dragon",
+      "type": "Synchro Monster",
+      "text": "1 Tuner + 1+ non-Tuner monsters",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/64366838.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/64366838.webp"
+      },
+      "sets": [
+        {
+          "setCode": "TDGS-EN044",
+          "setName": "The Duelist Genesis",
+          "setRarity": "Secret Rare"
+        }
+      ],
+      "passcode": 64366838,
+      "attribute": "WIND",
+      "level": 8,
+      "atk": 2500,
+      "def": 2000,
+      "race": "Dragon",
+      "archetype": "Stardust",
+      "prices": {
+        "tcgplayer": 3.2
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 43262273,
+      "name": "Effect Veiler",
+      "type": "Tuner Monster",
+      "text": "During your opponent's Main Phase (Quick Effect): You can send this card from your hand to the GY, then target 1 Effect Monster your opponent controls; negate that face-up monster's effects until the end of this turn.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/43262273.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/43262273.webp"
+      },
+      "sets": [
+        {
+          "setCode": "DREV-EN007",
+          "setName": "Duelist Revolution",
+          "setRarity": "Super Rare"
+        }
+      ],
+      "passcode": 43262273,
+      "attribute": "LIGHT",
+      "level": 2,
+      "atk": 0,
+      "def": 0,
+      "race": "Spellcaster",
+      "prices": {
+        "tcgplayer": 0.55
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 14558127,
+      "name": "Ash Blossom & Joyous Spring",
+      "type": "Tuner Monster",
+      "text": "When a card or effect is activated that includes any of these effects (Quick Effect): You can discard this card; negate that effect.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/14558127.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/14558127.webp"
+      },
+      "sets": [
+        {
+          "setCode": "MACR-EN036",
+          "setName": "Maximum Crisis",
+          "setRarity": "Secret Rare"
+        }
+      ],
+      "passcode": 14558127,
+      "attribute": "FIRE",
+      "level": 3,
+      "atk": 0,
+      "def": 1800,
+      "race": "Zombie",
+      "prices": {
+        "tcgplayer": 18
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 73642296,
+      "name": "Ghost Belle & Haunted Mansion",
+      "type": "Tuner Monster",
+      "text": "When a card or effect is activated that includes any of these effects (Quick Effect): You can discard this card; negate that effect.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/73642296.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/73642296.webp"
+      },
+      "sets": [
+        {
+          "setCode": "COTD-EN033",
+          "setName": "Code of the Duelist",
+          "setRarity": "Secret Rare"
+        }
+      ],
+      "passcode": 73642296,
+      "attribute": "WATER",
+      "level": 3,
+      "atk": 0,
+      "def": 1800,
+      "race": "Zombie",
+      "prices": {
+        "tcgplayer": 14.5
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 91939624,
+      "name": "Junk Synchron",
+      "type": "Effect Monster",
+      "text": "When this card is Normal Summoned: You can target 1 Level 2 or lower monster in your GY; Special Summon that target in Defense Position.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/91939624.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/91939624.webp"
+      },
+      "sets": [
+        {
+          "setCode": "DP08-EN004",
+          "setName": "Duelist Pack: Yusei",
+          "setRarity": "Rare"
+        }
+      ],
+      "passcode": 91939624,
+      "attribute": "DARK",
+      "level": 3,
+      "atk": 1300,
+      "def": 500,
+      "race": "Machine",
+      "archetype": "Junk",
+      "prices": {
+        "tcgplayer": 0.65
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 23995346,
+      "name": "Rainbow Dragon",
+      "type": "Effect Monster",
+      "text": "Cannot be Normal Summoned/Set. Must be Special Summoned by its own effect.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/23995346.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/23995346.webp"
+      },
+      "sets": [
+        {
+          "setCode": "TAEV-EN006",
+          "setName": "Tactical Evolution",
+          "setRarity": "Secret Rare"
+        }
+      ],
+      "passcode": 23995346,
+      "attribute": "LIGHT",
+      "level": 10,
+      "atk": 4000,
+      "def": 0,
+      "race": "Dragon",
+      "archetype": "Crystal Beast",
+      "prices": {
+        "tcgplayer": 22
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 70781052,
+      "name": "Gearfried the Iron Knight",
+      "type": "Effect Monster",
+      "text": "Negate the effect of an Equip Spell Card that targets this card, and destroy that Equip Spell Card.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/70781052.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/70781052.webp"
+      },
+      "sets": [
+        {
+          "setCode": "SDJ-028",
+          "setName": "Starter Deck: Joey",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 70781052,
+      "attribute": "EARTH",
+      "level": 4,
+      "atk": 1800,
+      "def": 1600,
+      "race": "Warrior",
+      "prices": {
+        "tcgplayer": 0.25
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 55144522,
+      "name": "Pot of Avarice",
+      "type": "Spell Card",
+      "text": "Target 5 monsters in your GY; shuffle all 5 into the Deck, then draw 2 cards.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/55144522.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/55144522.webp"
+      },
+      "sets": [
+        {
+          "setCode": "EEN-EN037",
+          "setName": "Elemental Energy",
+          "setRarity": "Rare"
+        }
+      ],
+      "passcode": 55144522,
+      "race": "Normal",
+      "prices": {
+        "tcgplayer": 0.48
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 48179353,
+      "name": "The Unhappy Maiden",
+      "type": "Effect Monster",
+      "text": "When this card is sent to the GY by battle: Target 1 monster your opponent controls; destroy that target.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/48179353.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/48179353.webp"
+      },
+      "sets": [
+        {
+          "setCode": "PHNI-EN011",
+          "setName": "Phantom Nightmare",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 48179353,
+      "attribute": "LIGHT",
+      "level": 3,
+      "atk": 600,
+      "def": 900,
+      "race": "Spellcaster",
+      "prices": {
+        "tcgplayer": 0.12
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 33396948,
+      "name": "Exodia the Forbidden One",
+      "type": "Normal Monster",
+      "text": "When you have Right Leg, Left Leg, Right Arm and Left Arm of the Forbidden One in addition to this card in your hand, you win the Duel.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/33396948.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/33396948.webp"
+      },
+      "sets": [
+        {
+          "setCode": "LOB-124",
+          "setName": "Legend of Blue Eyes White Dragon",
+          "setRarity": "Ultra Rare"
+        }
+      ],
+      "passcode": 33396948,
+      "attribute": "DARK",
+      "level": 3,
+      "atk": 1000,
+      "def": 1000,
+      "race": "Spellcaster",
+      "archetype": "Exodia",
+      "prices": {
+        "tcgplayer": 5.5
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 58577029,
+      "name": "Reasoning",
+      "type": "Spell Card",
+      "text": "Your opponent declares 1 monster Type. Excavate cards from the top of your Deck until you excavate a monster that can be Normal Summoned/Set.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/58577029.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/58577029.webp"
+      },
+      "sets": [
+        {
+          "setCode": "SDRL-EN027",
+          "setName": "Structure Deck: Rise of the Dragon Lords",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 58577029,
+      "race": "Normal",
+      "prices": {
+        "tcgplayer": 0.2
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 83968380,
+      "name": "Swords of Revealing Light",
+      "type": "Spell Card",
+      "text": "After this card's activation, it remains on the field, but destroy it during the opponent's 3rd End Phase.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/83968380.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/83968380.webp"
+      },
+      "sets": [
+        {
+          "setCode": "SDY-029",
+          "setName": "Starter Deck: Yugi",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 83968380,
+      "race": "Normal",
+      "prices": {
+        "tcgplayer": 0.18
+      }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 61211536,
+      "name": "Black Luster Soldier - Envoy of the Beginning",
+      "type": "Effect Monster",
+      "text": "Cannot be Normal Summoned/Set. Must be Special Summoned by banishing 1 LIGHT and 1 DARK monster from your GY.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/61211536.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/61211536.webp"
+      },
+      "sets": [
+        {
+          "setCode": "IOC-EN025",
+          "setName": "Invasion of Chaos",
+          "setRarity": "Secret Rare"
+        }
+      ],
+      "passcode": 61211536,
+      "attribute": "LIGHT",
+      "level": 8,
+      "atk": 3000,
+      "def": 2500,
+      "race": "Warrior",
+      "prices": {
+        "tcgplayer": 28
+      }
     }
   ]
 }

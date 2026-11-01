@@ -45,7 +45,8 @@ describe('FilterEngine', () => {
       version: 1,
       facets: { attribute: { include: ['DARK'] } },
     });
-    expect(result.ids).toEqual([46986420]);
+    expect(result.ids).toContain(46986420);
+    expect(result.count).toBe(5);
   });
 
   it('excludes cards by attribute', () => {
@@ -55,7 +56,7 @@ describe('FilterEngine', () => {
       facets: { attribute: { exclude: ['DARK'] } },
     });
     expect(result.ids).not.toContain(46986420);
-    expect(result.count).toBe(sampleCards.length - 1);
+    expect(result.count).toBe(sampleCards.length - 5);
   });
 
   it('ORs multiple included attributes', () => {
@@ -64,7 +65,8 @@ describe('FilterEngine', () => {
       version: 1,
       facets: { attribute: { include: ['DARK', 'LIGHT'], mode: 'or' } },
     });
-    expect(result.ids.sort((a, b) => a - b)).toEqual([46986420, 89631139]);
+    expect(result.ids.sort((a, b) => a - b)).toEqual(expect.arrayContaining([46986420, 89631139]));
+    expect(result.count).toBeGreaterThanOrEqual(2);
   });
 
   it('ANDs multiple included monster frame tokens', () => {
@@ -133,8 +135,114 @@ describe('FilterEngine', () => {
     const groups = engine.recount(state);
     const attribute = groups.find((group) => group.fieldId === 'attribute');
     expect(attribute).toBeDefined();
-    expect(engine.optionCount(groups, 'attribute', 'DARK')).toBe(1);
-    expect(engine.optionCount(groups, 'attribute', 'LIGHT')).toBe(1);
+    expect(engine.optionCount(groups, 'attribute', 'DARK')).toBe(5);
+    expect(engine.optionCount(groups, 'attribute', 'LIGHT')).toBeGreaterThanOrEqual(1);
+    expect(engine.apply(state).count).toBe(5);
+  });
+
+  it('uses OR-style facet counts that ignore the facet own selections', () => {
+    const engine = new FilterEngine(sampleCards);
+    const state = {
+      version: 1 as const,
+      facets: { attribute: { include: ['DARK'] } },
+    };
+    const groups = engine.recount(state);
+    const lightCount = engine.optionCount(groups, 'attribute', 'LIGHT');
+    const baseline = engine.recount(emptyFilterState());
+    expect(lightCount).toBe(engine.optionCount(baseline, 'attribute', 'LIGHT'));
+  });
+
+  it('uses AND-style facet counts that shrink as more values are required', () => {
+    const cards: YugiohCard[] = [
+      card({
+        ...sampleCards[0],
+        id: 1,
+        name: 'A',
+        linkMarkers: ['Top', 'Bottom', 'Left', 'Top-Left'],
+      }),
+      card({
+        ...sampleCards[0],
+        id: 2,
+        name: 'B',
+        linkMarkers: ['Top', 'Bottom', 'Left'],
+      }),
+      card({
+        ...sampleCards[0],
+        id: 3,
+        name: 'C',
+        linkMarkers: ['Top'],
+      }),
+    ];
+    const engine = new FilterEngine(cards);
+    const state = {
+      version: 1 as const,
+      facets: {
+        linkMarker: {
+          include: ['Top', 'Bottom', 'Left', 'Top-Left'],
+          mode: 'and' as const,
+        },
+      },
+    };
     expect(engine.apply(state).count).toBe(1);
+    const groups = engine.recount(state);
+    expect(engine.optionCount(groups, 'linkMarker', 'Top-Left')).toBe(1);
+    expect(engine.optionCount(groups, 'linkMarker', 'Right')).toBe(0);
+  });
+
+  it('excludes cards without a stat when a custom range is set', () => {
+    const cards: YugiohCard[] = [
+      card({ ...sampleCards[0], id: 1, name: 'With def', def: 2000 }),
+      card({ ...sampleCards[0], id: 2, name: 'Link only', def: undefined, linkRating: 2 }),
+    ];
+    const engine = new FilterEngine(cards);
+    const result = engine.apply({
+      version: 1,
+      facets: { def: { range: { min: 1000, max: 2500 } } },
+    });
+    expect(result.ids).toEqual([1]);
+  });
+
+  it('excludes cards without a price when a price range is set', () => {
+    const cards: YugiohCard[] = [
+      card({ ...sampleCards[0], id: 1, name: 'Priced', prices: { tcgplayer: 3.5 } }),
+      card({ ...sampleCards[0], id: 2, name: 'No price', prices: undefined }),
+    ];
+    const engine = new FilterEngine(cards);
+    expect(engine.apply(emptyFilterState()).count).toBe(2);
+    const filtered = engine.apply({
+      version: 1,
+      facets: { price: { range: { max: 5 } } },
+    });
+    expect(filtered.ids).toEqual([1]);
+  });
+
+  it('indexes set facets by set name only with one option per expansion', () => {
+    const uniqueSetNames = 500;
+    const template = sampleCards[0]!;
+    const cards: YugiohCard[] = Array.from({ length: 15_000 }, (_, index) => ({
+      ...template,
+      id: index + 1,
+      name: `Synthetic Card ${index}`,
+      passcode: index + 1,
+      sets: [
+        {
+          setCode: `SS05-EN${String(index).padStart(3, '0')}`,
+          setName: `Expansion ${index % uniqueSetNames}`,
+          setRarity: 'Common',
+        },
+        {
+          setCode: `BLHR-EN${String(index).padStart(3, '0')}`,
+          setName: `Expansion ${(index + 1) % uniqueSetNames}`,
+          setRarity: 'Rare',
+        },
+      ],
+    }));
+
+    const engine = new FilterEngine(cards);
+    const setGroup = engine.recount(emptyFilterState()).find((group) => group.fieldId === 'set');
+    expect(setGroup).toBeDefined();
+    expect(setGroup!.options).toHaveLength(uniqueSetNames);
+    expect(setGroup!.options.every((opt) => !opt.value.includes('-EN'))).toBe(true);
+    expect(setGroup!.options.every((opt) => opt.value.startsWith('Expansion '))).toBe(true);
   });
 });

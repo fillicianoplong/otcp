@@ -20,17 +20,32 @@ export const FILTER_STATE_VERSION = 1 as const;
 
 export type FacetMatchMode = 'or' | 'and';
 
+export type FacetNumericRange = {
+  min?: number;
+  max?: number;
+};
+
 /** Serializable per-field selection (URL-safe JSON). */
 export type FacetValueSelection = {
   include?: readonly string[];
   exclude?: readonly string[];
   mode?: FacetMatchMode;
+  range?: FacetNumericRange;
 };
 
 export type FilterState = {
   version: typeof FILTER_STATE_VERSION;
   facets: Partial<Record<FacetFieldId, FacetValueSelection>>;
 };
+
+export type FilterStateUpdater = FilterState | ((previous: FilterState) => FilterState);
+
+export function resolveFilterStateUpdater(
+  updater: FilterStateUpdater,
+  previous: FilterState,
+): FilterState {
+  return typeof updater === 'function' ? updater(previous) : updater;
+}
 
 export type FilterApplyOptions = {
   /** Restrict to ids from SearchIndex (or another upstream query). */
@@ -102,26 +117,28 @@ function hasHostedImage(card: YugiohCard): string {
   return 'yes';
 }
 
-function priceBucket(card: YugiohCard): string | null {
-  const price = card.prices?.tcgplayer;
-  if (price == null) return null;
-  return statBucket(Math.round(price * 100));
-}
-
 type FieldIndexer = {
   id: FacetFieldId;
   valuesForRow: (card: YugiohCard) => readonly string[];
 };
 
+function setNamesForCard(card: YugiohCard): readonly string[] {
+  const names = new Set<string>();
+  for (const entry of card.sets) {
+    const name = entry.setName?.trim();
+    if (name) names.add(name);
+  }
+  return [...names];
+}
+
 const FIELD_INDEXERS: readonly FieldIndexer[] = [
   { id: 'cardType', valuesForRow: (card) => (card.type ? [card.type] : []) },
   {
     id: 'set',
-    valuesForRow: (card) => card.sets.flatMap((set) => [set.setCode, set.setName]),
+    valuesForRow: (card) => setNamesForCard(card),
   },
   { id: 'rarity', valuesForRow: (card) => card.sets.map((set) => set.setRarity) },
   { id: 'banStatus', valuesForRow: (card) => [tcgBanStatus(card)] },
-  { id: 'price', valuesForRow: (card) => (priceBucket(card) ? [priceBucket(card)!] : []) },
   { id: 'hasImage', valuesForRow: (card) => [hasHostedImage(card)] },
   { id: 'monsterFrame', valuesForRow: (card) => typeTokens(card.type) },
   { id: 'attribute', valuesForRow: (card) => (card.attribute ? [card.attribute] : []) },
@@ -242,8 +259,7 @@ export class FilterEngine {
 
   /** Apply facet selections, optionally intersecting a search id list. */
   apply(state: FilterState, options: FilterApplyOptions = {}): FilterApplyResult {
-    this.fillBaseMask(options.searchIds);
-    this.computeMask(state, this.shownMask);
+    this.computeMask(state, this.shownMask, undefined, options);
     const ids: number[] = [];
     forEachSetBit(this.shownMask, this.count, (row) => {
       ids.push(this.ids[row]);
@@ -252,24 +268,64 @@ export class FilterEngine {
   }
 
   /**
-   * Live option counts (FR-57). Each group's counts ignore that group's own selection
-   * so every option shows how many cards match if it were added.
+   * Live option counts (FR-57). OR facets ignore their own selections; AND (and link
+   * arrows) count how many results remain if an option were also required.
    */
   recount(state: FilterState, options: FilterApplyOptions = {}): FacetGroupCounts[] {
     this.fillBaseMask(options.searchIds);
     const out: FacetGroupCounts[] = [];
     for (const field of this.fields) {
-      this.computeMask(state, this.scratch, field.id);
+      const selection = state.facets[field.id];
+      const mode = selection?.mode ?? 'or';
+      const andIncludes = mode === 'and' && (selection?.include?.length ?? 0) > 0;
       const optionsForField: FacetOptionCount[] = [];
       for (let i = 0; i < field.bitsets.length; i++) {
-        optionsForField.push({
-          value: field.values[i],
-          count: andPopcount(this.scratch, field.bitsets[i]),
-        });
+        const value = field.values[i];
+        let count: number;
+        const linkAndIncludes =
+          field.id === 'linkMarker' && mode === 'and' && (selection?.include?.length ?? 0) > 0;
+        if (linkAndIncludes) {
+          count = this.apply(this.simulateInclude(state, field.id, value), options).count;
+        } else if (andIncludes) {
+          this.computeMask(state, this.scratch, undefined, options);
+          count = andPopcount(this.scratch, field.bitsets[i]);
+        } else {
+          this.computeMask(state, this.scratch, field.id, options);
+          count = andPopcount(this.scratch, field.bitsets[i]);
+        }
+        optionsForField.push({ value, count });
       }
       out.push({ fieldId: field.id, options: optionsForField });
     }
     return out;
+  }
+
+  /** Facet fields that have catalog options or custom range inputs in the UI. */
+  fieldsWithCatalog(): readonly FacetFieldId[] {
+    const ids = this.fields.filter((field) => field.values.length > 0).map((field) => field.id);
+    const rangeFields: FacetFieldId[] = ['price', 'atk', 'def', 'level'];
+    for (const id of rangeFields) {
+      if (!ids.includes(id)) ids.push(id);
+    }
+    return ids;
+  }
+
+  private simulateInclude(state: FilterState, fieldId: FacetFieldId, value: string): FilterState {
+    const selection = state.facets[fieldId];
+    const include = new Set(selection?.include ?? []);
+    include.add(value);
+    return {
+      version: state.version,
+      facets: {
+        ...state.facets,
+        [fieldId]: {
+          include: [...include],
+          exclude: selection?.exclude ? [...selection.exclude] : undefined,
+          mode: selection?.mode,
+          range: selection?.range ? { ...selection.range } : undefined,
+        },
+      },
+    };
   }
 
   optionCount(groups: readonly FacetGroupCounts[], fieldId: FacetFieldId, value: string): number {
@@ -291,7 +347,13 @@ export class FilterEngine {
     }
   }
 
-  private computeMask(state: FilterState, target: Uint32Array, skipFieldId?: FacetFieldId): void {
+  private computeMask(
+    state: FilterState,
+    target: Uint32Array,
+    skipFieldId?: FacetFieldId,
+    options: FilterApplyOptions = {},
+  ): void {
+    this.fillBaseMask(options.searchIds);
     this.prepareUnions(state);
     target.set(this.baseMask);
     for (const field of this.fields) {
@@ -315,7 +377,14 @@ export class FilterEngine {
 
       const mode: FacetMatchMode = selection.mode ?? 'or';
 
+      if (field.id === 'price') {
+        continue;
+      }
+
       if (selection.include && selection.include.length > 0) {
+        if (field.id === 'linkMarker') {
+          continue;
+        }
         if (field.id === 'monsterFrame' && mode === 'and') {
           this.buildFrameAndMask(selection.include, field.unionScratch);
           field.unionOn = popcount(field.unionScratch) > 0;
@@ -407,6 +476,17 @@ export class FilterEngine {
     mask: Uint32Array,
     skipFieldId?: FacetFieldId,
   ): void {
+    for (const fieldId of ['price', 'atk', 'def', 'level'] as const) {
+      if (skipFieldId === fieldId) continue;
+      const range = state.facets[fieldId]?.range;
+      if (!range || (range.min == null && range.max == null)) continue;
+      forEachSetBit(mask, this.count, (row) => {
+        if (!rowMatchesFieldRange(this.cardsByRow[row], fieldId, range)) {
+          this.clearRow(mask, row);
+        }
+      });
+    }
+
     if (skipFieldId !== 'level') {
       const levelSel = state.facets.level?.include;
       if (levelSel && levelSel.length > 0) {
@@ -440,7 +520,7 @@ function levelMatches(card: YugiohCard, tokens: readonly string[]): boolean {
     if (range) {
       const min = Number(range[1]);
       const max = Number(range[2]);
-      const numeric = card.level ?? card.rank ?? card.linkRating;
+      const numeric = cardLevelMetric(card);
       if (numeric != null && numeric >= min && numeric <= max) return true;
       continue;
     }
@@ -452,6 +532,52 @@ function levelMatches(card: YugiohCard, tokens: readonly string[]): boolean {
     if (levelFacetValues(card).includes(token)) return true;
   }
   return false;
+}
+
+function cardPriceDollars(card: YugiohCard): number | null {
+  const price = card.prices?.tcgplayer;
+  if (price == null) return null;
+  return price;
+}
+
+function cardLevelMetric(card: YugiohCard): number | null {
+  if (card.level != null) return card.level;
+  if (card.rank != null) return card.rank;
+  if (card.linkRating != null) return card.linkRating;
+  return null;
+}
+
+function inNumericRange(value: number, range: FacetNumericRange): boolean {
+  if (range.min != null && value < range.min) return false;
+  if (range.max != null && value > range.max) return false;
+  return true;
+}
+
+function rowMatchesFieldRange(
+  card: YugiohCard,
+  fieldId: FacetFieldId,
+  range: FacetNumericRange,
+): boolean {
+  if (range.min == null && range.max == null) return true;
+  if (fieldId === 'price') {
+    const dollars = cardPriceDollars(card);
+    if (dollars == null) return false;
+    return inNumericRange(dollars, range);
+  }
+  if (fieldId === 'atk') {
+    if (typeof card.atk !== 'number') return false;
+    return inNumericRange(card.atk, range);
+  }
+  if (fieldId === 'def') {
+    if (typeof card.def !== 'number') return false;
+    return inNumericRange(card.def, range);
+  }
+  if (fieldId === 'level') {
+    const metric = cardLevelMetric(card);
+    if (metric == null) return false;
+    return inNumericRange(metric, range);
+  }
+  return true;
 }
 
 export function buildFilterEngine(cards: readonly YugiohCard[]): FilterEngine {

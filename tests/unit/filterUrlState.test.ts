@@ -21,6 +21,17 @@ describe('filter URL state', () => {
     expect(roundTripFilterQueryParam(state)).toEqual(state);
   });
 
+  it('round-trips custom facet ranges through URL search params', () => {
+    const state = {
+      version: 1 as const,
+      facets: {
+        price: { range: { max: 5 } },
+        atk: { range: { min: 1500, max: 2500 } },
+      },
+    };
+    expect(roundTripFilterQueryParam(state)).toEqual(state);
+  });
+
   it('omits the query key when filters are empty', () => {
     const params = new URLSearchParams({ q: 'dragon' });
     writeFilterStateToParams(params, emptyFilterState());
