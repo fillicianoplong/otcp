@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router';
 
 import { buildSearchIndex } from '../search/index.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { buildFilterEngine, emptyFilterState, type FilterState } from './filterEngine.ts';
+import { filterStateSignature } from './filterUrlState.ts';
 import {
   gridHasMore,
   initialGridVisibleCount,
@@ -165,12 +167,15 @@ function CardCatalogGrid({
 export function CardCatalogView({
   headingId,
   searchQuery = '',
+  filterState = emptyFilterState(),
 }: {
   headingId?: string;
   searchQuery?: string;
+  filterState?: FilterState;
 }) {
   const { state, retry } = useCardCatalog();
   const trimmedQuery = searchQuery.trim();
+  const filtersKey = filterStateSignature(filterState);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -183,44 +188,52 @@ export function CardCatalogView({
   }, []);
 
   const scrollRestore = useMemo(
-    () => parseSearchScrollRestore(location.state, trimmedQuery),
-    [location.state, trimmedQuery],
+    () => parseSearchScrollRestore(location.state, trimmedQuery, filtersKey),
+    [filtersKey, location.state, trimmedQuery],
   );
 
   useEffect(() => {
     if (scrollRestore) return;
     window.scrollTo(0, 0);
-  }, [scrollRestore, trimmedQuery]);
+  }, [scrollRestore, trimmedQuery, filtersKey]);
 
   useEffect(() => {
-    if (parseSearchScrollRestore(location.state, trimmedQuery)) return;
+    if (parseSearchScrollRestore(location.state, trimmedQuery, filtersKey)) return;
     if (typeof location.state !== 'object' || location.state === null) return;
     if (!(SEARCH_SCROLL_STATE_KEY in location.state)) return;
     navigate(
       { pathname: location.pathname, search: location.search, hash: location.hash },
       { replace: true, state: withoutSearchScrollRestore(location.state) },
     );
-  }, [location, navigate, trimmedQuery]);
+  }, [filtersKey, location, navigate, trimmedQuery]);
 
   const searchIndex = useMemo(() => {
     if (state.status !== 'ready') return null;
     return buildSearchIndex(state.cards);
   }, [state]);
 
+  const filterEngine = useMemo(() => {
+    if (state.status !== 'ready') return null;
+    return buildFilterEngine(state.cards);
+  }, [state]);
+
   const { visibleCards, matchCount } = useMemo(() => {
     if (state.status !== 'ready') {
       return { visibleCards: [] as YugiohCard[], matchCount: 0 };
     }
-    if (!trimmedQuery || !searchIndex) {
-      return { visibleCards: state.cards, matchCount: state.cards.length };
+    let searchIds: number[] | undefined;
+    if (trimmedQuery && searchIndex) {
+      searchIds = searchIndex.query(trimmedQuery).ids;
     }
-    const result = searchIndex.query(trimmedQuery);
+    const filtered = filterEngine
+      ? filterEngine.apply(filterState, searchIds ? { searchIds } : {})
+      : { ids: state.cards.map((c) => c.id), count: state.cards.length };
     const byId = new Map(state.cards.map((card) => [card.id, card]));
-    const visibleCards = result.ids
+    const visibleCards = filtered.ids
       .map((id) => byId.get(id))
       .filter((card): card is YugiohCard => card !== undefined);
-    return { visibleCards, matchCount: result.count };
-  }, [searchIndex, state, trimmedQuery]);
+    return { visibleCards, matchCount: filtered.count };
+  }, [filterEngine, filterState, searchIndex, state, trimmedQuery]);
 
   const persistScrollRestore = (loadedCount: number) => {
     navigate(
@@ -231,6 +244,7 @@ export function CardCatalogView({
           loadedCount,
           scrollY: window.scrollY,
           query: trimmedQuery,
+          filtersKey,
         }),
       },
     );
@@ -281,9 +295,13 @@ export function CardCatalogView({
           Nothing in the catalog matched &ldquo;{trimmedQuery}&rdquo;. Try a shorter name or the
           full passcode.
         </CatalogMessage>
+      ) : matchCount === 0 ? (
+        <CatalogMessage title="No matching cards">
+          No cards match the current filters. Try removing a filter or choose Clear all.
+        </CatalogMessage>
       ) : (
         <CardCatalogGrid
-          key={`${trimmedQuery}:${matchCount}`}
+          key={`${trimmedQuery}:${filtersKey}:${matchCount}`}
           visibleCards={visibleCards}
           matchCount={matchCount}
           searchQuery={trimmedQuery}

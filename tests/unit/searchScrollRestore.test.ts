@@ -16,6 +16,7 @@ describe('searchScrollRestore', () => {
       loadedCount: 96,
       scrollY: 420,
       query: 'dragon',
+      filtersKey: '',
     });
     expect(parseSearchScrollRestore(state, 'magician')).toBeNull();
   });
