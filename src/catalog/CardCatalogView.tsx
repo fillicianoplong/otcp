@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
+import { buildSearchIndex } from '../search/index.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
 
@@ -56,8 +57,39 @@ function CatalogMessage({
   );
 }
 
-export function CardCatalogView({ headingId }: { headingId?: string }) {
+function formatCardCount(count: number): string {
+  return count === 1 ? '1 card' : `${count} cards`;
+}
+
+export function CardCatalogView({
+  headingId,
+  searchQuery = '',
+}: {
+  headingId?: string;
+  searchQuery?: string;
+}) {
   const { state, retry } = useCardCatalog();
+  const trimmedQuery = searchQuery.trim();
+
+  const searchIndex = useMemo(() => {
+    if (state.status !== 'ready') return null;
+    return buildSearchIndex(state.cards);
+  }, [state]);
+
+  const { visibleCards, matchCount } = useMemo(() => {
+    if (state.status !== 'ready') {
+      return { visibleCards: [] as YugiohCard[], matchCount: 0 };
+    }
+    if (!trimmedQuery || !searchIndex) {
+      return { visibleCards: state.cards, matchCount: state.cards.length };
+    }
+    const result = searchIndex.query(trimmedQuery);
+    const byId = new Map(state.cards.map((card) => [card.id, card]));
+    const visibleCards = result.ids
+      .map((id) => byId.get(id))
+      .filter((card): card is YugiohCard => card !== undefined);
+    return { visibleCards, matchCount: result.count };
+  }, [searchIndex, state, trimmedQuery]);
 
   if (state.status === 'loading') {
     return (
@@ -95,12 +127,22 @@ export function CardCatalogView({ headingId }: { headingId?: string }) {
   }
 
   return (
-    <section aria-labelledby={headingId}>
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {state.cards.map((card) => (
-          <CardTile key={card.id} card={card} />
-        ))}
-      </ul>
+    <section aria-labelledby={headingId} className="flex flex-col gap-4">
+      <p className="text-sm text-text-2" aria-live="polite">
+        {formatCardCount(matchCount)}
+      </p>
+      {trimmedQuery && matchCount === 0 ? (
+        <CatalogMessage title="No matching cards">
+          Nothing in the catalog matched &ldquo;{trimmedQuery}&rdquo;. Try a shorter name or the
+          full passcode.
+        </CatalogMessage>
+      ) : (
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {visibleCards.map((card) => (
+            <CardTile key={card.id} card={card} />
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
