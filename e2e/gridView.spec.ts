@@ -4,7 +4,7 @@ test.describe('Grid view on Search page', () => {
   test('shows at least three tiles per row at 390px viewport', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/otcp/search');
-    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
 
     const grid = page.locator('section ul.grid').first();
     await expect(grid).toBeVisible();

@@ -610,6 +610,55 @@
       "prices": {
         "tcgplayer": 28
       }
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 99900157,
+      "name": "E2E Link Level Zero",
+      "type": "Link Monster",
+      "text": "Fixture for issue #157: published data may carry level 0 on Link monsters.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/86066372.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/86066372.webp"
+      },
+      "sets": [
+        {
+          "setCode": "ETCO-EN046",
+          "setName": "Eternity Code",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 99900157,
+      "attribute": "DARK",
+      "level": 0,
+      "linkRating": 1,
+      "linkMarkers": ["Bottom"],
+      "atk": 1000,
+      "race": "Cyberse"
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 99900158,
+      "name": "E2E Synchro Level Zero",
+      "type": "Synchro Tuner Monster",
+      "text": "Fixture for issue #157: Level 0 stays on Synchro monsters.",
+      "images": {
+        "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/86066372.webp",
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/86066372.webp"
+      },
+      "sets": [
+        {
+          "setCode": "ETCO-EN046",
+          "setName": "Eternity Code",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 99900158,
+      "attribute": "EARTH",
+      "level": 0,
+      "atk": 0,
+      "def": 0,
+      "race": "Dragon"
     }
   ]
 }
