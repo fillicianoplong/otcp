@@ -92,4 +92,18 @@ describe('facetOptionOrdering', () => {
       compareSetFacetOptionValues('Metal Raiders', 'Maximum Crisis', sampleIndex),
     ).toBeGreaterThan(0);
   });
+
+  it('compareSetFacetOptionValues uses tcgDate when set index key casing differs', () => {
+    const index: SetIndex = {
+      "Yu-Gi-Oh! 5D's Tag Force 5 promotional cards": { tcgDate: '2010-10-26' },
+      'Phantom Nightmare': { tcgDate: '2024-02-09' },
+    };
+    expect(
+      compareSetFacetOptionValues(
+        "Yu-Gi-Oh! 5D's Tag Force 5 Promotional Cards",
+        'Phantom Nightmare',
+        index,
+      ),
+    ).toBeGreaterThan(0);
+  });
 });

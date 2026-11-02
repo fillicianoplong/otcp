@@ -2,6 +2,7 @@ import { FILTER_STATE_VERSION, type FilterState } from './filterEngine.ts';
 import { writeFilterStateToParams } from './filterUrlState.ts';
 import { compareSetFacetOptionValues } from './facetOptionOrdering.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
+import { lookupSetIndexEntry } from '../shared/schema/setIndexLookup.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
 export const CARD_DETAIL_SETS_INITIAL_VISIBLE = 5;
@@ -51,7 +52,7 @@ const setReleaseDateFormatter = new Intl.DateTimeFormat('en-US', {
 });
 
 function tcgDateForSetName(setName: string, setIndex: SetIndex | null | undefined): string | null {
-  const raw = setIndex?.[setName]?.tcgDate?.trim();
+  const raw = lookupSetIndexEntry(setIndex, setName)?.tcgDate?.trim();
   if (!raw) {
     return null;
   }

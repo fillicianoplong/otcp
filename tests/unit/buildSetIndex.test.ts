@@ -45,4 +45,28 @@ describe('buildSetIndex', () => {
       numOfCards: 42,
     });
   });
+
+  it('applies override dates for collaboration sets and Maze of Machines', () => {
+    const index = buildSetIndex([]);
+    expect(index['Maze of Machines']).toEqual({ tcgDate: '2027-03-19' });
+    expect(index['Crocs collaboration card']).toEqual({ tcgDate: '2026-09-10' });
+    expect(index['EFootball collaboration cards']).toEqual({ tcgDate: '2025-09-27' });
+    expect(index['Nike collaboration cards']).toEqual({ tcgDate: '2025-09-12' });
+  });
+
+  it('matches overrides to cardset rows when set names differ only by case', () => {
+    const rows: YgoCardsetRow[] = [
+      {
+        set_name: "Yu-Gi-Oh! 5D's Tag Force 5 promotional cards",
+        set_code: 'TF05',
+        num_of_cards: 3,
+        tcg_date: '2010-10-26',
+      },
+    ];
+    const index = buildSetIndex(rows);
+    expect(index["Yu-Gi-Oh! 5D's Tag Force 5 promotional cards"]).toEqual({
+      tcgDate: '2010-10-26',
+      numOfCards: 3,
+    });
+  });
 });
