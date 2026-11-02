@@ -7,7 +7,7 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import validDataset from '../../tests/fixtures/schema/dataset-valid.json';
-import { OTCP_DATASET_SCHEMA_VERSION } from '../shared/schema/constants.ts';
+import { OTCP_DATASET_SCHEMA_VERSION_LEGACY } from '../shared/schema/constants.ts';
 import { CardCatalogProvider } from './CardCatalogProvider.tsx';
 import { CardCatalogView } from './CardCatalogView.tsx';
 import { clearCardCatalogCache } from './loadCatalog.ts';
@@ -20,7 +20,7 @@ function mockCatalogFetch(): void {
       if (url.includes('data/current.json')) {
         return new Response(
           JSON.stringify({
-            schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+            schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
             datasetFile: 'data/datasets/sample-dev.json',
             sha256: 'abc',
             publishedAt: '2026-10-28T12:00:00.000Z',

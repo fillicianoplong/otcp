@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { atomicWriteJson } from '../src/shared/fs/atomicWrite.ts';
 import {
-  validateDatasetEnvelope,
+  validateCompactSearchIndexEnvelope,
   validateYugiohCard,
   type ValidationIssue,
 } from '../src/shared/schema/index.ts';
@@ -19,15 +19,17 @@ import { buildSetIndex } from './buildSetIndex.ts';
 import { resolveR2PublicBaseUrl } from './imagePaths.ts';
 import { uploadCardImagesR2, type UploadCardImagesR2Options } from './uploadLargeCardImagesR2.ts';
 import { sha256HexFile } from './hash.ts';
+import { mapYgoprodeckResponse, type YgoprodeckDropCounts } from './mapYgoprodeck.ts';
 import {
-  buildDatasetEnvelope,
-  mapYgoprodeckResponse,
-  type YgoprodeckDropCounts,
-} from './mapYgoprodeck.ts';
+  buildSearchIndexEnvelope,
+  DEFAULT_DETAIL_BUCKET_SIZE,
+  toCatalogSearchCard,
+  writeSplitDataset,
+} from './splitDataset.ts';
 import {
+  isPublishedPointerLegacy,
   type PublishedPointer,
   resolveDatasetRepoPath,
-  siteRelativeDatasetFile,
 } from './pointer.ts';
 
 export type PipelinePaths = {
@@ -73,11 +75,6 @@ function readExistingPointer(pointerPath: string): PublishedPointer | null {
   } catch {
     return null;
   }
-}
-
-function datasetFileName(iso: string): string {
-  const stamp = iso.replaceAll(':', '-').replace(/\.\d{3}Z$/, 'Z');
-  return `cards-${stamp}.json`;
 }
 
 export async function runPipeline(
@@ -155,30 +152,33 @@ export async function runPipeline(
     return { ok: false, reason: 'validation', issues: cardIssues };
   }
 
-  const envelope = buildDatasetEnvelope(cards, generatedAt, setIndex);
-  const envelopeResult = validateDatasetEnvelope(envelope);
+  const ordered = cards.slice().sort((a, b) => a.id - b.id || a.name.localeCompare(b.name));
+  const searchCards = ordered.map((card, index) =>
+    toCatalogSearchCard(card, Math.floor(index / DEFAULT_DETAIL_BUCKET_SIZE)),
+  );
+  const searchEnvelope = buildSearchIndexEnvelope(searchCards, generatedAt, setIndex);
+  const envelopeResult = validateCompactSearchIndexEnvelope(searchEnvelope);
   if (!envelopeResult.ok) {
     return { ok: false, reason: 'validation', issues: envelopeResult.errors };
   }
 
-  const datasetFile = datasetFileName(generatedAt);
-  const datasetPath = join(paths.datasetsDir, datasetFile);
-  atomicWriteJson(datasetPath, envelope);
-
-  const sha256 = sha256HexFile(datasetPath);
-  const datasetRelative = siteRelativeDatasetFile(datasetFile);
+  const split = writeSplitDataset(paths.datasetsDir, cards, generatedAt, setIndex);
+  const searchIndexSha256 = sha256HexFile(split.searchIndexPath);
 
   const pointer: PublishedPointer = {
-    schemaVersion: envelope.schemaVersion,
-    datasetFile: datasetRelative,
-    sha256,
+    schemaVersion: searchEnvelope.schemaVersion,
+    searchIndexFile: split.searchIndexRelative,
+    searchIndexSha256,
+    detailsPrefix: split.detailsPrefixRelative,
+    detailsBucketSize: split.bucketSize,
+    detailBucketCount: split.detailBucketCount,
     publishedAt: generatedAt,
     cardCount: cards.length,
   };
 
   atomicWriteJson(paths.pointerPath, pointer);
 
-  return { ok: true, pointer, datasetPath, dropped };
+  return { ok: true, pointer, datasetPath: split.searchIndexPath, dropped };
 }
 
 export function loadPublishedPointer(repoRoot: string): PublishedPointer | null {
@@ -186,7 +186,10 @@ export function loadPublishedPointer(repoRoot: string): PublishedPointer | null 
 }
 
 export function resolveDatasetPath(repoRoot: string, pointer: PublishedPointer): string {
-  return resolveDatasetRepoPath(repoRoot, pointer.datasetFile);
+  if (isPublishedPointerLegacy(pointer)) {
+    return resolveDatasetRepoPath(repoRoot, pointer.datasetFile);
+  }
+  return resolveDatasetRepoPath(repoRoot, pointer.searchIndexFile);
 }
 
 export { resolveDatasetRepoPath } from './pointer.ts';

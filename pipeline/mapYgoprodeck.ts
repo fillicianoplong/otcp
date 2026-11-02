@@ -1,6 +1,6 @@
 import {
   OTCP_CARD_SCHEMA_VERSION,
-  OTCP_DATASET_SCHEMA_VERSION,
+  OTCP_DATASET_SCHEMA_VERSION_LEGACY,
   type CardPrices,
   type CardSet,
   type DatasetEnvelope,
@@ -152,7 +152,7 @@ export function buildDatasetEnvelope(
   setIndex?: SetIndex,
 ): DatasetEnvelope {
   return {
-    schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+    schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
     generatedAt,
     source: YGOPRODECK_CARDINFO_URL,
     cards,
