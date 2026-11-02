@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-/** Matches Tailwind `sm` (~640px) used for catalog Table availability. */
+/** Matches Tailwind `md` (~768px) used for catalog Table vs List toggles. */
 export function useMinViewportWidth(minWidthPx: number): boolean {
   const query = `(min-width: ${minWidthPx}px)`;
   const [matches, setMatches] = useState(() => {

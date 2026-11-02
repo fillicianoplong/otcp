@@ -6,6 +6,7 @@ import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
 import {
   CATALOG_VIEW_QUERY_KEY,
   CATALOG_VIEW_STORAGE_KEY_SEARCH,
+  CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX,
   displayCatalogViewMode,
   type CatalogViewMode,
   readCatalogViewPreference,
@@ -71,7 +72,7 @@ export function SearchPage() {
   const { state: catalogState } = useCardCatalog();
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
-  const tableViewportOk = useMinViewportWidth(640);
+  const tableViewportOk = useMinViewportWidth(CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX);
   const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
     () => ({ ...DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY }),
   );

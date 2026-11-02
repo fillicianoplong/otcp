@@ -3,6 +3,10 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'reac
 
 import { cardDetailImageFallback, cardDetailImageSrc } from '../catalog/cardArtUrl.ts';
 import { buildCardDetailChips } from '../catalog/cardDetailChips.ts';
+import {
+  resolveCardDetailChipIconPath,
+  resolveYgoBanStatusIconPath,
+} from '../catalog/cardIcons.ts';
 import { buildCardDetailDescriptionBlocks } from '../catalog/cardDetailDescriptions.ts';
 import {
   CARD_DETAIL_MARKET_PRICE_ROWS,
@@ -26,6 +30,7 @@ import {
   resolveCardBanForFormat,
 } from '../catalog/formatBanContext.ts';
 import { CardImageZoomViewer } from '../components/CardImageZoomViewer.tsx';
+import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
 import { formatPriceSnapshotDate } from '../prices/formatPrice.ts';
 import { buildStoreSearchUrl, STORE_LINK_LABELS } from '../prices/storeLinks.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
@@ -99,14 +104,15 @@ function CardDetailBanStatus({
   if (!isFormatBanContextActive(formatParam)) return null;
   const status = resolveCardBanForFormat(card, formatParam);
   if (!status) return null;
-  const { glyph, label, colorClass } = banMarkerForStatus(status);
+  const { label } = banMarkerForStatus(status);
   return (
-    <span
-      className={`text-lg font-bold leading-none ${colorClass}`}
-      title={label}
-      aria-label={label}
-    >
-      {glyph}
+    <span title={label}>
+      <YgoCardIcon
+        src={resolveYgoBanStatusIconPath(status, 'detail')}
+        label={label}
+        tier="detail"
+        iconOnly
+      />
     </span>
   );
 }
@@ -117,15 +123,20 @@ function CardDetailInfoChips({ card }: { card: YugiohCard }) {
 
   return (
     <dl className="flex flex-wrap gap-2" aria-label="Card stats">
-      {chips.map((chip) => (
-        <div
-          key={`${chip.label}-${chip.value}`}
-          className="inline-flex min-w-0 max-w-full flex-col gap-0.5 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm"
-        >
-          <dt className="text-xs font-medium text-text-2">{chip.label}</dt>
-          <dd className="font-medium text-heading">{chip.value}</dd>
-        </div>
-      ))}
+      {chips.map((chip) => {
+        const iconSrc = resolveCardDetailChipIconPath(chip.label, card);
+        return (
+          <div
+            key={`${chip.label}-${chip.value}`}
+            className="inline-flex min-w-0 max-w-full flex-col gap-0.5 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm"
+          >
+            <dt className="text-xs font-medium text-text-2">{chip.label}</dt>
+            <dd className="font-medium text-heading">
+              <YgoCardIcon src={iconSrc} label={chip.value} tier="detail" />
+            </dd>
+          </div>
+        );
+      })}
     </dl>
   );
 }
