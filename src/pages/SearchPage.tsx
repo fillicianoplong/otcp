@@ -5,9 +5,12 @@ import { CardCatalogView } from '../catalog/CardCatalogView';
 import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
 import {
   CATALOG_VIEW_QUERY_KEY,
-  parseCatalogViewMode,
+  CATALOG_VIEW_STORAGE_KEY_SEARCH,
+  displayCatalogViewMode,
   type CatalogViewMode,
-  effectiveCatalogViewMode,
+  readCatalogViewPreference,
+  resolveCatalogViewPreference,
+  writeCatalogViewPreference,
 } from '../catalog/catalogViewMode.ts';
 import { FORMAT_QUERY_KEY } from '../catalog/formatBanContext.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
@@ -51,10 +54,16 @@ export function SearchPage() {
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const filterState = useMemo(() => readFilterStateFromParams(searchParams), [searchParams]);
-  const viewMode = useMemo(
-    () => parseCatalogViewMode(searchParams.get(CATALOG_VIEW_QUERY_KEY)),
+  const resolvedViewPreference = useMemo(
+    () =>
+      resolveCatalogViewPreference({
+        urlParam: searchParams.get(CATALOG_VIEW_QUERY_KEY),
+        storedRaw: readCatalogViewPreference(CATALOG_VIEW_STORAGE_KEY_SEARCH),
+        defaultMode: 'grid',
+      }),
     [searchParams],
   );
+  const viewMode = resolvedViewPreference.mode;
   const formatParam = searchParams.get(FORMAT_QUERY_KEY);
   const filterStateRef = useRef(filterState);
   useEffect(() => {
@@ -71,7 +80,7 @@ export function SearchPage() {
     ...DEFAULT_CATALOG_TABLE_SORT,
   }));
 
-  const effectiveViewMode = effectiveCatalogViewMode(viewMode, {
+  const effectiveViewMode = displayCatalogViewMode(resolvedViewPreference, {
     tableAvailable: tableViewportOk,
   });
 
@@ -141,6 +150,7 @@ export function SearchPage() {
 
   const setViewMode = useCallback(
     (mode: CatalogViewMode) => {
+      writeCatalogViewPreference(CATALOG_VIEW_STORAGE_KEY_SEARCH, mode);
       const params = new URLSearchParams(searchParams);
       if (mode === 'grid') {
         params.delete(CATALOG_VIEW_QUERY_KEY);
@@ -155,11 +165,6 @@ export function SearchPage() {
     },
     [location.pathname, location.state, navigate, searchParams],
   );
-
-  useEffect(() => {
-    if (tableViewportOk || viewMode !== 'table') return;
-    setViewMode('list');
-  }, [tableViewportOk, setViewMode, viewMode]);
 
   useEffect(() => {
     const next = trimmedQuery;
@@ -247,7 +252,7 @@ export function SearchPage() {
                     onChange={setTableColumnVisibility}
                   />
                 ) : null}
-                <CatalogViewToggle value={viewMode} onChange={setViewMode} />
+                <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
               </div>
             </div>
             {chips.length > 0 ? <FilterChips chips={chips} onChange={commitFilterState} /> : null}
