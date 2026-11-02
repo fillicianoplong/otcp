@@ -9,6 +9,7 @@ import {
 } from '../src/shared/schema/index.ts';
 import { YGOPRODECK_CARDINFO_URL } from './constants.ts';
 import { publishedImagePaths } from './imagePaths.ts';
+import { resolveMonsterLevelRankLink } from '../src/shared/schema/normalizeMonsterLevelRankLink.ts';
 import { isYgoprodeckPlaceholderRow } from './placeholderFilter.ts';
 import type { YgoApiCard, YgoBanlistInfo } from './ygoprodeckTypes.ts';
 
@@ -122,9 +123,15 @@ export function mapYgoprodeckCard(card: YgoApiCard, publicBaseUrl: string): Yugi
   mapped.passcode = card.id;
 
   if (card.attribute && isYgoAttribute(card.attribute)) mapped.attribute = card.attribute;
-  if (typeof card.level === 'number') mapped.level = card.level;
-  if (typeof card.rank === 'number') mapped.rank = card.rank;
-  if (typeof card.linkval === 'number') mapped.linkRating = card.linkval;
+  Object.assign(
+    mapped,
+    resolveMonsterLevelRankLink({
+      type: mapped.type,
+      level: card.level ?? undefined,
+      rank: card.rank ?? undefined,
+      linkval: card.linkval,
+    }),
+  );
   if (card.linkmarkers && card.linkmarkers.length > 0) mapped.linkMarkers = [...card.linkmarkers];
   if (typeof card.atk === 'number') mapped.atk = card.atk;
   if (typeof card.def === 'number') mapped.def = card.def;

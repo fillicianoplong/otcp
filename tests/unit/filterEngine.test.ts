@@ -46,7 +46,7 @@ describe('FilterEngine', () => {
       facets: { attribute: { include: ['DARK'] } },
     });
     expect(result.ids).toContain(46986420);
-    expect(result.count).toBe(5);
+    expect(result.count).toBe(6);
   });
 
   it('excludes cards by attribute', () => {
@@ -56,7 +56,7 @@ describe('FilterEngine', () => {
       facets: { attribute: { exclude: ['DARK'] } },
     });
     expect(result.ids).not.toContain(46986420);
-    expect(result.count).toBe(sampleCards.length - 5);
+    expect(result.count).toBe(sampleCards.length - 6);
   });
 
   it('ORs multiple included attributes', () => {
@@ -149,9 +149,9 @@ describe('FilterEngine', () => {
     const groups = engine.recount(state);
     const attribute = groups.find((group) => group.fieldId === 'attribute');
     expect(attribute).toBeDefined();
-    expect(engine.optionCount(groups, 'attribute', 'DARK')).toBe(5);
+    expect(engine.optionCount(groups, 'attribute', 'DARK')).toBe(6);
     expect(engine.optionCount(groups, 'attribute', 'LIGHT')).toBeGreaterThanOrEqual(1);
-    expect(engine.apply(state).count).toBe(5);
+    expect(engine.apply(state).count).toBe(6);
   });
 
   it('uses OR-style facet counts that ignore the facet own selections', () => {
@@ -252,6 +252,89 @@ describe('FilterEngine', () => {
       facets: { price: { range: { max: 5 } } },
     });
     expect(filtered.ids).toEqual([1]);
+  });
+
+  it('indexes level facet values as plain numbers', () => {
+    const cards: YugiohCard[] = [
+      card({
+        ...sampleCards[0],
+        id: 1,
+        name: 'Xyz',
+        type: 'Xyz Monster',
+        level: undefined,
+        rank: 4,
+      }),
+      card({
+        ...sampleCards[0],
+        id: 2,
+        name: 'Link',
+        type: 'Link Monster',
+        level: 0,
+        linkRating: 1,
+      }),
+      card({ ...sampleCards[0], id: 3, name: 'Level 7', type: 'Effect Monster', level: 7 }),
+    ];
+    const engine = new FilterEngine(cards);
+    const levelGroup = engine
+      .recount(emptyFilterState())
+      .find((group) => group.fieldId === 'level');
+    expect(
+      levelGroup?.options.map((opt) => opt.value).sort((a, b) => Number(a) - Number(b)),
+    ).toEqual(['1', '4', '7']);
+  });
+
+  it('returns no cards when Level 0 and Link Monster are both selected', () => {
+    const cards: YugiohCard[] = [
+      card({
+        ...sampleCards[0],
+        id: 99900157,
+        name: 'E2E Link Level Zero',
+        type: 'Link Monster',
+        level: 0,
+        linkRating: 1,
+      }),
+      card({ ...sampleCards[0], id: 2, name: 'Synchro zero', type: 'Synchro Monster', level: 0 }),
+    ];
+    const engine = new FilterEngine(cards);
+    const result = engine.apply({
+      version: 1,
+      facets: {
+        level: { include: ['0'] },
+        cardType: { include: ['Link Monster'] },
+      },
+    });
+    expect(result.count).toBe(0);
+  });
+
+  it('matches Rank 4 to Xyz monsters after normalization', () => {
+    const cards: YugiohCard[] = [
+      card({
+        ...sampleCards[0],
+        id: 1,
+        name: 'Number 39',
+        type: 'Xyz Monster',
+        level: 4,
+      }),
+    ];
+    const engine = new FilterEngine(cards);
+    const result = engine.apply({
+      version: 1,
+      facets: { level: { include: ['4'] } },
+    });
+    expect(result.count).toBe(1);
+    expect(result.ids).toEqual([1]);
+  });
+
+  it('accepts legacy Level-N tokens in level matching', () => {
+    const cards: YugiohCard[] = [
+      card({ ...sampleCards[0], id: 1, name: 'Dark Magician', level: 7 }),
+    ];
+    const engine = new FilterEngine(cards);
+    const result = engine.apply({
+      version: 1,
+      facets: { level: { include: ['Level-7'] } },
+    });
+    expect(result.count).toBe(1);
   });
 
   it('indexes set facets by set name only with one option per expansion', () => {

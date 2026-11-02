@@ -124,15 +124,9 @@ function raceFacetValueForCard(card: YugiohCard): string | null {
 function levelFacetValueForChip(chip: CardDetailChip, card: YugiohCard): string | null {
   const numeric = chip.value.trim();
   if (!/^\d+$/.test(numeric)) return null;
-  if (chip.label === 'Link' && card.linkRating != null) {
-    return `Link-${card.linkRating}`;
-  }
-  if (chip.label === 'Rank' && card.rank != null) {
-    return `Rank-${card.rank}`;
-  }
-  if (chip.label === catalogTableColumnLabel('level') && card.level != null) {
-    return `Level-${card.level}`;
-  }
+  if (chip.label === 'Link' && card.linkRating != null) return numeric;
+  if (chip.label === 'Rank' && card.rank != null) return numeric;
+  if (chip.label === catalogTableColumnLabel('level') && card.level != null) return numeric;
   return null;
 }
 

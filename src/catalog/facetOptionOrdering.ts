@@ -3,16 +3,15 @@ import type { SetIndex } from '../shared/schema/setIndex.ts';
 
 const STAT_BUCKET_ORDER = ['?', '0', '1-1000', '1001-2000', '2001-3000', '3001+'] as const;
 
-const LEVEL_KIND_ORDER: Record<string, number> = { Level: 0, Rank: 1, Link: 2 };
-
 export type FacetSortContext = {
   setIndex?: SetIndex | null;
 };
 
-function levelTokenParts(value: string): { kind: number; num: number } | null {
-  const match = /^(Level|Rank|Link)-(\d+)$/.exec(value);
-  if (!match) return null;
-  return { kind: LEVEL_KIND_ORDER[match[1]] ?? 99, num: Number(match[2]) };
+function levelNumericSortKey(value: string): number | null {
+  const legacy = /^(?:Level|Rank|Link)-(\d+)$/.exec(value);
+  if (legacy) return Number(legacy[1]);
+  if (/^\d+$/.test(value)) return Number(value);
+  return null;
 }
 
 function setReleaseSortKey(
@@ -53,13 +52,8 @@ export function compareSetFacetOptionValues(
 
 export function formatFacetOptionLabel(fieldId: FacetFieldId, value: string): string {
   if (fieldId === 'level') {
-    const parts = levelTokenParts(value);
-    if (parts) {
-      const name = Object.keys(LEVEL_KIND_ORDER).find(
-        (key) => LEVEL_KIND_ORDER[key] === parts.kind,
-      );
-      return `${name} ${parts.num}`;
-    }
+    const num = levelNumericSortKey(value);
+    if (num != null) return String(num);
   }
   if (fieldId === 'atk' || fieldId === 'def') {
     if (value === '?') return '?';
@@ -72,11 +66,9 @@ export function formatFacetOptionLabel(fieldId: FacetFieldId, value: string): st
 
 export function compareFacetOptionValues(fieldId: FacetFieldId, a: string, b: string): number {
   if (fieldId === 'level') {
-    const pa = levelTokenParts(a);
-    const pb = levelTokenParts(b);
-    if (pa && pb) {
-      return pa.kind - pb.kind || pa.num - pb.num;
-    }
+    const na = levelNumericSortKey(a);
+    const nb = levelNumericSortKey(b);
+    if (na != null && nb != null) return na - nb;
   }
   if (fieldId === 'atk' || fieldId === 'def') {
     const ia = STAT_BUCKET_ORDER.indexOf(a as (typeof STAT_BUCKET_ORDER)[number]);

@@ -517,18 +517,22 @@ function OptionList({
         style={listScrollable ? { maxHeight: `${FACET_OPTION_LIST_SCROLL_CAP_PX}px` } : undefined}
       >
         <ul className="flex flex-col gap-0.5">
-          {visible.map((opt) => (
-            <li key={opt.value}>
-              <OptionRow
-                label={opt.label ?? opt.value}
-                count={opt.count}
-                included={includeSet.has(opt.value)}
-                excluded={excludeSet.has(opt.value)}
-                allowExclude={definition.includeExclude}
-                onCycle={() => onCycle(opt.value)}
-              />
-            </li>
-          ))}
+          {visible.map((opt) => {
+            const displayLabel = opt.label ?? opt.value;
+            return (
+              <li key={opt.value}>
+                <OptionRow
+                  label={displayLabel}
+                  triStateName={facetOptionTriStateName(definition, displayLabel)}
+                  count={opt.count}
+                  included={includeSet.has(opt.value)}
+                  excluded={excludeSet.has(opt.value)}
+                  allowExclude={definition.includeExclude}
+                  onCycle={() => onCycle(opt.value)}
+                />
+              </li>
+            );
+          })}
         </ul>
       </div>
       {showMoreLess === 'more' ? (
@@ -553,14 +557,22 @@ function OptionList({
   );
 }
 
-function triStateLabel(label: string, included: boolean, excluded: boolean): string {
-  if (included) return `Include ${label}`;
-  if (excluded) return `Exclude ${label}`;
-  return `Include ${label}`;
+function facetOptionTriStateName(definition: FacetDefinition, displayLabel: string): string {
+  if (definition.id === 'level' || definition.id === 'atk' || definition.id === 'def') {
+    return `${definition.label} ${displayLabel}`;
+  }
+  return displayLabel;
+}
+
+function triStateLabel(name: string, included: boolean, excluded: boolean): string {
+  if (included) return `Include ${name}`;
+  if (excluded) return `Exclude ${name}`;
+  return `Include ${name}`;
 }
 
 function OptionRow({
   label,
+  triStateName,
   count,
   included,
   excluded,
@@ -568,6 +580,7 @@ function OptionRow({
   onCycle,
 }: {
   label: string;
+  triStateName?: string;
   count: number;
   included: boolean;
   excluded: boolean;
@@ -575,7 +588,7 @@ function OptionRow({
   onCycle: () => void;
 }) {
   const ariaChecked = included ? true : excluded ? 'mixed' : false;
-  const ariaLabel = triStateLabel(label, included, excluded);
+  const ariaLabel = triStateLabel(triStateName ?? label, included, excluded);
 
   return (
     <button

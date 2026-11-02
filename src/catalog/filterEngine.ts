@@ -1,4 +1,5 @@
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { normalizeYugiohCardLevelRankLink } from '../shared/schema/normalizeMonsterLevelRankLink.ts';
 import {
   andInPlace,
   andPopcount,
@@ -99,11 +100,8 @@ function typeTokens(type: string): readonly string[] {
 }
 
 function levelFacetValues(card: YugiohCard): readonly string[] {
-  const out: string[] = [];
-  if (card.linkRating != null) out.push(`Link-${card.linkRating}`);
-  if (card.rank != null) out.push(`Rank-${card.rank}`);
-  if (card.level != null) out.push(`Level-${card.level}`);
-  return out;
+  const metric = cardLevelMetric(card);
+  return metric != null ? [String(metric)] : [];
 }
 
 function tcgBanStatus(card: YugiohCard): string {
@@ -225,7 +223,10 @@ export class FilterEngine {
     const definitions = facetDefinitionsForGame('yugioh');
     this.definitions = definitions;
 
-    const ordered = cards.slice().sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id);
+    const ordered = cards
+      .map(normalizeYugiohCardLevelRankLink)
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id);
     const count = ordered.length;
     const words = wordCount(count);
     this.count = count;
@@ -264,7 +265,12 @@ export class FilterEngine {
 
     this.fields = FIELD_INDEXERS.filter((indexer) => defById.has(indexer.id)).map((indexer) => {
       const table = tables.get(indexer.id) ?? new Map<string, Uint32Array>();
-      const values = [...table.keys()].sort();
+      const values = [...table.keys()].sort((a, b) => {
+        if (indexer.id === 'level') {
+          return Number(a) - Number(b) || a.localeCompare(b);
+        }
+        return a.localeCompare(b);
+      });
       return {
         id: indexer.id,
         definition: defById.get(indexer.id)!,
@@ -481,8 +487,10 @@ function levelMatches(card: YugiohCard, tokens: readonly string[]): boolean {
       if (numeric != null && numeric >= min && numeric <= max) return true;
       continue;
     }
-    if (/^\d+$/.test(token)) {
-      const n = Number(token);
+    const legacy = /^(?:Level|Rank|Link)-(\d+)$/.exec(token);
+    const plain = legacy ? legacy[1]! : token;
+    if (/^\d+$/.test(plain)) {
+      const n = Number(plain);
       if (card.level === n || card.rank === n || card.linkRating === n) return true;
       continue;
     }

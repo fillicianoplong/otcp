@@ -17,34 +17,16 @@ const sampleIndex: SetIndex = {
 };
 
 describe('facetOptionOrdering', () => {
-  it('orders level facet tokens by kind then numeric rank', () => {
-    const values = [
-      'Level-10',
-      'Level-2',
-      'Rank-4',
-      'Link-3',
-      'Level-0',
-      'Level-13',
-      'Rank-0',
-      'Link-1',
-    ];
+  it('orders level facet values numerically', () => {
+    const values = ['10', '2', '4', '0', '13', '1', '3'];
     const sorted = [...values].sort((a, b) => compareFacetOptionValues('level', a, b));
-    expect(sorted).toEqual([
-      'Level-0',
-      'Level-2',
-      'Level-10',
-      'Level-13',
-      'Rank-0',
-      'Rank-4',
-      'Link-1',
-      'Link-3',
-    ]);
+    expect(sorted).toEqual(['0', '1', '2', '3', '4', '10', '13']);
   });
 
-  it('formats level labels with a space instead of a hyphen', () => {
-    expect(formatFacetOptionLabel('level', 'Level-4')).toBe('Level 4');
-    expect(formatFacetOptionLabel('level', 'Rank-4')).toBe('Rank 4');
-    expect(formatFacetOptionLabel('level', 'Link-3')).toBe('Link 3');
+  it('formats level labels as plain numbers', () => {
+    expect(formatFacetOptionLabel('level', '4')).toBe('4');
+    expect(formatFacetOptionLabel('level', 'Rank-4')).toBe('4');
+    expect(formatFacetOptionLabel('level', 'Link-3')).toBe('3');
   });
 
   it('sorts stat buckets in ascending bucket order', () => {

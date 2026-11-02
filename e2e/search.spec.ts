@@ -34,7 +34,7 @@ test.describe('Search on Search page', () => {
     page,
   }) => {
     await page.goto('/otcp/search?view=grid');
-    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
     const searchRegion = page.getByRole('region', { name: 'Search' });
 
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -62,7 +62,7 @@ test.describe('Search on Search page', () => {
 
   test('returning from a card restores scroll position and loaded batches', async ({ page }) => {
     await page.goto('/otcp/search?view=grid');
-    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: 'Grid view' })).toHaveAttribute(
       'aria-pressed',
       'true',

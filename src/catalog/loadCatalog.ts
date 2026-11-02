@@ -2,6 +2,7 @@ import type { PublishedPointer } from '../../pipeline/pointer.ts';
 import { OTCP_DATASET_SCHEMA_VERSION } from '../shared/schema/constants.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
+import { normalizeYugiohCardLevelRankLink } from '../shared/schema/normalizeMonsterLevelRankLink.ts';
 import { validateDatasetEnvelope } from '../shared/schema/validate.ts';
 import { CURRENT_POINTER_URL, publicDataUrl } from './paths.ts';
 
@@ -67,7 +68,7 @@ export async function loadCardCatalog(fetchImpl: typeof fetch = fetch): Promise<
 
   return {
     status: 'ready',
-    cards: validated.data.cards,
+    cards: validated.data.cards.map(normalizeYugiohCardLevelRankLink),
     generatedAt: validated.data.generatedAt,
     ...(validated.data.setIndex ? { setIndex: validated.data.setIndex } : {}),
   };
