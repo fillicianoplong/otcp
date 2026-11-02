@@ -7,11 +7,13 @@ import {
 } from '../../src/catalog/cardDetailMarketPrices.ts';
 
 describe('cardDetailMarketPrices', () => {
-  it('uses the same lowest-across-printings subtitle on every store row', () => {
+  it('uses the lowest-across-printings subtitle on every store row', () => {
     expect(CARD_DETAIL_MARKET_PRICE_SUBTITLE).toBe('Lowest across printings');
-    for (const row of CARD_DETAIL_MARKET_PRICE_ROWS) {
-      expect(row.subtitle).toBe(CARD_DETAIL_MARKET_PRICE_SUBTITLE);
-    }
+    expect(CARD_DETAIL_MARKET_PRICE_ROWS.map((row) => row.label)).toEqual([
+      'TCGplayer',
+      'CoolStuffInc',
+      'Cardmarket',
+    ]);
   });
 
   it('returns null for missing or zero prices', () => {

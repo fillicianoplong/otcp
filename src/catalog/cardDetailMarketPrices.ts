@@ -6,7 +6,6 @@ export type CardDetailMarketPriceRow = {
   label: string;
   key: StoreKey;
   currency: StorePriceCurrency;
-  subtitle: string;
 };
 
 /** YGOPRODeck card_prices are the lowest price across all printings per vendor field. */
@@ -17,19 +16,16 @@ export const CARD_DETAIL_MARKET_PRICE_ROWS: CardDetailMarketPriceRow[] = [
     label: 'TCGplayer',
     key: 'tcgplayer',
     currency: 'USD',
-    subtitle: CARD_DETAIL_MARKET_PRICE_SUBTITLE,
   },
   {
     label: 'CoolStuffInc',
     key: 'coolstuffinc',
     currency: 'USD',
-    subtitle: CARD_DETAIL_MARKET_PRICE_SUBTITLE,
   },
   {
     label: 'Cardmarket',
     key: 'cardmarket',
     currency: 'EUR',
-    subtitle: CARD_DETAIL_MARKET_PRICE_SUBTITLE,
   },
 ];
 

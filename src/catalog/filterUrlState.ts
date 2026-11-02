@@ -1,8 +1,9 @@
 import { formatFacetRangeChipLabel } from './facetRangeLabels.ts';
 import { formatFacetOptionLabel } from './facetOptionOrdering.ts';
-import { facetDefinitionById, facetDisplayLabel, type FacetFieldId } from './facets.ts';
+import { facetDefinitionById, type FacetFieldId } from './facets.ts';
 import {
   emptyFilterState,
+  normalizeFilterState,
   parseFilterState,
   serializeFilterState,
   type FilterState,
@@ -26,7 +27,6 @@ function hasActiveFilterSelections(state: FilterState): boolean {
     return (
       (selection.include?.length ?? 0) > 0 ||
       (selection.exclude?.length ?? 0) > 0 ||
-      selection.mode === 'and' ||
       selection.range?.min != null ||
       selection.range?.max != null
     );
@@ -34,17 +34,19 @@ function hasActiveFilterSelections(state: FilterState): boolean {
 }
 
 export function writeFilterStateToParams(params: URLSearchParams, state: FilterState): void {
-  if (!hasActiveFilterSelections(state)) {
+  const normalized = normalizeFilterState(state);
+  if (!hasActiveFilterSelections(normalized)) {
     params.delete(FILTER_QUERY_KEY);
     return;
   }
-  params.set(FILTER_QUERY_KEY, serializeFilterState(state));
+  params.set(FILTER_QUERY_KEY, serializeFilterState(normalized));
 }
 
 /** Stable string for scroll-restore and grid remount keys. Empty when no filters apply. */
 export function filterStateSignature(state: FilterState): string {
-  if (!hasActiveFilterSelections(state)) return '';
-  return serializeFilterState(state);
+  const normalized = normalizeFilterState(state);
+  if (!hasActiveFilterSelections(normalized)) return '';
+  return serializeFilterState(normalized);
 }
 
 export function countActiveFacetSelections(state: FilterState): number {
@@ -74,7 +76,6 @@ export function filterStateToChips(state: FilterState): FilterChip[] {
   ][]) {
     if (!selection) continue;
     const def = facetDefinitionById(fieldId);
-    const fieldLabel = def ? facetDisplayLabel(def) : fieldId;
     for (const value of selection.include ?? []) {
       chips.push({
         id: `${fieldId}:include:${value}`,
@@ -99,14 +100,6 @@ export function filterStateToChips(state: FilterState): FilterChip[] {
         fieldId,
         kind: 'range',
         label: formatFacetRangeChipLabel(fieldId, selection.range),
-      });
-    }
-    if (selection.mode === 'and' && def?.allowAndOr) {
-      chips.push({
-        id: `${fieldId}:mode:and`,
-        fieldId,
-        kind: 'mode',
-        label: `${fieldLabel}: match all`,
       });
     }
   }
