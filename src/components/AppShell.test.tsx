@@ -8,6 +8,7 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CardCatalogProvider } from '../catalog';
 import { clearCardCatalogCache } from '../catalog/loadCatalog.ts';
+import { AuthProvider } from '../shared/auth';
 import { AppShell } from './AppShell';
 import { PRIMARY_NAV } from '../nav';
 import { SearchPage } from '../pages/SearchPage';
@@ -15,19 +16,21 @@ import { SearchPage } from '../pages/SearchPage';
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <CardCatalogProvider>
-        <Routes>
-          <Route element={<AppShell />}>
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/formats" element={<h1>Formats</h1>} />
-            <Route path="/decks" element={<h1>Decks</h1>} />
-            <Route path="/collection" element={<h1>Collection</h1>} />
-            <Route path="/lists" element={<h1>Lists</h1>} />
-            <Route path="/about" element={<h1>About</h1>} />
-            <Route path="/account" element={<h1>Account</h1>} />
-          </Route>
-        </Routes>
-      </CardCatalogProvider>
+      <AuthProvider>
+        <CardCatalogProvider>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/formats" element={<h1>Formats</h1>} />
+              <Route path="/decks" element={<h1>Decks</h1>} />
+              <Route path="/collection" element={<h1>Collection</h1>} />
+              <Route path="/lists" element={<h1>Lists</h1>} />
+              <Route path="/about" element={<h1>About</h1>} />
+              <Route path="/account" element={<h1>Account</h1>} />
+            </Route>
+          </Routes>
+        </CardCatalogProvider>
+      </AuthProvider>
     </MemoryRouter>,
   );
 }
