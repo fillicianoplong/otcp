@@ -1,5 +1,6 @@
 import type { FacetFieldId } from './facets.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
+import { lookupSetIndexEntry } from '../shared/schema/setIndexLookup.ts';
 
 const STAT_BUCKET_ORDER = ['?', '0', '1-1000', '1001-2000', '2001-3000', '3001+'] as const;
 
@@ -18,7 +19,7 @@ function setReleaseSortKey(
   setName: string,
   setIndex: SetIndex | null | undefined,
 ): { dated: boolean; time: number; name: string } {
-  const entry = setIndex?.[setName];
+  const entry = lookupSetIndexEntry(setIndex, setName);
   const raw = entry?.tcgDate?.trim();
   if (raw) {
     const time = Date.parse(raw);

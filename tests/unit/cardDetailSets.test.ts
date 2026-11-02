@@ -49,6 +49,15 @@ describe('cardDetailSets printing helpers', () => {
     expect(cardDetailSetRowReleaseDate('Phantom Nightmare', setIndex)).toBe('Feb 9, 2024');
   });
 
+  it('matches setIndex entries when card printing set name differs only by case', () => {
+    const setIndex = {
+      "Yu-Gi-Oh! 5D's Tag Force 5 promotional cards": { tcgDate: '2010-10-26' },
+    };
+    expect(
+      cardDetailSetRowReleaseDate("Yu-Gi-Oh! 5D's Tag Force 5 Promotional Cards", setIndex),
+    ).toBe('Oct 26, 2010');
+  });
+
   it('omits the release date when setIndex has no tcgDate for that set', () => {
     const setIndex = {
       'Other Set': { tcgDate: '2024-02-09' },
