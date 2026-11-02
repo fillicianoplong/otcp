@@ -1,0 +1,22 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  CARD_DETAIL_MARKET_PRICE_ROWS,
+  CARD_DETAIL_MARKET_PRICE_SUBTITLE,
+  cardDetailMarketPriceDisplay,
+} from '../../src/catalog/cardDetailMarketPrices.ts';
+
+describe('cardDetailMarketPrices', () => {
+  it('uses the same lowest-across-printings subtitle on every store row', () => {
+    expect(CARD_DETAIL_MARKET_PRICE_SUBTITLE).toBe('Lowest across printings');
+    for (const row of CARD_DETAIL_MARKET_PRICE_ROWS) {
+      expect(row.subtitle).toBe(CARD_DETAIL_MARKET_PRICE_SUBTITLE);
+    }
+  });
+
+  it('returns null for missing or zero prices', () => {
+    expect(cardDetailMarketPriceDisplay(undefined, 'USD')).toBeNull();
+    expect(cardDetailMarketPriceDisplay(0, 'USD')).toBeNull();
+    expect(cardDetailMarketPriceDisplay(1.25, 'USD')).toBe('$1.25');
+  });
+});

@@ -111,6 +111,11 @@ export function mapYgoprodeckCard(card: YgoApiCard, publicBaseUrl: string): Yugi
     sets: mapSets(card),
   };
 
+  const pendDesc = normalizeText(card.pend_desc);
+  const monsterDesc = normalizeText(card.monster_desc);
+  if (pendDesc.length > 0) mapped.pendDesc = pendDesc;
+  if (monsterDesc.length > 0) mapped.monsterDesc = monsterDesc;
+
   const prices = mapPrices(card);
   if (prices) mapped.prices = prices;
 
