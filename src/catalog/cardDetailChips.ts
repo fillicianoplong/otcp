@@ -9,6 +9,9 @@ import {
   catalogTableLevelCell,
   catalogTableRaceOrPropertyCell,
 } from './catalogTableColumns.ts';
+import { FILTER_STATE_VERSION, type FilterState } from './filterEngine.ts';
+import { writeFilterStateToParams } from './filterUrlState.ts';
+import type { FacetFieldId } from './facets.ts';
 
 export type CardDetailChip = {
   label: string;
@@ -69,4 +72,88 @@ export function buildCardDetailChips(card: YugiohCard): CardDetailChip[] {
     chips.push({ label: field.labelFor(card), value });
   }
   return chips;
+}
+
+function buildFacetSearchHref(fieldId: FacetFieldId, value: string): string {
+  const state: FilterState = {
+    version: FILTER_STATE_VERSION,
+    facets: { [fieldId]: { include: [value] } },
+  };
+  const params = new URLSearchParams();
+  writeFilterStateToParams(params, state);
+  const query = params.toString();
+  return query.length > 0 ? `/search?${query}` : '/search';
+}
+
+function raceFacetValueForCard(card: YugiohCard): string | null {
+  if (card.type.startsWith('Quick-Play')) return 'Quick-Play';
+  const race = card.race?.trim();
+  return race && race.length > 0 ? race : null;
+}
+
+function levelFacetValueForChip(chip: CardDetailChip, card: YugiohCard): string | null {
+  const numeric = chip.value.trim();
+  if (!/^\d+$/.test(numeric)) return null;
+  if (chip.label === 'Link' && card.linkRating != null) {
+    return `Link-${card.linkRating}`;
+  }
+  if (chip.label === 'Rank' && card.rank != null) {
+    return `Rank-${card.rank}`;
+  }
+  if (chip.label === catalogTableColumnLabel('level') && card.level != null) {
+    return `Level-${card.level}`;
+  }
+  return null;
+}
+
+/** Maps a rendered detail chip to a single-facet Search URL, or null when not linkable. */
+export function buildCardDetailChipSearchHref(
+  chip: CardDetailChip,
+  card: YugiohCard,
+): string | null {
+  const attributeLabel = catalogTableColumnLabel('attribute');
+  const typeLabel = catalogTableColumnLabel('type');
+  const atkLabel = catalogTableColumnLabel('atk');
+  const defLabel = catalogTableColumnLabel('def');
+  const archetypeLabel = catalogTableColumnLabel('archetype');
+  const cardTypeLabel = catalogTableColumnLabel('cardType');
+
+  if (chip.label === atkLabel || chip.label === defLabel) {
+    return null;
+  }
+
+  if (chip.label === attributeLabel) {
+    const value = card.attribute?.trim();
+    return value ? buildFacetSearchHref('attribute', value) : null;
+  }
+
+  if (chip.label === typeLabel) {
+    const value = raceFacetValueForCard(card);
+    return value ? buildFacetSearchHref('race', value) : null;
+  }
+
+  if (
+    chip.label === 'Link' ||
+    chip.label === 'Rank' ||
+    chip.label === catalogTableColumnLabel('level')
+  ) {
+    const value = levelFacetValueForChip(chip, card);
+    return value ? buildFacetSearchHref('level', value) : null;
+  }
+
+  if (chip.label === archetypeLabel) {
+    const value = card.archetype?.trim();
+    return value ? buildFacetSearchHref('archetype', value) : null;
+  }
+
+  if (chip.label === cardTypeLabel) {
+    const value = card.type?.trim();
+    return value ? buildFacetSearchHref('cardType', value) : null;
+  }
+
+  return null;
+}
+
+export function cardDetailChipSearchAriaLabel(chip: CardDetailChip): string {
+  return `Search for cards with ${chip.label} ${chip.value}`;
 }

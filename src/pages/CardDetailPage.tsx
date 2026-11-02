@@ -2,7 +2,11 @@ import { useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import { cardDetailImageFallback, cardDetailImageSrc } from '../catalog/cardArtUrl.ts';
-import { buildCardDetailChips } from '../catalog/cardDetailChips.ts';
+import {
+  buildCardDetailChips,
+  buildCardDetailChipSearchHref,
+  cardDetailChipSearchAriaLabel,
+} from '../catalog/cardDetailChips.ts';
 import {
   resolveCardDetailChipIconPath,
   resolveYgoBanStatusIconPath,
@@ -119,23 +123,42 @@ function CardDetailBanStatus({
   );
 }
 
+const cardDetailChipFlexClassName = 'min-w-0 flex-[1_1_120px]';
+
+const cardDetailChipClassName = `${cardDetailChipFlexClassName} flex flex-col gap-0.5 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm`;
+
+const cardDetailLinkedChipClassName = `${cardDetailChipClassName} no-underline text-inherit transition-colors hover:border-border-strong hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong`;
+
 function CardDetailInfoChips({ card }: { card: YugiohCard }) {
   const chips = buildCardDetailChips(card);
   if (chips.length === 0) return null;
 
   return (
-    <dl className="flex flex-wrap gap-2" aria-label="Card stats">
+    <dl className="flex w-full flex-wrap gap-2" aria-label="Card stats">
       {chips.map((chip) => {
         const iconSrc = resolveCardDetailChipIconPath(chip.label, card);
-        return (
-          <div
-            key={`${chip.label}-${chip.value}`}
-            className="inline-flex min-w-0 max-w-full flex-col gap-0.5 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm"
-          >
+        const searchHref = buildCardDetailChipSearchHref(chip, card);
+        const className = searchHref ? cardDetailLinkedChipClassName : cardDetailChipClassName;
+        const content = (
+          <>
             <dt className="text-xs font-medium text-text-2">{chip.label}</dt>
             <dd className="font-medium text-heading">
               <YgoCardIcon src={iconSrc} label={chip.value} tier="detail" />
             </dd>
+          </>
+        );
+        return searchHref ? (
+          <Link
+            key={`${chip.label}-${chip.value}`}
+            to={searchHref}
+            className={className}
+            aria-label={cardDetailChipSearchAriaLabel(chip)}
+          >
+            {content}
+          </Link>
+        ) : (
+          <div key={`${chip.label}-${chip.value}`} className={className}>
+            {content}
           </div>
         );
       })}
