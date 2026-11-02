@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import { cardDetailImageFallback, cardDetailImageSrc } from '../catalog/cardArtUrl.ts';
@@ -339,6 +339,10 @@ export function CardDetailPage() {
   const cardId = Number.parseInt(idParam ?? '', 10);
   const searchQuery = searchParams.get('q');
   const formatParam = searchParams.get(FORMAT_QUERY_KEY);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [idParam]);
 
   if (state.status === 'loading') {
     return (
