@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
-import { facetDefinitionsForGame, type FacetDefinition, type FacetFieldId } from './facets.ts';
 import {
-  formatFacetOptionLabel,
-  sortFacetOptionsForDisplay,
-  type SetFacetSortMode,
-} from './facetOptionOrdering.ts';
+  facetDefinitionsForGame,
+  facetDisplayLabel,
+  type FacetDefinition,
+  type FacetFieldId,
+} from './facets.ts';
+import { formatFacetOptionLabel, sortFacetOptionsForDisplay } from './facetOptionOrdering.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type {
   FacetGroupCounts,
@@ -30,12 +31,6 @@ const LINK_ARROW_VALUES = [
 const FACET_OPTIONS_INITIAL = 10;
 const FACET_OPTIONS_PAGE = 20;
 const FACET_OPTIONS_MAX = 50;
-
-function facetCardTitle(definition: FacetDefinition): string {
-  const layerLabel = definition.layer === 'core' ? 'Core' : 'Yu-Gi-Oh';
-  const label = definition.id === 'cardType' ? 'Category' : definition.label.replace(' / type', '');
-  return `${layerLabel} · ${label}`;
-}
 
 function selectionForField(state: FilterState, fieldId: FacetFieldId) {
   return state.facets[fieldId];
@@ -180,8 +175,6 @@ type FacetFilterPanelProps = {
   onChange: (next: FilterStateUpdater) => void;
   className?: string;
   setIndex?: SetIndex | null;
-  setSortMode?: SetFacetSortMode;
-  onSetSortModeChange?: (mode: SetFacetSortMode) => void;
 };
 
 export function FacetFilterPanel({
@@ -191,8 +184,6 @@ export function FacetFilterPanel({
   onChange,
   className,
   setIndex,
-  setSortMode = 'newest',
-  onSetSortModeChange,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
   const countsByField = useMemo(() => {
@@ -236,15 +227,13 @@ export function FacetFilterPanel({
             <FacetFieldCard
               key={def.id}
               definition={def}
-              title={facetCardTitle(def)}
+              title={facetDisplayLabel(def)}
               collapsed={collapsed}
               onToggleCollapse={() => toggleField(def.id)}
               filterState={filterState}
               counts={countsByField.get(def.id)}
               onChange={onChange}
               setIndex={setIndex}
-              setSortMode={setSortMode}
-              onSetSortModeChange={onSetSortModeChange}
             />
           );
         })}
@@ -262,8 +251,6 @@ function FacetFieldCard({
   counts,
   onChange,
   setIndex,
-  setSortMode,
-  onSetSortModeChange,
 }: {
   definition: FacetDefinition;
   title: string;
@@ -273,50 +260,20 @@ function FacetFieldCard({
   counts: FacetGroupCounts | undefined;
   onChange: (next: FilterStateUpdater) => void;
   setIndex?: SetIndex | null;
-  setSortMode?: SetFacetSortMode;
-  onSetSortModeChange?: (mode: SetFacetSortMode) => void;
 }) {
-  const showSetSort = definition.id === 'set' && onSetSortModeChange != null && setSortMode != null;
-
   return (
-    <section className="overflow-hidden rounded-lg border border-border bg-surface">
-      <div className="flex min-h-10 items-center gap-2 bg-surface-2 px-3 py-2">
-        <button
-          type="button"
-          className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left text-sm font-medium text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
-          aria-expanded={!collapsed}
-          onClick={onToggleCollapse}
-        >
-          <span className="truncate">{title}</span>
-          <span aria-hidden="true" className="shrink-0 text-text-2">
-            {collapsed ? '▸' : '▾'}
-          </span>
-        </button>
-        {showSetSort ? (
-          <div
-            className="flex shrink-0 rounded-md border border-border text-xs"
-            role="group"
-            aria-label="Set sort order"
-          >
-            <button
-              type="button"
-              aria-pressed={setSortMode === 'newest'}
-              onClick={() => onSetSortModeChange('newest')}
-              className={`px-2 py-1 ${setSortMode === 'newest' ? 'bg-surface font-semibold text-heading' : 'text-text-2'}`}
-            >
-              Newest
-            </button>
-            <button
-              type="button"
-              aria-pressed={setSortMode === 'alpha'}
-              onClick={() => onSetSortModeChange('alpha')}
-              className={`px-2 py-1 ${setSortMode === 'alpha' ? 'bg-surface font-semibold text-heading' : 'text-text-2'}`}
-            >
-              A–Z
-            </button>
-          </div>
-        ) : null}
-      </div>
+    <section className="rounded-lg border border-border bg-surface">
+      <button
+        type="button"
+        className="flex min-h-10 w-full items-center justify-between gap-2 bg-surface-2 px-3 py-2 text-left text-sm font-medium text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
+        aria-expanded={!collapsed}
+        onClick={onToggleCollapse}
+      >
+        <span className="min-w-0 truncate">{title}</span>
+        <span aria-hidden="true" className="shrink-0 text-text-2">
+          {collapsed ? '▸' : '▾'}
+        </span>
+      </button>
       {!collapsed ? (
         <div className="px-3 py-3">
           <FacetFieldBlock
@@ -325,7 +282,6 @@ function FacetFieldCard({
             counts={counts}
             onChange={onChange}
             setIndex={setIndex}
-            setSortMode={setSortMode}
           />
         </div>
       ) : null}
@@ -339,14 +295,12 @@ function FacetFieldBlock({
   counts,
   onChange,
   setIndex,
-  setSortMode,
 }: {
   definition: FacetDefinition;
   filterState: FilterState;
   counts: FacetGroupCounts | undefined;
   onChange: (next: FilterStateUpdater) => void;
   setIndex?: SetIndex | null;
-  setSortMode?: SetFacetSortMode;
 }) {
   const selection = selectionForField(filterState, definition.id);
   const includeSet = new Set(selection?.include ?? []);
@@ -443,7 +397,7 @@ function FacetFieldBlock({
             : rangeBucketLabel(opt.value)
           : undefined,
     })),
-    definition.id === 'set' ? { setIndex, setSortMode: setSortMode ?? 'newest' } : undefined,
+    definition.id === 'set' ? { setIndex } : undefined,
   );
 
   const preserveOptionOrder =
@@ -560,8 +514,8 @@ function OptionList({
   const [query, setQuery] = useState('');
   const [visibleLimit, setVisibleLimit] = useState(FACET_OPTIONS_INITIAL);
   const needsPaging = options.length > FACET_OPTIONS_INITIAL;
-  const searchPlaceholder =
-    definition.id === 'set' ? 'Search within…' : `Search ${definition.label}…`;
+  const facetLabel = facetDisplayLabel(definition);
+  const searchPlaceholder = definition.id === 'set' ? 'Search within…' : `Search ${facetLabel}…`;
 
   const sortedOptions = useMemo(() => {
     if (preserveOptionOrder) return options;
@@ -591,7 +545,7 @@ function OptionList({
       {needsPaging ? (
         <>
           <label className="sr-only" htmlFor={`facet-search-${definition.id}`}>
-            Search {definition.label}
+            Search {facetLabel}
           </label>
           <input
             id={`facet-search-${definition.id}`}
@@ -724,8 +678,6 @@ type PhoneFiltersSheetProps = {
   draftGroupCounts: readonly FacetGroupCounts[];
   catalogFieldIds: readonly FacetFieldId[];
   setIndex?: SetIndex | null;
-  setSortMode?: SetFacetSortMode;
-  onSetSortModeChange?: (mode: SetFacetSortMode) => void;
 };
 
 export function PhoneFiltersSheet({
@@ -739,8 +691,6 @@ export function PhoneFiltersSheet({
   draftGroupCounts,
   catalogFieldIds,
   setIndex,
-  setSortMode,
-  onSetSortModeChange,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -796,8 +746,6 @@ export function PhoneFiltersSheet({
           catalogFieldIds={catalogFieldIds}
           onChange={onDraftChange}
           setIndex={setIndex}
-          setSortMode={setSortMode}
-          onSetSortModeChange={onSetSortModeChange}
         />
       </div>
       <footer className="border-t border-border p-4">

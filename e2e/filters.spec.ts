@@ -57,4 +57,22 @@ test.describe('Facet filters on Search page', () => {
         .getByRole('checkbox', { name: 'Include WIND', exact: true }),
     ).toHaveAttribute('aria-checked', 'true');
   });
+
+  test('lists set facet options newest first in the filter panel', async ({ page }) => {
+    await page.goto('/otcp/search');
+    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+
+    const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
+    const setHeading = sidebar.getByRole('button', { name: 'Set', exact: true });
+    if ((await setHeading.getAttribute('aria-expanded')) === 'false') {
+      await setHeading.click();
+    }
+
+    await expect(sidebar.getByRole('button', { name: 'Newest first' })).not.toBeVisible();
+    const setSection = setHeading.locator('xpath=ancestor::section[1]');
+    await expect(setSection.getByRole('checkbox').first()).toHaveAttribute(
+      'aria-label',
+      'Include Phantom Nightmare',
+    );
+  });
 });

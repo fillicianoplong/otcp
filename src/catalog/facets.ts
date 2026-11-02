@@ -183,3 +183,10 @@ export function facetDefinitionsForGame(game: 'yugioh'): readonly FacetDefinitio
 export function facetDefinitionById(id: FacetFieldId): FacetDefinition | undefined {
   return facetDefinitionsForGame('yugioh').find((def) => def.id === id);
 }
+
+/** Short facet name for panel headings, chips, and search-within labels (FR-60). */
+export function facetDisplayLabel(definition: FacetDefinition): string {
+  if (definition.id === 'cardType') return 'Category';
+  if (definition.id === 'set') return 'Set';
+  return definition.label.replace(' / type', '');
+}

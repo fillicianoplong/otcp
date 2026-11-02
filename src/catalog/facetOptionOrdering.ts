@@ -5,11 +5,8 @@ const STAT_BUCKET_ORDER = ['?', '0', '1-1000', '1001-2000', '2001-3000', '3001+'
 
 const LEVEL_KIND_ORDER: Record<string, number> = { Level: 0, Rank: 1, Link: 2 };
 
-export type SetFacetSortMode = 'newest' | 'alpha';
-
 export type FacetSortContext = {
   setIndex?: SetIndex | null;
-  setSortMode?: SetFacetSortMode;
 };
 
 function levelTokenParts(value: string): { kind: number; num: number } | null {
@@ -37,9 +34,8 @@ export function compareSetFacetOptionValues(
   a: string,
   b: string,
   setIndex: SetIndex | null | undefined,
-  mode: SetFacetSortMode,
 ): number {
-  const useReleaseOrder = mode === 'newest' && setIndex != null && Object.keys(setIndex).length > 0;
+  const useReleaseOrder = setIndex != null && Object.keys(setIndex).length > 0;
   if (!useReleaseOrder) {
     return a.localeCompare(b);
   }
@@ -103,9 +99,8 @@ export function sortFacetOptionsForDisplay(
   }));
 
   if (fieldId === 'set') {
-    const mode = context.setSortMode ?? 'newest';
     return withLabels.sort((a, b) => {
-      const bySet = compareSetFacetOptionValues(a.value, b.value, context.setIndex, mode);
+      const bySet = compareSetFacetOptionValues(a.value, b.value, context.setIndex);
       if (bySet !== 0) return bySet;
       return (a.label ?? a.value).localeCompare(b.label ?? b.value);
     });
