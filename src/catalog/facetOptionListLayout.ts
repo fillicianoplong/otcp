@@ -8,11 +8,7 @@ export const FACET_LONG_GROUP_OPTION_THRESHOLD = 12;
 
 export const FACET_OPTION_LIST_SCROLL_CAP_PX = 320;
 
-const ALWAYS_LONG_FACET_FIELD_IDS: ReadonlySet<FacetFieldId> = new Set([
-  'set',
-  'archetype',
-  'cardType',
-]);
+const ALWAYS_LONG_FACET_FIELD_IDS: ReadonlySet<FacetFieldId> = new Set(['set', 'archetype']);
 
 export function isLongFacetOptionList(fieldId: FacetFieldId, optionCount: number): boolean {
   if (ALWAYS_LONG_FACET_FIELD_IDS.has(fieldId)) return true;
