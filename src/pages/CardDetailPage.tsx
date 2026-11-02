@@ -63,7 +63,7 @@ function CardDetailArt({ card }: { card: YugiohCard }) {
         className="block w-full cursor-zoom-in rounded-md p-0 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
         aria-label={`View larger artwork for ${card.name}`}
       >
-        <div className="relative mx-auto aspect-[63/88] w-full max-w-full overflow-hidden rounded-md border border-border bg-surface-2 md:max-w-[435px]">
+        <div className="relative mx-auto aspect-[63/88] w-full max-w-full overflow-hidden rounded-md border border-border bg-surface-2 md:max-w-[435px] xl:max-w-[520px]">
           {artMissing ? (
             <span className="sr-only">Artwork unavailable for {card.name}</span>
           ) : (
@@ -382,7 +382,7 @@ export function CardDetailPage() {
     <div className="flex flex-col gap-6">
       <BackToSearchControl searchQuery={searchQuery} />
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
-        <div className="w-full shrink-0 md:sticky md:top-4 md:max-w-[435px] md:self-start">
+        <div className="w-full shrink-0 md:sticky md:top-4 md:max-w-[435px] md:self-start xl:max-w-[520px]">
           <CardDetailArt key={card.id} card={card} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-6">

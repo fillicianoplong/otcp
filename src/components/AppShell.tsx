@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
 import { PRIMARY_NAV } from '../nav';
+import { APP_SHELL_CONTENT_CLASS } from './appShellLayout.ts';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -67,7 +68,7 @@ export function AppShell() {
       </a>
 
       <header className="sticky top-0 z-40 border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
+        <div className={`${APP_SHELL_CONTENT_CLASS} flex items-center gap-3 py-2`}>
           <button
             ref={menuButtonRef}
             type="button"
@@ -98,12 +99,12 @@ export function AppShell() {
         ) : null}
       </header>
 
-      <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 p-4">
+      <main id="main-content" className={`${APP_SHELL_CONTENT_CLASS} flex-1 py-4`}>
         <Outlet />
       </main>
 
       <footer className="border-t border-border bg-surface">
-        <div className="mx-auto flex max-w-6xl px-4 py-3">
+        <div className={`${APP_SHELL_CONTENT_CLASS} flex py-3`}>
           <Link
             to="/notices"
             className="text-sm text-text underline decoration-border underline-offset-2 transition-colors hover:text-heading hover:decoration-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
