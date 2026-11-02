@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
+    "test": "vitest run && node --test scripts/clientBundleSecretScan.test.mjs",
     "test:e2e": "playwright test",
     "licenses": "node --test spikes/s04/scan-licenses.test.mjs && node spikes/s04/scan-licenses.mjs --check",
     "notices:generate": "node scripts/generate-notices.mjs",
