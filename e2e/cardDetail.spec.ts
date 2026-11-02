@@ -78,6 +78,35 @@ test.describe('Card detail prices', () => {
     await expect(typeChip.locator('img[src*="race-spellcaster"]')).toBeVisible();
   });
 
+  test('ATK chip opens Search with an exact ATK range filter', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/otcp/search/card/46986420');
+    await expect(page.getByRole('heading', { name: 'Dark Magician', level: 1 })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.getByRole('link', { name: 'Search for cards with ATK 2500' }).click();
+    await expect(page).toHaveURL(/\/otcp\/search\?.*f=/);
+    await expect(
+      page.getByRole('list', { name: 'Active filters' }).getByRole('button', { name: /ATK 2500/ }),
+    ).toBeVisible({ timeout: 15_000 });
+
+    await page.getByRole('button', { name: 'Table view' }).click();
+    const table = page.getByRole('table');
+    await expect(table).toBeVisible();
+    const rows = table.locator('tbody tr');
+    await expect(rows.first()).toBeVisible();
+    const rowCount = await rows.count();
+    expect(rowCount).toBeGreaterThan(0);
+    for (let index = 0; index < rowCount; index += 1) {
+      await expect(rows.nth(index)).toContainText('2500');
+    }
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
+    await expect(page.getByRole('heading', { name: 'Dark Magician', level: 1 })).toBeVisible();
+  });
+
   test('archetype chip opens Search with the archetype filter applied', async ({ page }) => {
     await page.goto('/otcp/search/card/46986420');
     await expect(page.getByRole('heading', { name: 'Dark Magician', level: 1 })).toBeVisible({
