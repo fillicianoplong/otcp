@@ -108,7 +108,7 @@ export const YUGIOH_FACET_DEFINITIONS: readonly FacetDefinition[] = [
     label: 'Monster card type',
     control: 'multi',
     includeExclude: true,
-    allowAndOr: true,
+    allowAndOr: false,
   },
   {
     id: 'attribute',

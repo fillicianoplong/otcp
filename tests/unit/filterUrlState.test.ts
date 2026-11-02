@@ -18,7 +18,13 @@ describe('filter URL state', () => {
         monsterFrame: { include: ['Effect'], mode: 'and' as const },
       },
     };
-    expect(roundTripFilterQueryParam(state)).toEqual(state);
+    expect(roundTripFilterQueryParam(state)).toEqual({
+      version: 1,
+      facets: {
+        attribute: { include: ['DARK'], exclude: ['LIGHT'] },
+        monsterFrame: { include: ['Effect'] },
+      },
+    });
   });
 
   it('round-trips custom facet ranges through URL search params', () => {

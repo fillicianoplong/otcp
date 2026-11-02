@@ -5,7 +5,6 @@ import {
   filledMask,
   forEachSetBit,
   orInPlace,
-  popcount,
   setBit,
   wordCount,
 } from '../search/bitset.ts';
@@ -179,7 +178,30 @@ export function serializeFilterState(state: FilterState): string {
 export function parseFilterState(raw: string): FilterState {
   const parsed: unknown = JSON.parse(raw);
   if (!isFilterState(parsed)) throw new Error('Invalid filter state');
-  return parsed;
+  return normalizeFilterState(parsed);
+}
+
+/** Drops legacy per-group AND mode; selections always combine with OR within a group. */
+export function normalizeFilterState(state: FilterState): FilterState {
+  const facets: FilterState['facets'] = {};
+  for (const [fieldId, selection] of Object.entries(state.facets) as [
+    FacetFieldId,
+    FilterState['facets'][FacetFieldId],
+  ][]) {
+    if (!selection) continue;
+    const next: FacetValueSelection = {
+      include: selection.include ? [...selection.include] : undefined,
+      exclude: selection.exclude ? [...selection.exclude] : undefined,
+      range: selection.range ? { ...selection.range } : undefined,
+    };
+    const hasInclude = (next.include?.length ?? 0) > 0;
+    const hasExclude = (next.exclude?.length ?? 0) > 0;
+    const hasRange = next.range?.min != null || next.range?.max != null;
+    if (hasInclude || hasExclude || hasRange) {
+      facets[fieldId] = next;
+    }
+  }
+  return { version: state.version, facets };
 }
 
 /**
@@ -259,7 +281,8 @@ export class FilterEngine {
 
   /** Apply facet selections, optionally intersecting a search id list. */
   apply(state: FilterState, options: FilterApplyOptions = {}): FilterApplyResult {
-    this.computeMask(state, this.shownMask, undefined, options);
+    const normalized = normalizeFilterState(state);
+    this.computeMask(normalized, this.shownMask, undefined, options);
     const ids: number[] = [];
     forEachSetBit(this.shownMask, this.count, (row) => {
       ids.push(this.ids[row]);
@@ -268,31 +291,18 @@ export class FilterEngine {
   }
 
   /**
-   * Live option counts (FR-57). OR facets ignore their own selections; AND (and link
-   * arrows) count how many results remain if an option were also required.
+   * Live option counts (FR-57). Each group ignores its own selections; options OR within a group.
    */
   recount(state: FilterState, options: FilterApplyOptions = {}): FacetGroupCounts[] {
+    const normalized = normalizeFilterState(state);
     this.fillBaseMask(options.searchIds);
     const out: FacetGroupCounts[] = [];
     for (const field of this.fields) {
-      const selection = state.facets[field.id];
-      const mode = selection?.mode ?? 'or';
-      const andIncludes = mode === 'and' && (selection?.include?.length ?? 0) > 0;
       const optionsForField: FacetOptionCount[] = [];
       for (let i = 0; i < field.bitsets.length; i++) {
         const value = field.values[i];
-        let count: number;
-        const linkAndIncludes =
-          field.id === 'linkMarker' && mode === 'and' && (selection?.include?.length ?? 0) > 0;
-        if (linkAndIncludes) {
-          count = this.apply(this.simulateInclude(state, field.id, value), options).count;
-        } else if (andIncludes) {
-          this.computeMask(state, this.scratch, undefined, options);
-          count = andPopcount(this.scratch, field.bitsets[i]);
-        } else {
-          this.computeMask(state, this.scratch, field.id, options);
-          count = andPopcount(this.scratch, field.bitsets[i]);
-        }
+        this.computeMask(normalized, this.scratch, field.id, options);
+        const count = andPopcount(this.scratch, field.bitsets[i]);
         optionsForField.push({ value, count });
       }
       out.push({ fieldId: field.id, options: optionsForField });
@@ -308,24 +318,6 @@ export class FilterEngine {
       if (!ids.includes(id)) ids.push(id);
     }
     return ids;
-  }
-
-  private simulateInclude(state: FilterState, fieldId: FacetFieldId, value: string): FilterState {
-    const selection = state.facets[fieldId];
-    const include = new Set(selection?.include ?? []);
-    include.add(value);
-    return {
-      version: state.version,
-      facets: {
-        ...state.facets,
-        [fieldId]: {
-          include: [...include],
-          exclude: selection?.exclude ? [...selection.exclude] : undefined,
-          mode: selection?.mode,
-          range: selection?.range ? { ...selection.range } : undefined,
-        },
-      },
-    };
   }
 
   optionCount(groups: readonly FacetGroupCounts[], fieldId: FacetFieldId, value: string): number {
@@ -375,40 +367,28 @@ export class FilterEngine {
       field.excludeOn = false;
       if (!selection) continue;
 
-      const mode: FacetMatchMode = selection.mode ?? 'or';
-
       if (field.id === 'price') {
         continue;
       }
 
       if (selection.include && selection.include.length > 0) {
-        if (field.id === 'linkMarker') {
-          continue;
-        }
-        if (field.id === 'monsterFrame' && mode === 'and') {
-          this.buildFrameAndMask(selection.include, field.unionScratch);
-          field.unionOn = popcount(field.unionScratch) > 0;
-        } else {
-          let started = false;
-          for (const value of selection.include) {
-            if (field.id === 'monsterFrame') {
-              started = this.orFrameKeyword(field, value, started);
-              continue;
-            }
-            const index = field.valueIndex.get(value);
-            if (index === undefined) continue;
-            const bits = field.bitsets[index];
-            if (!started) {
-              field.unionScratch.set(bits);
-              started = true;
-            } else if (mode === 'and') {
-              andInPlace(field.unionScratch, bits);
-            } else {
-              orInPlace(field.unionScratch, bits);
-            }
+        let started = false;
+        for (const value of selection.include) {
+          if (field.id === 'monsterFrame') {
+            started = this.orFrameKeyword(field, value, started);
+            continue;
           }
-          field.unionOn = started;
+          const index = field.valueIndex.get(value);
+          if (index === undefined) continue;
+          const bits = field.bitsets[index];
+          if (!started) {
+            field.unionScratch.set(bits);
+            started = true;
+          } else {
+            orInPlace(field.unionScratch, bits);
+          }
         }
+        field.unionOn = started;
       }
 
       if (selection.exclude && selection.exclude.length > 0) {
@@ -458,19 +438,7 @@ export class FilterEngine {
     else orInPlace(target, scratch);
   }
 
-  private buildFrameAndMask(keywords: readonly string[], out: Uint32Array): void {
-    out.set(this.all);
-    const scratch = this.scratch;
-    for (const keyword of keywords) {
-      scratch.fill(0);
-      for (let row = 0; row < this.count; row++) {
-        if (typeTokens(this.cardsByRow[row].type).includes(keyword)) setBit(scratch, row);
-      }
-      andInPlace(out, scratch);
-    }
-  }
-
-  /** Range tokens and link-marker includes that are not single inverted bitsets. */
+  /** Range tokens and level bucket includes that are not single inverted bitsets. */
   private applyDynamicPredicates(
     state: FilterState,
     mask: Uint32Array,
@@ -492,17 +460,6 @@ export class FilterEngine {
       if (levelSel && levelSel.length > 0) {
         forEachSetBit(mask, this.count, (row) => {
           if (!levelMatches(this.cardsByRow[row], levelSel)) this.clearRow(mask, row);
-        });
-      }
-    }
-
-    if (skipFieldId !== 'linkMarker') {
-      const linkSel = state.facets.linkMarker?.include;
-      if (linkSel && linkSel.length > 0) {
-        forEachSetBit(mask, this.count, (row) => {
-          const markers = this.cardsByRow[row].linkMarkers ?? [];
-          const ok = linkSel.every((arrow) => markers.includes(arrow));
-          if (!ok) this.clearRow(mask, row);
         });
       }
     }

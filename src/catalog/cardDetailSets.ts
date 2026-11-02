@@ -70,23 +70,19 @@ export function formatCardDetailSetReleaseDate(tcgDate: string): string | null {
   return setReleaseDateFormatter.format(new Date(time));
 }
 
-export function cardDetailSetRowSubtitle(
-  setCode: string,
-  setRarity: string,
-  setName?: string,
+export function cardDetailSetRowCodeRarity(setCode: string, setRarity: string): string {
+  return `${setCode} · ${setRarity}`;
+}
+
+export function cardDetailSetRowReleaseDate(
+  setName: string,
   setIndex?: SetIndex | null,
-): string {
-  const parts = [`${setCode} · ${setRarity}`];
-  if (setName != null) {
-    const tcgDate = tcgDateForSetName(setName, setIndex);
-    if (tcgDate != null) {
-      const formatted = formatCardDetailSetReleaseDate(tcgDate);
-      if (formatted != null) {
-        parts.push(formatted);
-      }
-    }
+): string | null {
+  const tcgDate = tcgDateForSetName(setName, setIndex);
+  if (tcgDate == null) {
+    return null;
   }
-  return parts.join(' · ');
+  return formatCardDetailSetReleaseDate(tcgDate);
 }
 
 export function buildCardDetailSetSearchHref(setName: string): string {
