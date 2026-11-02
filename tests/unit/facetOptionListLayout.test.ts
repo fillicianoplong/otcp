@@ -11,10 +11,14 @@ import {
 } from '../../src/catalog/facetOptionListLayout.ts';
 
 describe('isLongFacetOptionList', () => {
-  it('treats set, archetype, and category as long regardless of count', () => {
+  it('treats set and archetype as long regardless of count', () => {
     expect(isLongFacetOptionList('set', 3)).toBe(true);
     expect(isLongFacetOptionList('archetype', 1)).toBe(true);
-    expect(isLongFacetOptionList('cardType', 7)).toBe(true);
+  });
+
+  it('uses the option threshold for category (cardType)', () => {
+    expect(isLongFacetOptionList('cardType', FACET_LONG_GROUP_OPTION_THRESHOLD - 1)).toBe(false);
+    expect(isLongFacetOptionList('cardType', FACET_LONG_GROUP_OPTION_THRESHOLD)).toBe(true);
   });
 
   it('uses the option threshold for other fields', () => {
@@ -50,6 +54,12 @@ describe('facetOptionListUsesInnerScroll', () => {
   it('scrolls long groups only when expanded', () => {
     expect(facetOptionListUsesInnerScroll(true, false)).toBe(false);
     expect(facetOptionListUsesInnerScroll(true, true)).toBe(true);
+  });
+
+  it('does not cap expanded category when option count is below the long threshold', () => {
+    const shortCategory = isLongFacetOptionList('cardType', FACET_LONG_GROUP_OPTION_THRESHOLD - 1);
+    expect(shortCategory).toBe(false);
+    expect(facetOptionListUsesInnerScroll(shortCategory, true)).toBe(false);
   });
 });
 
