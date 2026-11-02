@@ -19,10 +19,10 @@ export const CARD_IMAGE_VIEWER_STAGE_PADDING_CLASS = 'p-4 md:p-12';
 /** Actual-size stage: at least fills the scrollport so narrow art can center with auto margins. */
 export const CARD_IMAGE_VIEWER_ACTUAL_STAGE_CLASS = `box-border flex min-h-full min-w-full items-center ${CARD_IMAGE_VIEWER_STAGE_PADDING_CLASS}`;
 
-/** Fit mode stage fills the viewport-sized scroll area so child max sizes resolve. */
-export const CARD_IMAGE_VIEWER_FIT_STAGE_CLASS = `box-border flex h-full w-full min-h-0 items-center justify-center ${CARD_IMAGE_VIEWER_STAGE_PADDING_CLASS}`;
+/** Fit mode stage: fixed to the dynamic viewport so fit max sizes resolve. */
+export const CARD_IMAGE_VIEWER_FIT_STAGE_CLASS = `box-border flex h-dvh max-h-dvh w-full min-h-0 items-center justify-center ${CARD_IMAGE_VIEWER_STAGE_PADDING_CLASS}`;
 
-/** Viewport-bounded fit image (16px margin mobile, 48px desktop). */
+/** Fit image: viewport minus stage padding (16px mobile, 48px desktop per side). */
 export const CARD_IMAGE_VIEWER_FIT_IMAGE_CLASS =
   'mx-auto block max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] object-contain md:max-h-[calc(100dvh-6rem)] md:max-w-[calc(100vw-6rem)]';
 
@@ -200,7 +200,7 @@ export function CardImageZoomViewer({ src, alt, onClose, triggerRef }: CardImage
       <div
         ref={scrollRef}
         className={[
-          'absolute inset-0 touch-none',
+          'absolute inset-0 h-dvh max-h-dvh w-full touch-none',
           mode === 'actual'
             ? 'cursor-grab overflow-auto active:cursor-grabbing'
             : 'overflow-hidden',

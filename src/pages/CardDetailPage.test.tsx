@@ -8,6 +8,7 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import sampleDevDataset from '../../public/data/datasets/sample-dev.json';
+import { YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
 import { OTCP_DATASET_SCHEMA_VERSION } from '../shared/schema/constants.ts';
 import { CardCatalogProvider } from '../catalog/CardCatalogProvider.tsx';
 import { clearCardCatalogCache } from '../catalog/loadCatalog.ts';
@@ -63,6 +64,20 @@ afterEach(() => {
 describe('CardDetailPage artwork', () => {
   beforeEach(() => {
     mockCatalogFetch();
+  });
+
+  it('frames card art at the published image aspect ratio', async () => {
+    renderDetail(46986420);
+
+    const trigger = await screen.findByRole('button', {
+      name: 'View larger artwork for Dark Magician',
+    });
+    const frame = trigger.firstElementChild;
+    expect(frame?.className).toContain(YGO_CARD_ART_ASPECT_CLASS);
+    expect(frame?.className).not.toContain('aspect-[63/88]');
+
+    const img = trigger.querySelector('img');
+    expect(img?.className).toContain('object-contain');
   });
 
   it('opens and closes the zoom viewer from the card trigger with keyboard', async () => {
