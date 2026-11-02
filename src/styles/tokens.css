@@ -45,6 +45,10 @@
   --touch-min: 44px;
   --motion-fast: 120ms;
   --motion-normal: 200ms;
+
+  --scrollbar-thumb: color-mix(in srgb, var(--color-border-strong) 40%, transparent);
+  --scrollbar-thumb-hover: color-mix(in srgb, var(--color-border-strong) 72%, transparent);
+  --scrollbar-thumb-active: color-mix(in srgb, var(--color-border-strong) 88%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

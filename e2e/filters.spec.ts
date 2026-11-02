@@ -75,4 +75,30 @@ test.describe('Facet filters on Search page', () => {
       'Include Phantom Nightmare',
     );
   });
+
+  test('short facet groups avoid inner scroll and expand with Show more', async ({ page }) => {
+    await page.goto('/otcp/search');
+    await expect(page.getByText('22 cards')).toBeVisible({ timeout: 15_000 });
+
+    const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
+    const frameHeading = sidebar.getByRole('button', { name: 'Monster card type', exact: true });
+    if ((await frameHeading.getAttribute('aria-expanded')) === 'false') {
+      await frameHeading.click();
+    }
+
+    const optionList = sidebar.locator('[data-facet-options="monsterFrame"]');
+    await expect(optionList).toHaveCount(1);
+    const overflowBefore = await optionList.evaluate((el) => getComputedStyle(el).overflowY);
+    expect(overflowBefore).not.toBe('auto');
+    expect(overflowBefore).not.toBe('scroll');
+
+    const frameSection = frameHeading.locator('xpath=ancestor::section[1]');
+    await expect(frameSection.getByRole('checkbox')).toHaveCount(8);
+    await frameSection.getByRole('button', { name: 'Show more' }).click();
+    await expect(frameSection.getByRole('checkbox')).toHaveCount(9);
+
+    const overflowAfterExpand = await optionList.evaluate((el) => getComputedStyle(el).overflowY);
+    expect(overflowAfterExpand).not.toBe('auto');
+    expect(overflowAfterExpand).not.toBe('scroll');
+  });
 });
