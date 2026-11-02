@@ -15,8 +15,9 @@ import {
 import { FORMAT_QUERY_KEY } from '../catalog/formatBanContext.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
+import { getCatalogDerived } from '../catalog/catalogDerived.ts';
+import { queryCatalog } from '../catalog/catalogQueryCache.ts';
 import {
-  buildFilterEngine,
   emptyFilterState,
   resolveFilterStateUpdater,
   type FilterState,
@@ -42,8 +43,6 @@ import {
 } from '../catalog/catalogTableSort.ts';
 import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { buildSearchIndex } from '../search/index.ts';
-
 const SEARCH_DEBOUNCE_MS = 180;
 
 export function SearchPage() {
@@ -88,47 +87,37 @@ export function SearchPage() {
 
   const trimmedQuery = debouncedQuery.trim();
 
-  const searchIndex = useMemo(() => {
+  const catalogDerived = useMemo(() => {
     if (catalogState.status !== 'ready') return null;
-    return buildSearchIndex(catalogState.cards);
+    return getCatalogDerived(catalogState.cards);
   }, [catalogState]);
-
-  const filterEngine = useMemo(() => {
-    if (catalogState.status !== 'ready') return null;
-    return buildFilterEngine(catalogState.cards);
-  }, [catalogState]);
-
-  const searchIds = useMemo(() => {
-    if (!trimmedQuery || !searchIndex) return undefined;
-    return searchIndex.query(trimmedQuery).ids;
-  }, [searchIndex, trimmedQuery]);
-
-  const searchApplyOptions = useMemo(() => (searchIds ? { searchIds } : {}), [searchIds]);
 
   const catalogFieldIds = useMemo(() => {
-    if (!filterEngine) return [];
-    return filterEngine.fieldsWithCatalog();
-  }, [filterEngine]);
+    if (!catalogDerived) return [];
+    return catalogDerived.filterEngine.fieldsWithCatalog();
+  }, [catalogDerived]);
 
   const facetGroupCounts = useMemo(() => {
-    if (!filterEngine) return [];
-    return filterEngine.recount(filterState, searchApplyOptions);
-  }, [filterEngine, filterState, searchApplyOptions]);
+    if (!catalogDerived) return [];
+    return queryCatalog(catalogDerived, { filterState, query: trimmedQuery }).facetGroupCounts;
+  }, [catalogDerived, filterState, trimmedQuery]);
 
   const draftFacetGroupCounts = useMemo(() => {
-    if (!filterEngine) return [];
-    return filterEngine.recount(phoneDraft, searchApplyOptions);
-  }, [filterEngine, phoneDraft, searchApplyOptions]);
+    if (!catalogDerived) return [];
+    return queryCatalog(catalogDerived, { filterState: phoneDraft, query: trimmedQuery })
+      .facetGroupCounts;
+  }, [catalogDerived, phoneDraft, trimmedQuery]);
 
   const draftMatchCount = useMemo(() => {
-    if (!filterEngine) return 0;
-    return filterEngine.apply(phoneDraft, searchApplyOptions).count;
-  }, [filterEngine, phoneDraft, searchApplyOptions]);
+    if (!catalogDerived) return 0;
+    return queryCatalog(catalogDerived, { filterState: phoneDraft, query: trimmedQuery })
+      .matchCount;
+  }, [catalogDerived, phoneDraft, trimmedQuery]);
 
   const matchCount = useMemo(() => {
-    if (!filterEngine) return 0;
-    return filterEngine.apply(filterState, searchApplyOptions).count;
-  }, [filterEngine, filterState, searchApplyOptions]);
+    if (!catalogDerived) return 0;
+    return queryCatalog(catalogDerived, { filterState, query: trimmedQuery }).matchCount;
+  }, [catalogDerived, filterState, trimmedQuery]);
 
   const activeFilterCount = countActiveFacetSelections(filterState);
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
@@ -210,7 +199,7 @@ export function SearchPage() {
       </label>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
-        {filterEngine ? (
+        {catalogDerived ? (
           <aside aria-label="Filter sidebar" className="hidden w-72 shrink-0 lg:block">
             <div className="sticky top-[calc(var(--touch-min)+1rem)] max-h-[calc(100dvh-6rem)] overflow-y-auto pr-1">
               <FacetFilterPanel
@@ -273,7 +262,7 @@ export function SearchPage() {
         </div>
       </div>
 
-      {filterEngine ? (
+      {catalogDerived ? (
         <PhoneFiltersSheet
           open={phoneFiltersOpen}
           onClose={() => setPhoneFiltersOpen(false)}

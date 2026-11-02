@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 
-import { buildSearchIndex } from '../search/index.ts';
+import { getCatalogDerived } from './catalogDerived.ts';
+import { queryCatalog } from './catalogQueryCache.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
-import { buildFilterEngine, emptyFilterState, type FilterState } from './filterEngine.ts';
+import { emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
 import { CATALOG_GRID_CLASS } from './catalogGridLayout.ts';
 import {
@@ -26,11 +27,7 @@ import {
   DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
   type CatalogTableColumnVisibility,
 } from './catalogTableColumns.ts';
-import {
-  DEFAULT_CATALOG_TABLE_SORT,
-  sortCatalogTableRows,
-  type CatalogTableSortState,
-} from './catalogTableSort.ts';
+import { DEFAULT_CATALOG_TABLE_SORT, type CatalogTableSortState } from './catalogTableSort.ts';
 import { resolveCardBanForFormat } from './formatBanContext.ts';
 import { formatCardCount } from './formatCardCount.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
@@ -316,40 +313,28 @@ export function CardCatalogView({
     );
   }, [filtersKey, location, navigate, trimmedQuery]);
 
-  const searchIndex = useMemo(() => {
+  const catalogDerived = useMemo(() => {
     if (state.status !== 'ready') return null;
-    return buildSearchIndex(state.cards);
+    return getCatalogDerived(state.cards);
   }, [state]);
-
-  const filterEngine = useMemo(() => {
-    if (state.status !== 'ready') return null;
-    return buildFilterEngine(state.cards);
-  }, [state]);
-
-  const { visibleCards, matchCount } = useMemo(() => {
-    if (state.status !== 'ready') {
-      return { visibleCards: [] as YugiohCard[], matchCount: 0 };
-    }
-    let searchIds: number[] | undefined;
-    if (trimmedQuery && searchIndex) {
-      searchIds = searchIndex.query(trimmedQuery).ids;
-    }
-    const filtered = filterEngine
-      ? filterEngine.apply(filterState, searchIds ? { searchIds } : {})
-      : { ids: state.cards.map((c) => c.id), count: state.cards.length };
-    const byId = new Map(state.cards.map((card) => [card.id, card]));
-    const visibleCards = filtered.ids
-      .map((id) => byId.get(id))
-      .filter((card): card is YugiohCard => card !== undefined);
-    return { visibleCards, matchCount: filtered.count };
-  }, [filterEngine, filterState, searchIndex, state, trimmedQuery]);
 
   const resolvedViewMode = effectiveCatalogViewMode(viewMode, { tableAvailable });
 
-  const tableCards = useMemo(() => {
-    if (resolvedViewMode !== 'table') return visibleCards;
-    return sortCatalogTableRows(visibleCards, tableSort, formatParam);
-  }, [formatParam, resolvedViewMode, tableSort, visibleCards]);
+  const queryResult = useMemo(() => {
+    if (!catalogDerived) {
+      return { visibleCards: [] as YugiohCard[], matchCount: 0 };
+    }
+    const result = queryCatalog(catalogDerived, {
+      filterState,
+      query: trimmedQuery,
+      ...(resolvedViewMode === 'table' ? { tableSort, formatParam: formatParam ?? null } : {}),
+    });
+    return { visibleCards: result.visibleCards, matchCount: result.matchCount };
+  }, [catalogDerived, filterState, formatParam, resolvedViewMode, tableSort, trimmedQuery]);
+
+  const { visibleCards, matchCount } = queryResult;
+
+  const tableCards = visibleCards;
 
   const handleTableSortChange = (next: CatalogTableSortState) => {
     onTableSortChange?.(next);
