@@ -9,6 +9,11 @@ type NoticeDependency = {
 
 const dependencies = notices.dependencies as NoticeDependency[];
 
+const YGOPRODECK_API_GUIDE_URL = 'https://ygoprodeck.com/api-guide/';
+
+const externalLinkClassName =
+  'text-heading underline decoration-border underline-offset-2 hover:decoration-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
+
 export function AboutPage() {
   return (
     <div className="space-y-8">
@@ -53,10 +58,7 @@ export function AboutPage() {
                   <td className="px-3 py-2">{dep.version}</td>
                   <td className="px-3 py-2">{dep.license}</td>
                   <td className="px-3 py-2">
-                    <a
-                      href={dep.link}
-                      className="text-heading underline decoration-border underline-offset-2 hover:decoration-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-                    >
+                    <a href={dep.link} className={externalLinkClassName}>
                       {dep.name}
                     </a>
                   </td>
@@ -71,7 +73,22 @@ export function AboutPage() {
         <h2 id="about-notices-card-data-heading" className="text-lg font-semibold text-heading">
           Card data and images
         </h2>
-        <p className="text-base text-text">Attribution to be added.</p>
+        <p className="text-base text-text">
+          Card data, market prices, and set information come from{' '}
+          <a
+            href={YGOPRODECK_API_GUIDE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={externalLinkClassName}
+          >
+            YGOPRODeck
+          </a>
+          . Card images are from YGOPRODeck too; this site re-hosts them so pages load faster.
+        </p>
+        <p className="text-base text-text">
+          Yu-Gi-Oh! card names, text, and artwork are owned by Konami. OTCP is an unofficial fan
+          project and is not affiliated with or endorsed by Konami or YGOPRODeck.
+        </p>
       </section>
     </div>
   );
