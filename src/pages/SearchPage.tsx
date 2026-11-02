@@ -27,8 +27,6 @@ import {
   writeFilterStateToParams,
 } from '../catalog/filterUrlState.ts';
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
-import { readSetFacetSortMode, writeSetFacetSortMode } from '../catalog/setFacetSort.ts';
-import type { SetFacetSortMode } from '../catalog/facetOptionOrdering.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { CatalogTableColumnsMenu } from '../catalog/CatalogTableColumnsMenu.tsx';
 import {
@@ -65,7 +63,6 @@ export function SearchPage() {
   const { state: catalogState } = useCardCatalog();
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
-  const [setSortMode, setSetSortMode] = useState<SetFacetSortMode>(() => readSetFacetSortMode());
   const tableViewportOk = useMinViewportWidth(640);
   const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
     () => ({ ...DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY }),
@@ -79,11 +76,6 @@ export function SearchPage() {
   });
 
   const catalogSetIndex = catalogState.status === 'ready' ? catalogState.setIndex : undefined;
-
-  const handleSetSortModeChange = useCallback((mode: SetFacetSortMode) => {
-    setSetSortMode(mode);
-    writeSetFacetSortMode(mode);
-  }, []);
 
   const trimmedQuery = debouncedQuery.trim();
 
@@ -222,8 +214,6 @@ export function SearchPage() {
                 catalogFieldIds={catalogFieldIds}
                 onChange={commitFilterState}
                 setIndex={catalogSetIndex}
-                setSortMode={setSortMode}
-                onSetSortModeChange={handleSetSortModeChange}
               />
             </div>
           </aside>
@@ -293,8 +283,6 @@ export function SearchPage() {
           draftGroupCounts={draftFacetGroupCounts}
           catalogFieldIds={catalogFieldIds}
           setIndex={catalogSetIndex}
-          setSortMode={setSortMode}
-          onSetSortModeChange={handleSetSortModeChange}
         />
       ) : null}
     </div>
