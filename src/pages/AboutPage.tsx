@@ -9,20 +9,25 @@ type NoticeDependency = {
 
 const dependencies = notices.dependencies as NoticeDependency[];
 
-export function NoticesPage() {
+export function AboutPage() {
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-heading">Notices</h1>
+        <h1 className="text-2xl font-semibold text-heading">About</h1>
         <p className="text-base text-text">
-          Third-party open-source libraries shipped with this app and their licenses.
+          OTCP is a Yu-Gi-Oh! card reference for searching cards, formats, decks, and collections.
         </p>
       </header>
 
-      <section aria-labelledby="notices-libraries-heading">
-        <h2 id="notices-libraries-heading" className="sr-only">
-          Runtime libraries
-        </h2>
+      <section className="space-y-4" aria-labelledby="about-notices-libraries-heading">
+        <div className="space-y-2">
+          <h2 id="about-notices-libraries-heading" className="text-lg font-semibold text-heading">
+            Notices
+          </h2>
+          <p className="text-base text-text">
+            Third-party open-source libraries shipped with this app and their licenses.
+          </p>
+        </div>
         <div className="overflow-x-auto rounded-md border border-border">
           <table className="min-w-full border-collapse text-left text-sm text-text">
             <thead className="border-b border-border bg-surface-2 text-heading">
@@ -62,8 +67,8 @@ export function NoticesPage() {
         </div>
       </section>
 
-      <section className="space-y-2" aria-labelledby="notices-card-data-heading">
-        <h2 id="notices-card-data-heading" className="text-lg font-semibold text-heading">
+      <section className="space-y-2" aria-labelledby="about-notices-card-data-heading">
+        <h2 id="about-notices-card-data-heading" className="text-lg font-semibold text-heading">
           Card data and images
         </h2>
         <p className="text-base text-text">Attribution to be added.</p>
@@ -71,3 +76,6 @@ export function NoticesPage() {
     </div>
   );
 }
+
+/** @deprecated Route moved to AboutPage at /about. */
+export const NoticesPage = AboutPage;
