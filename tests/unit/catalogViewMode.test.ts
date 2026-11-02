@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   CATALOG_VIEW_STORAGE_KEY_SEARCH,
+  CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX,
   displayCatalogViewMode,
   readCatalogViewPreference,
   resolveCatalogViewPreference,
@@ -12,6 +13,10 @@ import {
 } from '../../src/catalog/catalogViewMode.ts';
 
 describe('catalog view preference', () => {
+  it('uses 768px as the wide layout breakpoint (Tailwind md)', () => {
+    expect(CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX).toBe(768);
+  });
+
   afterEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
@@ -62,6 +67,17 @@ describe('catalog view preference', () => {
     });
     expect(displayCatalogViewMode(resolved, { tableAvailable: false })).toBe('list');
     expect(displayCatalogViewMode(resolved, { tableAvailable: true })).toBe('table');
+  });
+
+  it('maps list to table on wide viewports without mutating stored preference', () => {
+    const resolved = resolveCatalogViewPreference({
+      urlParam: 'list',
+      storedRaw: null,
+      defaultMode: 'grid',
+    });
+    expect(resolved.mode).toBe('list');
+    expect(displayCatalogViewMode(resolved, { tableAvailable: true })).toBe('table');
+    expect(displayCatalogViewMode(resolved, { tableAvailable: false })).toBe('list');
   });
 
   it('reads and writes search preference under a namespaced key', () => {

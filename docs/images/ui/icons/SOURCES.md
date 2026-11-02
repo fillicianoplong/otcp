@@ -31,7 +31,7 @@ Prior low-res or superseded copies were **moved** (not deleted) to `fallback/pre
 | Race | `race/{id}.png` (+@2x/@3x) | Owner `Race/*.png` monster types |
 | Spell/Trap property | `spell-trap/{id}.png` (+@2x/@3x) | Owner `Race/{Continuous,Normal,…}.png` |
 | Spell/Trap badge | `spell-trap/spell.png`, `trap.png` | Prior official small badges (scaled); full frames under `frame/` |
-| Level | `level/level.png` | Owner `Level/level.png` is **20×20**, identical to the prior star — **kept**. Soft at row size; no sharper Level/Rank in the pack |
+| Level | `level/level.png` (+ shipped `public/icons/*/level.png` from `source-owner/level/level-star.png`) | Owner `source-owner/level/level.png` (**20×20**, legacy) **kept**. **2026-11-02:** `source-owner/level/level-star.png` — 47×47 transparent cutout (from owner sheet); baked for product Level icon. Rank still uses legacy star via `rank.png` |
 | ATK / DEF | `misc/atk.png`, `misc/def.png` | **Unchanged** — approved MD geom-v2 sword + shield |
 | Ban | `ban/{forbidden,limited,semi-limited,unlimited}.png` | **Kept** approved Master Duel set (complete Forbidden + Unlimited). Owner `Limit/limited_0/1/2.png` archived only — incomplete vs product rules |
 | Rarity | `rarity/*.png` | Owner pack; future list/detail marks |
