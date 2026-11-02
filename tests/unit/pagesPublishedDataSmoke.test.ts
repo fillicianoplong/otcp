@@ -11,7 +11,9 @@ import {
   pointersMatch,
   runPagesPublishedDataSmoke,
   withCacheBust,
+  publishedCatalogFile,
 } from '../../scripts/pagesPublishedDataSmoke.ts';
+import type { PublishedPointer } from '../../pipeline/pointer.ts';
 
 const R2_SMALL_URL = `${R2_CARD_IMAGES_PUBLIC_BASE_URL}/ygo/small/89631139.webp`;
 
@@ -22,23 +24,16 @@ describe('pages published data smoke helpers', () => {
     );
   });
 
-  it('matches pointers on datasetFile only', () => {
-    expect(
-      pointersMatch(
-        {
-          datasetFile: 'data/datasets/cards-new.json',
-        },
-        'data/datasets/cards-new.json',
-      ),
-    ).toBe(true);
-    expect(
-      pointersMatch(
-        {
-          datasetFile: 'data/datasets/cards-old.json',
-        },
-        'data/datasets/cards-new.json',
-      ),
-    ).toBe(false);
+  it('matches pointers on published catalog file only', () => {
+    const legacyPointer: PublishedPointer = {
+      schemaVersion: '1.0.0',
+      datasetFile: 'data/datasets/cards-new.json',
+      sha256: 'abc',
+      publishedAt: '2026-11-01T00:00:00.000Z',
+      cardCount: 1,
+    };
+    expect(pointersMatch(legacyPointer, 'data/datasets/cards-new.json')).toBe(true);
+    expect(pointersMatch(legacyPointer, 'data/datasets/cards-old.json')).toBe(false);
   });
 
   it('caps pointer retry backoff', () => {
@@ -95,7 +90,7 @@ describe('fetchPointerUntilExpected', () => {
       budgetMs: 60_000,
     });
 
-    expect(pointer.datasetFile).toBe('data/datasets/cards-new.json');
+    expect(publishedCatalogFile(pointer)).toBe('data/datasets/cards-new.json');
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     expect(fetchImpl.mock.calls[0]?.[0]).toContain('t=0');
     expect(fetchImpl.mock.calls[0]?.[1]).toEqual({

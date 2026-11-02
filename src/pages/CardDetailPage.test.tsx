@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import sampleDevDataset from '../../public/data/datasets/sample-dev.json';
 import { YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
-import { OTCP_DATASET_SCHEMA_VERSION } from '../shared/schema/constants.ts';
+import { OTCP_DATASET_SCHEMA_VERSION_LEGACY } from '../shared/schema/constants.ts';
 import { CardCatalogProvider } from '../catalog/CardCatalogProvider.tsx';
 import { clearCardCatalogCache } from '../catalog/loadCatalog.ts';
 import { CardDetailPage } from './CardDetailPage.tsx';
@@ -22,7 +22,7 @@ function mockCatalogFetch(): void {
       if (url.includes('data/current.json')) {
         return new Response(
           JSON.stringify({
-            schemaVersion: OTCP_DATASET_SCHEMA_VERSION,
+            schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
             datasetFile: 'data/datasets/sample-dev.json',
             sha256: 'abc',
             publishedAt: '2026-10-28T12:00:00.000Z',

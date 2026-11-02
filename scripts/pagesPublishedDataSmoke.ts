@@ -1,5 +1,10 @@
-import { type PublishedPointer } from '../pipeline/pointer.ts';
-import { validateDatasetEnvelope } from '../src/shared/schema/validate.ts';
+import { isPublishedPointerLegacy, type PublishedPointer } from '../pipeline/pointer.ts';
+import { publishedImagePaths } from '../pipeline/imagePaths.ts';
+import { isCompactSearchIndexEnvelope } from '../src/shared/schema/compactSearchIndex.ts';
+import {
+  validateCompactSearchIndexEnvelope,
+  validateDatasetEnvelope,
+} from '../src/shared/schema/validate.ts';
 
 export type SmokeFetch = typeof fetch;
 
@@ -20,11 +25,17 @@ export function siteUrl(base: string, path: string): string {
   return new URL(withoutLeadingSlash, base).href;
 }
 
-export function isSamplePointer(pointer: { datasetFile: string; cardCount: number }): boolean {
+export function publishedCatalogFile(pointer: PublishedPointer): string {
+  if (isPublishedPointerLegacy(pointer)) return pointer.datasetFile;
+  return pointer.searchIndexFile;
+}
+
+export function isSamplePointer(pointer: PublishedPointer): boolean {
+  const catalogFile = publishedCatalogFile(pointer);
   return (
-    pointer.datasetFile.includes('sample-dev') ||
+    catalogFile.includes('sample-dev') ||
     pointer.cardCount <= 4 ||
-    pointer.datasetFile.endsWith('/sample-dev.json')
+    catalogFile.endsWith('/sample-dev.json')
   );
 }
 
@@ -34,11 +45,8 @@ export function withCacheBust(url: string, nonce: number): string {
   return parsed.href;
 }
 
-export function pointersMatch(
-  pointer: { datasetFile: string },
-  expectedDatasetFile: string,
-): boolean {
-  return pointer.datasetFile === expectedDatasetFile;
+export function pointersMatch(pointer: PublishedPointer, expectedDatasetFile: string): boolean {
+  return publishedCatalogFile(pointer) === expectedDatasetFile;
 }
 
 export function nextPointerRetryBackoffMs(
@@ -104,8 +112,8 @@ export async function fetchPointerUntilExpected(options: {
     const nonce = options.now();
     const json = await fetchPublishedJson(options.pointerUrl, options.fetchImpl, nonce);
     const pointer = json as PublishedPointer;
-    if (typeof pointer.datasetFile !== 'string' || pointer.datasetFile.length === 0) {
-      throw new Error('current.json is missing datasetFile.');
+    if (!publishedCatalogFile(pointer)) {
+      throw new Error('current.json is missing a published catalog file reference.');
     }
     if (pointersMatch(pointer, options.expectedDatasetFile)) {
       return pointer;
@@ -115,7 +123,7 @@ export async function fetchPointerUntilExpected(options: {
     const backoffMs = nextPointerRetryBackoffMs(attempt, initialBackoffMs);
     if (elapsed + backoffMs > budgetMs) {
       throw new Error(
-        `Published pointer still ${pointer.datasetFile} after ${Math.round(elapsed / 1000)}s; expected ${options.expectedDatasetFile}.`,
+        `Published pointer still ${publishedCatalogFile(pointer)} after ${Math.round(elapsed / 1000)}s; expected ${options.expectedDatasetFile}.`,
       );
     }
     await options.sleep(backoffMs);
@@ -129,8 +137,8 @@ async function fetchLivePointer(
 ): Promise<PublishedPointer> {
   const json = await fetchPublishedJson(pointerUrl, fetchImpl, now());
   const pointer = json as PublishedPointer;
-  if (typeof pointer.datasetFile !== 'string' || pointer.datasetFile.length === 0) {
-    throw new Error('current.json is missing datasetFile.');
+  if (!publishedCatalogFile(pointer)) {
+    throw new Error('current.json is missing a published catalog file reference.');
   }
   return pointer;
 }
@@ -164,34 +172,48 @@ export async function runPagesPublishedDataSmoke(options: {
         })
       : await fetchLivePointer(pointerUrl, fetchImpl, now);
 
-  const datasetUrl = siteUrl(base, pointer.datasetFile);
+  const datasetUrl = siteUrl(base, publishedCatalogFile(pointer));
   const datasetJson = await fetchPublishedJson(datasetUrl, fetchImpl, now());
-  const validated = validateDatasetEnvelope(datasetJson);
-  if (!validated.ok) {
-    throw new Error('Published dataset failed schema validation.');
+  let cardCount: number;
+  let cardsForImageSmoke: Array<{ images?: { small?: string } }> | undefined;
+  let compactFirstCardId: number | undefined;
+  if (isCompactSearchIndexEnvelope(datasetJson)) {
+    const validated = validateCompactSearchIndexEnvelope(datasetJson);
+    if (!validated.ok) {
+      throw new Error('Published catalog failed schema validation.');
+    }
+    cardCount = validated.data.i.length;
+    compactFirstCardId = validated.data.i[0];
+  } else {
+    const validated = validateDatasetEnvelope(datasetJson);
+    if (!validated.ok) {
+      throw new Error('Published catalog failed schema validation.');
+    }
+    cardCount = validated.data.cards.length;
+    cardsForImageSmoke = validated.data.cards;
   }
 
-  log(
-    `Published dataset OK (${validated.data.cards.length} cards, pointer ${pointer.datasetFile}).`,
-  );
+  log(`Published catalog OK (${cardCount} cards, pointer ${publishedCatalogFile(pointer)}).`);
 
   if (isSamplePointer(pointer)) {
     log('Sample pointer still live; skipping image and full-count checks.');
     return;
   }
 
-  if (validated.data.cards.length < pointer.cardCount) {
+  if (cardCount < pointer.cardCount) {
     throw new Error(
-      `Dataset card count (${validated.data.cards.length}) is below pointer cardCount (${pointer.cardCount}).`,
+      `Dataset card count (${cardCount}) is below pointer cardCount (${pointer.cardCount}).`,
     );
   }
 
-  const cardWithArt = pickCardWithRemoteSmallImage(validated.data.cards);
-  if (!cardWithArt?.images?.small) {
+  const cardWithArt = pickCardWithRemoteSmallImage(cardsForImageSmoke ?? []);
+  const imageUrl =
+    cardWithArt?.images?.small ??
+    (compactFirstCardId != null ? publishedImagePaths(compactFirstCardId).small : undefined);
+  if (!imageUrl) {
     throw new Error('No R2 small image URL found in the published dataset to verify.');
   }
 
-  const imageUrl = cardWithArt.images.small;
   const imageResponse = await fetchPublishedHead(imageUrl, fetchImpl, now());
   if (!imageResponse.ok) {
     throw new Error(`Card image HEAD ${imageUrl} failed (${imageResponse.status}).`);
