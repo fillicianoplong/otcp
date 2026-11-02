@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { cardDetailImageFallback, cardDetailImageSrc } from '../../src/catalog/cardArtUrl.ts';
+import {
+  cardDetailImageFallback,
+  cardDetailImageSrc,
+  YGO_CARD_ART_ASPECT_CLASS,
+  YGO_CARD_ART_HEIGHT,
+  YGO_CARD_ART_WIDTH,
+} from '../../src/catalog/cardArtUrl.ts';
 import { R2_CARD_IMAGES_PUBLIC_BASE_URL } from '../../pipeline/constants.ts';
 import type { YugiohCard } from '../../src/shared/schema/card.ts';
 
@@ -18,6 +24,11 @@ const sampleCard: YugiohCard = {
 };
 
 describe('cardArtUrl', () => {
+  it('documents the published card art aspect ratio for layout frames', () => {
+    expect(YGO_CARD_ART_WIDTH / YGO_CARD_ART_HEIGHT).toBeCloseTo(421 / 614, 5);
+    expect(YGO_CARD_ART_ASPECT_CLASS).toBe('aspect-[421/614]');
+  });
+
   it('uses the large published image URL on the detail page', () => {
     expect(cardDetailImageSrc(sampleCard)).toBe(sampleCard.images.large);
   });
