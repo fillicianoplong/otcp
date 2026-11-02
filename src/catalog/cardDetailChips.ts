@@ -85,6 +85,36 @@ function buildFacetSearchHref(fieldId: FacetFieldId, value: string): string {
   return query.length > 0 ? `/search?${query}` : '/search';
 }
 
+function buildExactRangeSearchHref(fieldId: 'atk' | 'def', value: number): string {
+  const state: FilterState = {
+    version: FILTER_STATE_VERSION,
+    facets: { [fieldId]: { range: { min: value, max: value } } },
+  };
+  const params = new URLSearchParams();
+  writeFilterStateToParams(params, state);
+  const query = params.toString();
+  return query.length > 0 ? `/search?${query}` : '/search';
+}
+
+function statChipSearchHref(
+  chip: CardDetailChip,
+  fieldId: 'atk' | 'def',
+  stat: number | undefined,
+): string | null {
+  const display = chip.value.trim();
+  if (display === '—') return null;
+  if (display === '?') {
+    if (typeof stat === 'number' && stat < 0) {
+      return buildFacetSearchHref(fieldId, '?');
+    }
+    return null;
+  }
+  if (typeof stat !== 'number' || stat < 0) return null;
+  if (!/^\d+$/.test(display)) return null;
+  if (Number(display) !== stat) return null;
+  return buildExactRangeSearchHref(fieldId, stat);
+}
+
 function raceFacetValueForCard(card: YugiohCard): string | null {
   if (card.type.startsWith('Quick-Play')) return 'Quick-Play';
   const race = card.race?.trim();
@@ -118,8 +148,12 @@ export function buildCardDetailChipSearchHref(
   const archetypeLabel = catalogTableColumnLabel('archetype');
   const cardTypeLabel = catalogTableColumnLabel('cardType');
 
-  if (chip.label === atkLabel || chip.label === defLabel) {
-    return null;
+  if (chip.label === atkLabel) {
+    return statChipSearchHref(chip, 'atk', card.atk);
+  }
+
+  if (chip.label === defLabel) {
+    return statChipSearchHref(chip, 'def', card.def);
   }
 
   if (chip.label === attributeLabel) {
