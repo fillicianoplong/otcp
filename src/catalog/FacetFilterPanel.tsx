@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import {
+  facetDefinitionById,
   facetDefinitionsForGame,
   facetDisplayLabel,
   type FacetDefinition,
@@ -122,52 +123,47 @@ function FacetCustomRangeInputs({
     onApply({ min, max });
   };
 
+  const fieldLabel = facetDisplayLabel(facetDefinitionById(fieldId)!);
+
   const inputClassName =
-    'w-full min-w-0 rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
+    'h-8 min-h-8 w-full min-w-0 rounded-md border border-border bg-surface px-2 py-0 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
   return (
-    <div className="mb-3 flex flex-col gap-2">
-      <span className="text-xs text-text-2">Custom range</span>
-      <div className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col gap-1 text-xs text-text-2">
-          Min
-          <input
-            type="number"
-            inputMode={allowDecimals ? 'decimal' : 'numeric'}
-            step={allowDecimals ? '0.01' : '1'}
-            value={minDraft}
-            onChange={(event) => setMinDraft(event.target.value)}
-            onBlur={commit}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                commit();
-              }
-            }}
-            aria-label={`${fieldId} minimum`}
-            className={inputClassName}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-text-2">
-          Max
-          <input
-            type="number"
-            inputMode={allowDecimals ? 'decimal' : 'numeric'}
-            step={allowDecimals ? '0.01' : '1'}
-            value={maxDraft}
-            onChange={(event) => setMaxDraft(event.target.value)}
-            onBlur={commit}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                commit();
-              }
-            }}
-            aria-label={`${fieldId} maximum`}
-            className={inputClassName}
-          />
-        </label>
-      </div>
+    <div className="mb-3 grid grid-cols-2 gap-2">
+      <input
+        type="number"
+        inputMode={allowDecimals ? 'decimal' : 'numeric'}
+        step={allowDecimals ? '0.01' : '1'}
+        value={minDraft}
+        onChange={(event) => setMinDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            commit();
+          }
+        }}
+        placeholder="Min"
+        aria-label={`${fieldLabel} minimum`}
+        className={inputClassName}
+      />
+      <input
+        type="number"
+        inputMode={allowDecimals ? 'decimal' : 'numeric'}
+        step={allowDecimals ? '0.01' : '1'}
+        value={maxDraft}
+        onChange={(event) => setMaxDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            commit();
+          }
+        }}
+        placeholder="Max"
+        aria-label={`${fieldLabel} maximum`}
+        className={inputClassName}
+      />
     </div>
   );
 }
@@ -266,7 +262,7 @@ function FacetFieldCard({
   setIndex?: SetIndex | null;
 }) {
   return (
-    <section className="rounded-lg border border-border bg-surface">
+    <section className="overflow-hidden rounded-lg border border-border bg-surface">
       <button
         type="button"
         className="flex min-h-10 w-full items-center justify-between gap-2 bg-surface-2 px-3 py-2 text-left text-sm font-medium text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
