@@ -1,6 +1,14 @@
 import { expect, test } from '@playwright/test';
 
-const PRIMARY_LINKS = ['Search', 'Formats', 'Decks', 'Collection', 'Lists', 'Account'] as const;
+const PRIMARY_LINKS = [
+  'Search',
+  'Formats',
+  'Decks',
+  'Collection',
+  'Lists',
+  'About',
+  'Account',
+] as const;
 
 test.describe('smoke', () => {
   test('home redirects to Search with shell landmarks', async ({ page }) => {
@@ -39,12 +47,20 @@ test.describe('smoke', () => {
     await expect(page.getByRole('button', { name: 'Open menu' })).toBeHidden();
   });
 
-  test('notices page shows the heading', async ({ page }) => {
-    await page.goto('/otcp/notices');
-    await expect(page.getByRole('heading', { level: 1, name: 'Notices' })).toBeVisible();
+  test('about page shows About and notices sections', async ({ page }) => {
+    await page.goto('/otcp/about');
+    await expect(page.getByRole('heading', { level: 1, name: 'About' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Notices' })).toBeVisible();
     await expect(
       page.getByRole('heading', { level: 2, name: 'Card data and images' }),
     ).toBeVisible();
+    await expect(page.getByRole('link', { name: 'About' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  test('legacy /notices URL redirects to About', async ({ page }) => {
+    await page.goto('/otcp/notices');
+    await expect(page).toHaveURL(/\/otcp\/about$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'About' })).toBeVisible();
   });
 
   test('phone hamburger nav at 375px', async ({ page }) => {

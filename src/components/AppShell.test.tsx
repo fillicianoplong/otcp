@@ -23,6 +23,7 @@ function renderAt(path: string) {
             <Route path="/decks" element={<h1>Decks</h1>} />
             <Route path="/collection" element={<h1>Collection</h1>} />
             <Route path="/lists" element={<h1>Lists</h1>} />
+            <Route path="/about" element={<h1>About</h1>} />
             <Route path="/account" element={<h1>Account</h1>} />
           </Route>
         </Routes>
@@ -69,6 +70,20 @@ describe('AppShell', () => {
 
     const searchLink = within(desktopNav).getAllByRole('link', { name: 'Search' })[0];
     expect(searchLink.getAttribute('aria-current')).toBeNull();
+  });
+
+  it('does not render an app shell footer', () => {
+    renderAt('/search');
+
+    expect(screen.queryByRole('contentinfo')).toBeNull();
+  });
+
+  it('marks About active on /about', () => {
+    renderAt('/about');
+
+    const desktopNav = screen.getByRole('navigation', { name: 'Primary' });
+    const aboutLink = within(desktopNav).getAllByRole('link', { name: 'About' })[0];
+    expect(aboutLink.getAttribute('aria-current')).toBe('page');
   });
 
   it('toggles the phone menu and closes it with Escape', async () => {

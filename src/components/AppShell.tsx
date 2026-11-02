@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet } from 'react-router';
 import { PRIMARY_NAV } from '../nav';
 import { APP_SHELL_CONTENT_CLASS } from './appShellLayout.ts';
 
@@ -102,17 +102,6 @@ export function AppShell() {
       <main id="main-content" className={`${APP_SHELL_CONTENT_CLASS} flex-1 py-4`}>
         <Outlet />
       </main>
-
-      <footer className="border-t border-border bg-surface">
-        <div className={`${APP_SHELL_CONTENT_CLASS} flex py-3`}>
-          <Link
-            to="/notices"
-            className="text-sm text-text underline decoration-border underline-offset-2 transition-colors hover:text-heading hover:decoration-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-          >
-            Notices
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 }
