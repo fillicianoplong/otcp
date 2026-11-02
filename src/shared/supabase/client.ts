@@ -26,7 +26,11 @@ export function getSupabaseClient(): SupabaseClient | null {
     return null;
   }
   if (cachedClient === undefined) {
-    cachedClient = createClient(config.url, config.anonKey);
+    cachedClient = createClient(config.url, config.anonKey, {
+      auth: {
+        detectSessionInUrl: true,
+      },
+    });
   }
   return cachedClient;
 }
