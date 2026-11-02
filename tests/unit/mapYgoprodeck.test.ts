@@ -39,6 +39,23 @@ describe('mapYgoprodeckCard prices', () => {
     expect(card.prices).toEqual({ tcgplayer: 2 });
   });
 
+  it('maps pendulum description fields when present', () => {
+    const card = mapYgoprodeckCard(
+      {
+        id: 16178681,
+        name: 'Odd-Eyes Pendulum Dragon',
+        type: 'Pendulum Effect Monster',
+        desc: 'Combined desc',
+        pend_desc: 'Pendulum line',
+        monster_desc: 'Monster line',
+      },
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
+    );
+    expect(card.pendDesc).toBe('Pendulum line');
+    expect(card.monsterDesc).toBe('Monster line');
+    expect(card.text).toBe('Combined desc');
+  });
+
   it('maps zero as a numeric price', () => {
     const card = mapYgoprodeckCard(
       makeRow({

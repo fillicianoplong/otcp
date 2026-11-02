@@ -26,6 +26,8 @@ export const yugiohCardExtensionSchema = z
     archetype: z.string().min(1).optional(),
     race: z.string().min(1).optional(),
     scale: z.number().int().min(0).max(13).optional(),
+    pendDesc: z.string().min(1).optional(),
+    monsterDesc: z.string().min(1).optional(),
     banlistInfo: yugiohBanlistInfoSchema.optional(),
     genesysPoints: z.number().int().min(0).optional(),
   })
