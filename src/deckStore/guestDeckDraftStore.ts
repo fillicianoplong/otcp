@@ -3,7 +3,13 @@ import { z } from 'zod';
 import { type FormatId, isKnownFormatId } from '../format/formatCatalog.ts';
 import { readFormatPreference, resolveFormatPreference } from '../format/formatPreference.ts';
 import { readLocalStorageString, writeLocalStorageString } from '../shared/safeLocalStorage.ts';
-import type { GuestDeckDraft, GuestDeckDraftInput, GuestDeckDraftUpdate } from './types.ts';
+import { parseDeckCover } from './deckCoverStore.ts';
+import type {
+  DeckCover,
+  GuestDeckDraft,
+  GuestDeckDraftInput,
+  GuestDeckDraftUpdate,
+} from './types.ts';
 
 export const GUEST_DECK_DRAFTS_STORAGE_KEY = 'otcp:guest-deck-drafts:v1';
 
@@ -22,6 +28,8 @@ const guestDeckDraftSchema = z.object({
   side: z.array(cardIdSchema),
   genesysCap: z.number().int().min(0).optional(),
   skillId: cardIdSchema.nullable().optional(),
+  /** Invalid covers are dropped in {@link toGuestDraft} so one bad field does not wipe the draft. */
+  cover: z.unknown().optional(),
   updatedAt: z.string().min(1),
 });
 
@@ -48,6 +56,31 @@ type StorageEnvelope = {
   version: typeof GUEST_DECK_DRAFTS_STORAGE_VERSION;
   drafts: GuestDeckDraft[];
 };
+
+type ParsedGuestDeckDraft = z.infer<typeof guestDeckDraftSchema>;
+
+function toGuestDraft(draft: ParsedGuestDeckDraft): GuestDeckDraft {
+  const cover = parseDeckCover(draft.cover);
+  return {
+    id: draft.id,
+    name: draft.name,
+    formatId: draft.formatId as FormatId,
+    main: draft.main,
+    extra: draft.extra,
+    side: draft.side,
+    ...(draft.genesysCap != null ? { genesysCap: draft.genesysCap } : {}),
+    ...(draft.skillId !== undefined ? { skillId: draft.skillId } : {}),
+    ...(cover ? { cover } : {}),
+    updatedAt: draft.updatedAt,
+  };
+}
+
+function coverFromInput(cover: DeckCover | null | undefined): DeckCover | undefined {
+  if (!cover) {
+    return undefined;
+  }
+  return parseDeckCover(cover) ?? undefined;
+}
 
 function newDraftId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -85,7 +118,7 @@ function readEnvelope(): StorageEnvelope | null {
   if (current.success) {
     return {
       version: current.data.version,
-      drafts: current.data.drafts as GuestDeckDraft[],
+      drafts: current.data.drafts.map(toGuestDraft),
     };
   }
 
@@ -156,6 +189,7 @@ export function getGuestDeckDraft(id: string): GuestDeckDraft | null {
 
 /** Create a guest deck draft and persist it. */
 export function createGuestDeckDraft(input: GuestDeckDraftInput = {}): GuestDeckDraft {
+  const cover = coverFromInput(input.cover);
   const draft: GuestDeckDraft = {
     id: newDraftId(),
     name: input.name?.trim() || 'Untitled deck',
@@ -165,6 +199,7 @@ export function createGuestDeckDraft(input: GuestDeckDraftInput = {}): GuestDeck
     side: input.side ?? [],
     ...(input.genesysCap != null ? { genesysCap: Math.trunc(input.genesysCap) } : {}),
     ...(input.skillId !== undefined ? { skillId: input.skillId } : {}),
+    ...(cover ? { cover } : {}),
     updatedAt: nowIso(),
   };
 
@@ -199,6 +234,11 @@ export function updateGuestDeckDraft(
         ? { genesysCap: Math.trunc(update.genesysCap) }
         : {}),
     ...(update.skillId !== undefined ? { skillId: update.skillId } : {}),
+    ...(update.cover === null
+      ? { cover: undefined }
+      : update.cover !== undefined
+        ? { cover: coverFromInput(update.cover) }
+        : {}),
     updatedAt: nowIso(),
   };
 

@@ -42,6 +42,18 @@ describe('guestDeckDraftStore', () => {
     expect(updated?.side).toEqual([87654321]);
     expect(getGuestDeckDraft(created.id)?.name).toBe('Renamed');
 
+    const withCover = updateGuestDeckDraft(created.id, {
+      cover: { cardId: 89631139, artId: 46986414 },
+    });
+    expect(withCover?.cover).toEqual({ cardId: 89631139, artId: 46986414 });
+    expect(getGuestDeckDraft(created.id)?.cover).toEqual({
+      cardId: 89631139,
+      artId: 46986414,
+    });
+
+    expect(updateGuestDeckDraft(created.id, { cover: null })?.cover).toBeUndefined();
+    expect(getGuestDeckDraft(created.id)?.cover).toBeUndefined();
+
     expect(removeGuestDeckDraft(created.id)).toBe(true);
     expect(listGuestDeckDrafts()).toEqual([]);
     expect(removeGuestDeckDraft(created.id)).toBe(false);
@@ -84,6 +96,32 @@ describe('guestDeckDraftStore', () => {
       }),
     );
     expect(listGuestDeckDrafts()).toEqual([]);
+  });
+
+  it('keeps a draft when its cover field is invalid', () => {
+    localStorage.setItem(
+      GUEST_DECK_DRAFTS_STORAGE_KEY,
+      JSON.stringify({
+        version: GUEST_DECK_DRAFTS_STORAGE_VERSION,
+        drafts: [
+          {
+            id: 'kept',
+            name: 'Kept',
+            formatId: 'advanced',
+            main: [89631139],
+            extra: [],
+            side: [],
+            cover: { cardId: 'nope', artId: 1 },
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+      }),
+    );
+
+    const listed = listGuestDeckDrafts();
+    expect(listed).toHaveLength(1);
+    expect(listed[0]?.name).toBe('Kept');
+    expect(listed[0]?.cover).toBeUndefined();
   });
 
   it('ignores drafts with invalid card ids', () => {

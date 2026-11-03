@@ -23,7 +23,7 @@ test.describe('document titles', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'My decks' })).toBeVisible();
 
     await page.getByRole('button', { name: 'New deck' }).click();
-    await page.getByRole('link', { name: 'Open', exact: true }).first().click();
+    await page.getByRole('link', { name: 'Open Untitled deck' }).click();
     await expect(page).toHaveURL(/\/otcp\/decks\/edit\//);
     await expect(page).toHaveTitle('Untitled deck - OTCP');
 

@@ -17,6 +17,7 @@ import {
   updateSavedDeck,
 } from '../../src/deckStore/savedDeckStore.ts';
 import type { GuestDeckDraft } from '../../src/deckStore/types.ts';
+import { clearDeckCoversStorage, readDeckCover } from '../../src/deckStore/deckCoverStore.ts';
 import {
   clearGuestDeckDraftsStorage,
   createGuestDeckDraft,
@@ -122,6 +123,7 @@ describe('savedDeckStore', () => {
   afterEach(() => {
     clearOpenSavedDeckStorage();
     clearGuestDeckDraftsStorage();
+    clearDeckCoversStorage();
   });
 
   it('lists saved decks for the signed-in user', async () => {
@@ -188,6 +190,44 @@ describe('savedDeckStore', () => {
       expect(result.savedDeckIds).toEqual([sampleRow.id]);
     }
     expect(listGuestDeckDrafts()).toEqual([]);
+  });
+
+  it('keeps a chosen cover with the saved deck id', async () => {
+    const client = createDeckStoreMock({
+      selectRows: [sampleRow],
+      selectSingle: sampleRow,
+      insertId: sampleRow.id,
+    });
+    const draft = {
+      ...sampleDraft,
+      cover: { cardId: 89631139, artId: 46986414 },
+    };
+
+    const saved = await saveGuestDraftToAccount(draft, client);
+    expect(saved.ok).toBe(true);
+    expect(readDeckCover(sampleRow.id)).toEqual({ cardId: 89631139, artId: 46986414 });
+
+    const listed = await listSavedDecks(client);
+    expect(listed.ok).toBe(true);
+    if (listed.ok) {
+      expect(listed.decks[0]?.cover).toEqual({ cardId: 89631139, artId: 46986414 });
+    }
+
+    const cleared = await updateSavedDeck(sampleRow.id, { cover: null }, null);
+    expect(cleared.ok).toBe(true);
+    expect(readDeckCover(sampleRow.id)).toBeNull();
+
+    await updateSavedDeck(sampleRow.id, { cover: { cardId: 46986420, artId: 46986420 } }, null);
+    const loaded = await loadSavedDeck(sampleRow.id, client);
+    expect(loaded.ok).toBe(true);
+    if (loaded.ok) {
+      applyOpenSavedDeck(loaded.deck);
+      expect(readOpenSavedDeck()?.cover).toEqual({ cardId: 46986420, artId: 46986420 });
+    }
+
+    const removed = await deleteSavedDeck(sampleRow.id, client);
+    expect(removed.ok).toBe(true);
+    expect(readDeckCover(sampleRow.id)).toBeNull();
   });
 
   it('applyOpenSavedDeck round-trips through readOpenSavedDeck', async () => {
