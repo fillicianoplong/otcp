@@ -20,15 +20,16 @@ const limitedMonster: YugiohCard = {
 };
 
 describe('formatBanContext', () => {
-  it('treats empty format param as inactive', () => {
+  it('treats empty or unknown format params as inactive', () => {
     expect(isFormatBanContextActive(null)).toBe(false);
     expect(isFormatBanContextActive('')).toBe(false);
+    expect(isFormatBanContextActive('tcg')).toBe(false);
     expect(resolveCardBanForFormat(limitedMonster, null)).toBeNull();
   });
 
-  it('returns ban status when a format is active', () => {
-    expect(resolveCardBanForFormat(limitedMonster, 'tcg')).toBe('Limited');
-    expect(resolveCardBanForFormat(limitedMonster, 'ocg')).toBeNull();
+  it('returns ban status when a catalog format is active', () => {
+    expect(resolveCardBanForFormat(limitedMonster, 'advanced')).toBe('Limited');
+    expect(resolveCardBanForFormat(limitedMonster, 'traditional')).toBe('Limited');
   });
 
   it('maps ban markers to compact glyphs', () => {

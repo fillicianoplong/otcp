@@ -36,14 +36,10 @@ export function AccountPage() {
   const formId = useId();
   const emailId = `${formId}-email`;
   const passwordId = `${formId}-password`;
-  const confirmPasswordId = `${formId}-confirm-password`;
-  const passwordMismatchErrorId = `${formId}-password-mismatch`;
   const { configured, loading, session, userEmail } = useAuth();
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordMismatch, setPasswordMismatch] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [signUpNotice, setSignUpNotice] = useState(false);
@@ -140,8 +136,6 @@ export function AccountPage() {
               setMode('sign-in');
               setSignUpNotice(false);
               setErrorMessage(null);
-              setConfirmPassword('');
-              setPasswordMismatch(false);
             }}
           >
             Sign in
@@ -154,7 +148,6 @@ export function AccountPage() {
               setMode('sign-up');
               setSignUpNotice(false);
               setErrorMessage(null);
-              setPasswordMismatch(false);
             }}
           >
             Create account
@@ -171,15 +164,9 @@ export function AccountPage() {
           className="space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
+            setBusy(true);
             setErrorMessage(null);
             setSignUpNotice(false);
-
-            if (mode === 'sign-up' && password !== confirmPassword) {
-              setPasswordMismatch(true);
-              return;
-            }
-
-            setBusy(true);
 
             const action = mode === 'sign-in' ? signIn : signUp;
             void action(email, password).then((result) => {
@@ -220,47 +207,10 @@ export function AccountPage() {
               minLength={6}
               value={password}
               disabled={busy}
-              onChange={(event) => {
-                const next = event.target.value;
-                setPassword(next);
-                if (passwordMismatch && next === confirmPassword) {
-                  setPasswordMismatch(false);
-                }
-              }}
+              onChange={(event) => setPassword(event.target.value)}
               className={inputClassName}
             />
           </label>
-
-          {mode === 'sign-up' ? (
-            <label htmlFor={confirmPasswordId} className="flex flex-col gap-2 text-sm text-heading">
-              Confirm password
-              <input
-                id={confirmPasswordId}
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={6}
-                value={confirmPassword}
-                disabled={busy}
-                aria-invalid={passwordMismatch || undefined}
-                aria-describedby={passwordMismatch ? passwordMismatchErrorId : undefined}
-                onChange={(event) => {
-                  const next = event.target.value;
-                  setConfirmPassword(next);
-                  if (passwordMismatch && next === password) {
-                    setPasswordMismatch(false);
-                  }
-                }}
-                className={inputClassName}
-              />
-              {passwordMismatch ? (
-                <p id={passwordMismatchErrorId} className="text-sm text-heading" role="alert">
-                  The passwords don&apos;t match.
-                </p>
-              ) : null}
-            </label>
-          ) : null}
 
           {errorMessage ? (
             <p className="text-sm text-heading" role="alert">

@@ -14,6 +14,14 @@ import {
   writeCatalogViewPreference,
 } from '../catalog/catalogViewMode.ts';
 import { FORMAT_QUERY_KEY } from '../catalog/formatBanContext.ts';
+import { formatDisplayName } from '../format/formatCatalog.ts';
+import {
+  applyFormatToSearchParams,
+  readFormatPreference,
+  resolveFormatPreference,
+  writeFormatPreference,
+} from '../format/formatPreference.ts';
+import type { FormatId } from '../format/formatCatalog.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
@@ -64,7 +72,16 @@ export function SearchPage() {
     [searchParams],
   );
   const viewMode = resolvedViewPreference.mode;
-  const formatParam = searchParams.get(FORMAT_QUERY_KEY);
+  const resolvedFormat = useMemo(
+    () =>
+      resolveFormatPreference({
+        urlParam: searchParams.get(FORMAT_QUERY_KEY),
+        storedRaw: readFormatPreference(),
+      }),
+    [searchParams],
+  );
+  const activeFormatId = resolvedFormat.formatId;
+  const formatParam = activeFormatId;
   const filterStateRef = useRef(filterState);
   useEffect(() => {
     filterStateRef.current = filterState;
@@ -72,6 +89,7 @@ export function SearchPage() {
   const { state: catalogState } = useCardCatalog();
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
+  const [phoneDraftFormatId, setPhoneDraftFormatId] = useState<FormatId | null>(activeFormatId);
   const tableViewportOk = useMinViewportWidth(CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX);
   const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
     () => ({ ...DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY }),
@@ -111,16 +129,23 @@ export function SearchPage() {
 
   const draftMatchCount = useMemo(() => {
     if (!catalogDerived) return 0;
-    return queryCatalog(catalogDerived, { filterState: phoneDraft, query: trimmedQuery })
-      .matchCount;
-  }, [catalogDerived, phoneDraft, trimmedQuery]);
+    return queryCatalog(catalogDerived, {
+      filterState: phoneDraft,
+      query: trimmedQuery,
+      formatParam: phoneDraftFormatId,
+    }).matchCount;
+  }, [catalogDerived, phoneDraft, phoneDraftFormatId, trimmedQuery]);
 
   const matchCount = useMemo(() => {
     if (!catalogDerived) return 0;
-    return queryCatalog(catalogDerived, { filterState, query: trimmedQuery }).matchCount;
-  }, [catalogDerived, filterState, trimmedQuery]);
+    return queryCatalog(catalogDerived, {
+      filterState,
+      query: trimmedQuery,
+      formatParam: activeFormatId,
+    }).matchCount;
+  }, [activeFormatId, catalogDerived, filterState, trimmedQuery]);
 
-  const activeFilterCount = countActiveFacetSelections(filterState);
+  const activeFilterCount = countActiveFacetSelections(filterState) + (activeFormatId ? 1 : 0);
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
 
   const commitFilterState = useCallback(
@@ -129,6 +154,22 @@ export function SearchPage() {
       filterStateRef.current = resolved;
       const params = new URLSearchParams(searchParams);
       writeFilterStateToParams(params, resolved);
+      const search = params.toString();
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : '' },
+        { replace: true, state: withoutSearchScrollRestore(location.state) },
+      );
+    },
+    [location.pathname, location.state, navigate, searchParams],
+  );
+
+  const commitFilterAndFormat = useCallback(
+    (nextFilterState: FilterState, formatId: FormatId | null) => {
+      filterStateRef.current = nextFilterState;
+      writeFormatPreference(formatId);
+      const params = new URLSearchParams(searchParams);
+      writeFilterStateToParams(params, nextFilterState);
+      applyFormatToSearchParams(params, formatId);
       const search = params.toString();
       navigate(
         { pathname: location.pathname, search: search ? `?${search}` : '' },
@@ -156,6 +197,24 @@ export function SearchPage() {
     [location.pathname, location.state, navigate, searchParams],
   );
 
+  const setActiveFormat = useCallback(
+    (formatId: FormatId | null) => {
+      writeFormatPreference(formatId);
+      const params = new URLSearchParams(searchParams);
+      applyFormatToSearchParams(params, formatId);
+      const search = params.toString();
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : '' },
+        { replace: true, state: withoutSearchScrollRestore(location.state) },
+      );
+    },
+    [location.pathname, location.state, navigate, searchParams],
+  );
+
+  const clearActiveFormat = useCallback(() => {
+    setActiveFormat(null);
+  }, [setActiveFormat]);
+
   useEffect(() => {
     const next = trimmedQuery;
     const current = searchParams.get('q') ?? '';
@@ -174,8 +233,11 @@ export function SearchPage() {
     );
   }, [trimmedQuery, location.pathname, location.state, navigate, searchParams]);
 
+  const formatPoolCount = catalogState.status === 'ready' ? catalogState.cards.length : undefined;
+
   const openPhoneFilters = () => {
     setPhoneDraft(filterState);
+    setPhoneDraftFormatId(activeFormatId);
     setPhoneFiltersOpen(true);
   };
 
@@ -209,6 +271,9 @@ export function SearchPage() {
                 catalogFieldIds={catalogFieldIds}
                 onChange={commitFilterState}
                 setIndex={catalogSetIndex}
+                activeFormatId={activeFormatId}
+                onFormatChange={setActiveFormat}
+                formatPoolCount={formatPoolCount}
               />
             </div>
           </aside>
@@ -234,6 +299,7 @@ export function SearchPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-text-2" aria-live="polite">
                 {formatCardCount(matchCount)}
+                {activeFormatId ? <> · format {formatDisplayName(activeFormatId)}</> : null}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 {effectiveViewMode === 'table' ? (
@@ -245,7 +311,28 @@ export function SearchPage() {
                 <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
               </div>
             </div>
-            {chips.length > 0 ? <FilterChips chips={chips} onChange={commitFilterState} /> : null}
+            {chips.length > 0 || activeFormatId ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {activeFormatId ? (
+                  <button
+                    type="button"
+                    onClick={clearActiveFormat}
+                    className="inline-flex min-h-8 max-w-full items-center gap-1 rounded-full border border-border bg-surface-2 px-3 text-sm text-text hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+                  >
+                    <span className="truncate">{formatDisplayName(activeFormatId)}</span>
+                    <span aria-hidden="true" className="text-text-2">
+                      ×
+                    </span>
+                    <span className="sr-only">
+                      Remove {formatDisplayName(activeFormatId)} format
+                    </span>
+                  </button>
+                ) : null}
+                {chips.length > 0 ? (
+                  <FilterChips chips={chips} onChange={commitFilterState} />
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <CardCatalogView
@@ -269,15 +356,21 @@ export function SearchPage() {
           onClose={() => setPhoneFiltersOpen(false)}
           draftState={phoneDraft}
           onDraftChange={(next) => setPhoneDraft((prev) => resolveFilterStateUpdater(next, prev))}
-          onReset={() => setPhoneDraft(emptyFilterState())}
+          onReset={() => {
+            setPhoneDraft(emptyFilterState());
+            setPhoneDraftFormatId(null);
+          }}
           onApply={() => {
-            commitFilterState(phoneDraft);
+            commitFilterAndFormat(phoneDraft, phoneDraftFormatId);
             setPhoneFiltersOpen(false);
           }}
           resultCount={draftMatchCount}
           draftGroupCounts={draftFacetGroupCounts}
           catalogFieldIds={catalogFieldIds}
           setIndex={catalogSetIndex}
+          draftFormatId={phoneDraftFormatId}
+          onDraftFormatChange={setPhoneDraftFormatId}
+          formatPoolCount={formatPoolCount}
         />
       ) : null}
     </div>

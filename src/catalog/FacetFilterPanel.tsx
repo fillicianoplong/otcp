@@ -17,6 +17,8 @@ import type {
   FilterStateUpdater,
 } from './filterEngine.ts';
 import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
+import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
+import type { FormatId } from '../format/formatCatalog.ts';
 
 const LINK_ARROW_VALUES = [
   'Top',
@@ -175,6 +177,9 @@ type FacetFilterPanelProps = {
   onChange: (next: FilterStateUpdater) => void;
   className?: string;
   setIndex?: SetIndex | null;
+  activeFormatId?: FormatId | null;
+  onFormatChange?: (formatId: FormatId | null) => void;
+  formatPoolCount?: number;
 };
 
 export function FacetFilterPanel({
@@ -184,6 +189,9 @@ export function FacetFilterPanel({
   onChange,
   className,
   setIndex,
+  activeFormatId = null,
+  onFormatChange,
+  formatPoolCount,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
   const countsByField = useMemo(() => {
@@ -221,6 +229,13 @@ export function FacetFilterPanel({
     <div className={className}>
       <h2 className="mb-3 text-base font-semibold text-heading">Filters</h2>
       <div className="flex flex-col gap-3">
+        {onFormatChange ? (
+          <FormatFilterGroup
+            value={activeFormatId}
+            onChange={onFormatChange}
+            poolCount={formatPoolCount}
+          />
+        ) : null}
         {visibleDefinitions.map((def) => {
           const collapsed = collapsedFields[def.id] ?? false;
           return (
@@ -647,6 +662,9 @@ type PhoneFiltersSheetProps = {
   draftGroupCounts: readonly FacetGroupCounts[];
   catalogFieldIds: readonly FacetFieldId[];
   setIndex?: SetIndex | null;
+  draftFormatId?: FormatId | null;
+  onDraftFormatChange?: (formatId: FormatId | null) => void;
+  formatPoolCount?: number;
 };
 
 export function PhoneFiltersSheet({
@@ -660,6 +678,9 @@ export function PhoneFiltersSheet({
   draftGroupCounts,
   catalogFieldIds,
   setIndex,
+  draftFormatId = null,
+  onDraftFormatChange,
+  formatPoolCount,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -715,6 +736,9 @@ export function PhoneFiltersSheet({
           catalogFieldIds={catalogFieldIds}
           onChange={onDraftChange}
           setIndex={setIndex}
+          activeFormatId={draftFormatId}
+          onFormatChange={onDraftFormatChange}
+          formatPoolCount={formatPoolCount}
         />
       </div>
       <footer className="border-t border-border p-4">
