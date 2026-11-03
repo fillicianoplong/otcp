@@ -5,6 +5,7 @@ import {
   facetDefinitionById,
   facetDefinitionsForGame,
   facetDisplayLabel,
+  SEARCH_FACET_FIELD_ORDER,
   type FacetDefinition,
   type FacetFieldId,
 } from './facets.ts';
@@ -57,6 +58,27 @@ function facetHasActiveSelection(definition: FacetDefinition, filterState: Filte
     selection.range?.min != null ||
     selection.range?.max != null
   );
+}
+
+const SEARCH_FACET_FIELD_RANK = new Map(
+  SEARCH_FACET_FIELD_ORDER.map((id, index) => [id, index] as const),
+);
+
+/** Unknown catalog facets render after Category and before Attribute. */
+function searchFacetFieldSortRank(fieldId: FacetFieldId): number {
+  const rank = SEARCH_FACET_FIELD_RANK.get(fieldId);
+  if (rank != null) return rank;
+  const categoryRank = SEARCH_FACET_FIELD_RANK.get('cardType') ?? 0;
+  const attributeRank = SEARCH_FACET_FIELD_RANK.get('attribute') ?? categoryRank + 1;
+  return categoryRank + 0.5 + (attributeRank - categoryRank) * 0.001;
+}
+
+function orderFacetDefinitionsForPanel(definitions: readonly FacetDefinition[]): FacetDefinition[] {
+  return [...definitions].sort((a, b) => {
+    const rankDiff = searchFacetFieldSortRank(a.id) - searchFacetFieldSortRank(b.id);
+    if (rankDiff !== 0) return rankDiff;
+    return a.id.localeCompare(b.id);
+  });
 }
 
 function facetHasVisibleOptions(
@@ -222,7 +244,7 @@ export function FacetFilterPanel({
         ordered.push(def);
       }
     }
-    return ordered;
+    return orderFacetDefinitionsForPanel(ordered);
   }, [catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
 
   return (
