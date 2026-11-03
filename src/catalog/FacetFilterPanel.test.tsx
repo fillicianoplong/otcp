@@ -8,12 +8,56 @@ import { afterEach, describe, expect, it } from 'vitest';
 import sampleDataset from '../../public/data/datasets/sample-dev.json';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { FacetFilterPanel } from './FacetFilterPanel.tsx';
+import { facetDefinitionById, facetDisplayLabel, SEARCH_FACET_FIELD_ORDER } from './facets.ts';
 import { FilterEngine, emptyFilterState } from './filterEngine.ts';
 
 const sampleCards = sampleDataset.cards as YugiohCard[];
 
+const SEARCH_FILTER_SECTION_LABELS = [
+  'Format',
+  ...SEARCH_FACET_FIELD_ORDER.map((fieldId) => {
+    const def = facetDefinitionById(fieldId);
+    if (!def) throw new Error(`missing facet ${fieldId}`);
+    return facetDisplayLabel(def);
+  }),
+];
+
+function filterPanelSectionTitles(container: HTMLElement): string[] {
+  const stack = container.querySelector('.flex.flex-col.gap-3');
+  expect(stack).toBeTruthy();
+  const sections = stack!.querySelectorAll(':scope > section');
+  return Array.from(sections).map((section) => {
+    const heading = within(section as HTMLElement).getByRole('button', { expanded: true });
+    return heading.textContent!.replace(/\s*[▸▾]\s*$/u, '').trim();
+  });
+}
+
 afterEach(() => {
   cleanup();
+});
+
+describe('FacetFilterPanel filter group order', () => {
+  it('lists Search filter groups in catalog order below Format', () => {
+    const engine = new FilterEngine(sampleCards);
+    const groupCounts = engine.recount(emptyFilterState());
+    const catalogFieldIds = engine.fieldsWithCatalog();
+
+    const { container } = render(
+      <FacetFilterPanel
+        filterState={emptyFilterState()}
+        groupCounts={groupCounts}
+        catalogFieldIds={catalogFieldIds}
+        onChange={() => {}}
+        activeFormatId="advanced"
+        onFormatChange={() => {}}
+      />,
+    );
+
+    const titles = filterPanelSectionTitles(container);
+    const visible = new Set(titles);
+    const expectedVisible = SEARCH_FILTER_SECTION_LABELS.filter((label) => visible.has(label));
+    expect(titles).toEqual(expectedVisible);
+  });
 });
 
 describe('FacetFilterPanel range inputs', () => {
