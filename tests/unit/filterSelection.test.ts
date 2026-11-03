@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { emptyFilterState } from '../../src/catalog/filterEngine.ts';
 import {
   cycleFacetValue,
+  clearBanStatusSelection,
   removeFilterChip,
   setFacetRange,
 } from '../../src/catalog/filterSelection.ts';
@@ -71,5 +72,20 @@ describe('setFacetRange', () => {
     });
     state = removeFilterChip(state, { fieldId: 'atk', kind: 'range' });
     expect(state.facets.atk).toBeUndefined();
+  });
+});
+
+describe('clearBanStatusSelection', () => {
+  it('removes banStatus facet selections', () => {
+    const state = {
+      version: 1 as const,
+      facets: {
+        banStatus: { include: ['Limited'] },
+        attribute: { include: ['DARK'] },
+      },
+    };
+    const cleared = clearBanStatusSelection(state);
+    expect(cleared.facets.banStatus).toBeUndefined();
+    expect(cleared.facets.attribute?.include).toEqual(['DARK']);
   });
 });

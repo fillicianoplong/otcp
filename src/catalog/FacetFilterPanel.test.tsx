@@ -39,7 +39,7 @@ afterEach(() => {
 describe('FacetFilterPanel filter group order', () => {
   it('lists Search filter groups in catalog order below Format', () => {
     const engine = new FilterEngine(sampleCards);
-    const groupCounts = engine.recount(emptyFilterState());
+    const groupCounts = engine.recount(emptyFilterState(), { formatParam: 'advanced' });
     const catalogFieldIds = engine.fieldsWithCatalog();
 
     const { container } = render(
@@ -57,6 +57,27 @@ describe('FacetFilterPanel filter group order', () => {
     const visible = new Set(titles);
     const expectedVisible = SEARCH_FILTER_SECTION_LABELS.filter((label) => visible.has(label));
     expect(titles).toEqual(expectedVisible);
+    expect(titles.indexOf('Legality')).toBeGreaterThan(titles.indexOf('Format'));
+  });
+
+  it('hides Legality when no format is selected', () => {
+    const engine = new FilterEngine(sampleCards);
+    const groupCounts = engine.recount(emptyFilterState());
+    const catalogFieldIds = engine.fieldsWithCatalog();
+
+    const { container } = render(
+      <FacetFilterPanel
+        filterState={emptyFilterState()}
+        groupCounts={groupCounts}
+        catalogFieldIds={catalogFieldIds}
+        onChange={() => {}}
+        activeFormatId={null}
+        onFormatChange={() => {}}
+      />,
+    );
+
+    const titles = filterPanelSectionTitles(container);
+    expect(titles).not.toContain('Legality');
   });
 });
 

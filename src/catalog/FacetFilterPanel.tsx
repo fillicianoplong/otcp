@@ -233,10 +233,12 @@ export function FacetFilterPanel({
     const byId = new Map(definitions.map((def) => [def.id, def]));
     const ordered: FacetDefinition[] = [];
     for (const id of catalogFieldIds) {
+      if (id === 'banStatus' && !activeFormatId) continue;
       const def = byId.get(id);
       if (def) ordered.push(def);
     }
     for (const def of definitions) {
+      if (def.id === 'banStatus' && !activeFormatId) continue;
       if (
         !catalogIdSet.has(def.id) &&
         facetHasVisibleOptions(def, countsByField.get(def.id), filterState)
@@ -245,7 +247,7 @@ export function FacetFilterPanel({
       }
     }
     return orderFacetDefinitionsForPanel(ordered);
-  }, [catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
+  }, [activeFormatId, catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
 
   return (
     <div className={className}>

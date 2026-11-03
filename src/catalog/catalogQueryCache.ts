@@ -41,8 +41,12 @@ function normalizeQuery(query: string | undefined): string {
   return (query ?? '').trim();
 }
 
-function filterCacheKey(query: string, filterSig: string): string {
-  return `${query}\u0000${filterSig}`;
+function filterCacheKey(
+  query: string,
+  filterSig: string,
+  formatParam: string | null | undefined,
+): string {
+  return `${query}\u0000${filterSig}\u0000${formatParam ?? ''}`;
 }
 
 function tableSortCacheKey(
@@ -88,9 +92,10 @@ function buildFilterEntry(
   derived: CatalogDerived,
   filterState: FilterState,
   query: string,
+  formatParam: string | null | undefined,
 ): FilterCacheEntry {
   const filterSig = filterStateSignature(filterState);
-  const cacheKey = filterCacheKey(query, filterSig);
+  const cacheKey = filterCacheKey(query, filterSig, formatParam);
   const existingMap = filterCacheByCatalog.get(derived.cards);
   const hit = existingMap?.get(cacheKey);
   if (hit) {
@@ -102,7 +107,10 @@ function buildFilterEntry(
   if (query.length > 0) {
     searchIds = derived.searchIndex.query(query).ids;
   }
-  const applyOptions: FilterApplyOptions = searchIds ? { searchIds } : {};
+  const applyOptions: FilterApplyOptions = {
+    ...(searchIds ? { searchIds } : {}),
+    formatParam,
+  };
   const applied = derived.filterEngine.apply(filterState, applyOptions);
   const facetGroupCounts = derived.filterEngine.recount(filterState, applyOptions);
   const visibleCards = visibleCardsFromIds(applied.ids, derived.cardById);
@@ -123,7 +131,7 @@ export function queryCatalog(
 ): CatalogQueryResult {
   const filterState = input.filterState ?? emptyFilterState();
   const query = normalizeQuery(input.query);
-  const filterEntry = buildFilterEntry(derived, filterState, query);
+  const filterEntry = buildFilterEntry(derived, filterState, query, input.formatParam);
 
   const pooledIds = filterCatalogIdsByFormatPool(
     filterEntry.ids,

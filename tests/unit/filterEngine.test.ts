@@ -27,6 +27,11 @@ describe('facet declarations', () => {
     expect(defs.some((def) => def.layer === 'core' && def.id === 'cardType')).toBe(true);
     expect(defs.some((def) => def.layer === 'yugioh' && def.id === 'attribute')).toBe(true);
   });
+
+  it('labels the ban status facet Legality in Search', () => {
+    const ban = CORE_FACET_DEFINITIONS.find((def) => def.id === 'banStatus');
+    expect(ban?.label).toBe('Legality');
+  });
 });
 
 describe('FilterEngine', () => {
@@ -365,5 +370,52 @@ describe('FilterEngine', () => {
     expect(setGroup!.options).toHaveLength(uniqueSetNames);
     expect(setGroup!.options.every((opt) => !opt.value.includes('-EN'))).toBe(true);
     expect(setGroup!.options.every((opt) => opt.value.startsWith('Expansion '))).toBe(true);
+  });
+
+  it('filters Legality using the active format banlist', () => {
+    const cards: YugiohCard[] = [
+      card({
+        ...sampleCards[0],
+        id: 1,
+        name: 'Forbidden card',
+        banlistInfo: { banTcg: 'Forbidden' },
+      }),
+      card({
+        ...sampleCards[0],
+        id: 2,
+        name: 'Unlimited card',
+        banlistInfo: undefined,
+      }),
+    ];
+    const engine = new FilterEngine(cards);
+    const advanced = engine.apply(
+      { version: 1, facets: { banStatus: { include: ['Forbidden'] } } },
+      { formatParam: 'advanced' },
+    );
+    expect(advanced.ids).toEqual([1]);
+
+    const traditional = engine.apply(
+      { version: 1, facets: { banStatus: { include: ['Limited'] } } },
+      { formatParam: 'traditional' },
+    );
+    expect(traditional.ids).toEqual([1]);
+  });
+
+  it('ignores Legality selections when no format is active', () => {
+    const cards: YugiohCard[] = [
+      card({
+        ...sampleCards[0],
+        id: 1,
+        name: 'Forbidden card',
+        banlistInfo: { banTcg: 'Forbidden' },
+      }),
+      card({ ...sampleCards[0], id: 2, name: 'Other', banlistInfo: undefined }),
+    ];
+    const engine = new FilterEngine(cards);
+    const filtered = engine.apply({
+      version: 1,
+      facets: { banStatus: { include: ['Forbidden'] } },
+    });
+    expect(filtered.count).toBe(2);
   });
 });

@@ -1,4 +1,6 @@
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { isKnownFormatId } from '../format/formatCatalog.ts';
+import { resolveFormatBanStatus } from '../format/formatBanStatus.ts';
 import { normalizeYugiohCardLevelRankLink } from '../shared/schema/normalizeMonsterLevelRankLink.ts';
 import {
   andInPlace,
@@ -50,6 +52,8 @@ export function resolveFilterStateUpdater(
 export type FilterApplyOptions = {
   /** Restrict to ids from SearchIndex (or another upstream query). */
   searchIds?: readonly number[];
+  /** When set, Legality facet indexing and filtering use this format's banlist. */
+  formatParam?: string | null;
 };
 
 export type FilterApplyResult = {
@@ -104,8 +108,19 @@ function levelFacetValues(card: YugiohCard): readonly string[] {
   return metric != null ? [String(metric)] : [];
 }
 
-function tcgBanStatus(card: YugiohCard): string {
-  return card.banlistInfo?.banTcg ?? 'Unlimited';
+function banStatusFacetValue(card: YugiohCard, formatParam: string): string {
+  return resolveFormatBanStatus(card, formatParam) ?? 'Unlimited';
+}
+
+export function filterStateForFormatContext(
+  state: FilterState,
+  formatParam: string | null | undefined,
+): FilterState {
+  if (formatParam && isKnownFormatId(formatParam)) return state;
+  if (!state.facets.banStatus) return state;
+  const facets = { ...state.facets };
+  delete facets.banStatus;
+  return { version: state.version, facets };
 }
 
 function hasHostedImage(card: YugiohCard): string {
@@ -145,7 +160,6 @@ const FIELD_INDEXERS: readonly FieldIndexer[] = [
     valuesForRow: (card) => setNamesForCard(card),
   },
   { id: 'rarity', valuesForRow: (card) => raritiesForCard(card) },
-  { id: 'banStatus', valuesForRow: (card) => [tcgBanStatus(card)] },
   { id: 'hasImage', valuesForRow: (card) => [hasHostedImage(card)] },
   { id: 'monsterFrame', valuesForRow: (card) => typeTokens(card.type) },
   { id: 'attribute', valuesForRow: (card) => (card.attribute ? [card.attribute] : []) },
@@ -228,6 +242,7 @@ export class FilterEngine {
   private readonly scratch: Uint32Array;
   private readonly fields: IndexedField[];
   private readonly cardsByRow: YugiohCard[];
+  private readonly formatBanFields = new Map<string, IndexedField>();
 
   constructor(cards: readonly YugiohCard[]) {
     const definitions = facetDefinitionsForGame('yugioh');
@@ -297,7 +312,10 @@ export class FilterEngine {
 
   /** Apply facet selections, optionally intersecting a search id list. */
   apply(state: FilterState, options: FilterApplyOptions = {}): FilterApplyResult {
-    const normalized = normalizeFilterState(state);
+    const normalized = filterStateForFormatContext(
+      normalizeFilterState(state),
+      options.formatParam,
+    );
     this.computeMask(normalized, this.shownMask, undefined, options);
     const ids: number[] = [];
     forEachSetBit(this.shownMask, this.count, (row) => {
@@ -310,10 +328,14 @@ export class FilterEngine {
    * Live option counts (FR-57). Each group ignores its own selections; options OR within a group.
    */
   recount(state: FilterState, options: FilterApplyOptions = {}): FacetGroupCounts[] {
-    const normalized = normalizeFilterState(state);
+    const normalized = filterStateForFormatContext(
+      normalizeFilterState(state),
+      options.formatParam,
+    );
     this.fillBaseMask(options.searchIds);
+    const activeFields = this.fieldsForApply(options.formatParam);
     const out: FacetGroupCounts[] = [];
-    for (const field of this.fields) {
+    for (const field of activeFields) {
       const optionsForField: FacetOptionCount[] = [];
       for (let i = 0; i < field.bitsets.length; i++) {
         const value = field.values[i];
@@ -333,6 +355,7 @@ export class FilterEngine {
     for (const id of rangeFields) {
       if (!ids.includes(id)) ids.push(id);
     }
+    if (!ids.includes('banStatus')) ids.unshift('banStatus');
     return ids;
   }
 
@@ -355,6 +378,53 @@ export class FilterEngine {
     }
   }
 
+  private fieldsForApply(formatParam: string | null | undefined): IndexedField[] {
+    const banField = this.formatBanField(formatParam);
+    if (!banField) return this.fields;
+    return [banField, ...this.fields];
+  }
+
+  private formatBanField(formatParam: string | null | undefined): IndexedField | null {
+    if (!formatParam || !isKnownFormatId(formatParam)) return null;
+    const key = formatParam.trim().toLowerCase();
+    const cached = this.formatBanFields.get(key);
+    if (cached) return cached;
+
+    const defById = new Map(this.definitions.map((def) => [def.id, def]));
+    const definition = defById.get('banStatus');
+    if (!definition) return null;
+
+    const words = wordCount(this.count);
+    const table = new Map<string, Uint32Array>();
+    const add = (value: string, row: number) => {
+      let bits = table.get(value);
+      if (!bits) {
+        bits = new Uint32Array(words);
+        table.set(value, bits);
+      }
+      setBit(bits, row);
+    };
+
+    for (let row = 0; row < this.count; row++) {
+      add(banStatusFacetValue(this.cardsByRow[row], key), row);
+    }
+
+    const values = [...table.keys()].sort((a, b) => a.localeCompare(b));
+    const field: IndexedField = {
+      id: 'banStatus',
+      definition,
+      values,
+      bitsets: values.map((value) => table.get(value) ?? new Uint32Array(words)),
+      valueIndex: new Map(values.map((value, index) => [value, index])),
+      unionScratch: new Uint32Array(words),
+      unionOn: false,
+      excludeUnionScratch: new Uint32Array(words),
+      excludeOn: false,
+    };
+    this.formatBanFields.set(key, field);
+    return field;
+  }
+
   private computeMask(
     state: FilterState,
     target: Uint32Array,
@@ -362,9 +432,9 @@ export class FilterEngine {
     options: FilterApplyOptions = {},
   ): void {
     this.fillBaseMask(options.searchIds);
-    this.prepareUnions(state);
+    this.prepareUnions(state, options.formatParam);
     target.set(this.baseMask);
-    for (const field of this.fields) {
+    for (const field of this.fieldsForApply(options.formatParam)) {
       if (field.id === skipFieldId) continue;
       if (field.unionOn) andInPlace(target, field.unionScratch);
       if (field.excludeOn) {
@@ -376,11 +446,18 @@ export class FilterEngine {
     this.applyDynamicPredicates(state, target, skipFieldId);
   }
 
-  private prepareUnions(state: FilterState): void {
+  private prepareUnions(state: FilterState, formatParam?: string | null): void {
     for (const field of this.fields) {
-      const selection = state.facets[field.id];
       field.unionOn = false;
       field.excludeOn = false;
+    }
+    for (const field of this.formatBanFields.values()) {
+      field.unionOn = false;
+      field.excludeOn = false;
+    }
+
+    for (const field of this.fieldsForApply(formatParam)) {
+      const selection = state.facets[field.id];
       if (!selection) continue;
 
       if (field.id === 'price') {
