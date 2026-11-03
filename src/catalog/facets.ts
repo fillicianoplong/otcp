@@ -74,7 +74,7 @@ export const CORE_FACET_DEFINITIONS: readonly FacetDefinition[] = [
     id: 'banStatus',
     layer: 'core',
     group: 'Legality',
-    label: 'Format ban status',
+    label: 'Legality',
     control: 'multi',
     includeExclude: true,
     allowAndOr: false,
