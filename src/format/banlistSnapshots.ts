@@ -6,6 +6,7 @@ import tenguJson from './data/tengu.json' with { type: 'json' };
 import edisonJson from './data/edison.json' with { type: 'json' };
 import {
   formatBanlistSnapshotSchema,
+  type BanlistPreviousList,
   type BanlistSnapshotCard,
   type FormatBanlistSnapshot,
 } from './banlistSnapshotSchema.ts';
@@ -57,6 +58,12 @@ export function isBanlistSnapshotFormatId(formatId: FormatId): formatId is Banli
 
 export function getFormatBanlistSnapshot(formatId: BanlistSnapshotFormatId): FormatBanlistSnapshot {
   return RAW_SNAPSHOTS[formatId];
+}
+
+export function getFormatBanlistPreviousList(
+  formatId: BanlistSnapshotFormatId,
+): BanlistPreviousList | undefined {
+  return RAW_SNAPSHOTS[formatId].previousList;
 }
 
 export function snapshotCardToBanStatus(status: BanlistSnapshotCard['status']): BanDisplayStatus {

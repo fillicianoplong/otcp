@@ -13,6 +13,14 @@ export const banlistSnapshotCardSchema = z
   })
   .strict();
 
+export const banlistPreviousListSchema = z
+  .object({
+    effectiveDate: z.string().min(1),
+    listName: z.string().min(1),
+    cards: z.array(banlistSnapshotCardSchema).min(1),
+  })
+  .strict();
+
 export const formatBanlistSnapshotSchema = z
   .object({
     formatId: z.enum(['goat', 'hat', 'tengu', 'edison']),
@@ -36,8 +44,11 @@ export const formatBanlistSnapshotSchema = z
     cardPool: z.record(z.string(), z.unknown()).optional(),
     crossCheck: z.record(z.string(), z.unknown()).optional(),
     cards: z.array(banlistSnapshotCardSchema).min(1),
+    /** Prior list in the same Konami lineage; powers change badges and No Longer Restricted. */
+    previousList: banlistPreviousListSchema.optional(),
   })
   .strict();
 
 export type FormatBanlistSnapshot = z.infer<typeof formatBanlistSnapshotSchema>;
+export type BanlistPreviousList = z.infer<typeof banlistPreviousListSchema>;
 export type BanlistSnapshotCard = z.infer<typeof banlistSnapshotCardSchema>;
