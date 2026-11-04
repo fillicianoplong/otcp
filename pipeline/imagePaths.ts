@@ -4,7 +4,9 @@ import { CARD_IMAGES_SUBDIR } from './constants.ts';
 import {
   publicLargeImageUrl,
   publicSmallImageUrl,
+  publishedDefaultArtPaths,
   publishedImagePaths,
+  publishedImagePathsByImageId,
   r2LargeObjectKey,
   r2SmallObjectKey,
   R2_CARD_IMAGES_PUBLIC_BASE_URL,
@@ -13,7 +15,9 @@ import {
 export {
   publicLargeImageUrl,
   publicSmallImageUrl,
+  publishedDefaultArtPaths,
   publishedImagePaths,
+  publishedImagePathsByImageId,
   r2LargeObjectKey,
   r2SmallObjectKey,
   R2_CARD_IMAGES_PUBLIC_BASE_URL,

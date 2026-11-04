@@ -8,7 +8,7 @@ import {
   type YugiohCard,
 } from '../src/shared/schema/index.ts';
 import { YGOPRODECK_CARDINFO_URL } from './constants.ts';
-import { publishedImagePaths } from './imagePaths.ts';
+import { publishedDefaultArtPaths } from './imagePaths.ts';
 import { resolveMonsterLevelRankLink } from '../src/shared/schema/normalizeMonsterLevelRankLink.ts';
 import { isYgoprodeckPlaceholderRow } from './placeholderFilter.ts';
 import type { YgoApiCard, YgoBanlistInfo } from './ygoprodeckTypes.ts';
@@ -105,7 +105,19 @@ function mapPrices(card: YgoApiCard): CardPrices | undefined {
 }
 
 function publishedImages(cardId: number, publicBaseUrl: string): YugiohCard['images'] {
-  return publishedImagePaths(cardId, publicBaseUrl);
+  return publishedDefaultArtPaths(cardId, publicBaseUrl);
+}
+
+function mapArtIds(card: YgoApiCard): number[] {
+  const ordered: number[] = [];
+  const seen = new Set<number>();
+  for (const image of card.card_images ?? [{ id: card.id }]) {
+    if (seen.has(image.id)) continue;
+    seen.add(image.id);
+    ordered.push(image.id);
+  }
+  if (ordered.length === 0) return [card.id];
+  return ordered;
 }
 
 /** Drop Rush Duel and other rows outside the v1 Yu-Gi-Oh! extension (FR-50). */
@@ -162,6 +174,11 @@ export function mapYgoprodeckCard(card: YgoApiCard, publicBaseUrl: string): Yugi
     mapped.speedDuelLegal = true;
   }
 
+  const artIds = mapArtIds(card);
+  if (artIds.length > 1 || artIds[0] !== card.id) {
+    mapped.artIds = artIds;
+  }
+
   return mapped;
 }
 
@@ -200,4 +217,18 @@ export function mapYgoprodeckResponse(
     cards.push(mapYgoprodeckCard(row, publicBaseUrl));
   }
   return { cards, dropped };
+}
+
+/** Every YGOPRODeck card_images id plus each card id (legacy default-art object keys). */
+export function collectHostedImageIdsFromRows(rows: readonly YgoApiCard[]): number[] {
+  const ids = new Set<number>();
+  for (const row of rows) {
+    if (!isSupportedYugiohRow(row)) continue;
+    if (isYgoprodeckPlaceholderRow(row)) continue;
+    ids.add(row.id);
+    for (const image of row.card_images ?? []) {
+      ids.add(image.id);
+    }
+  }
+  return [...ids].sort((a, b) => a - b);
 }

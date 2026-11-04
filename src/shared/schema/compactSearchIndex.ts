@@ -50,6 +50,7 @@ export const compactSearchIndexEnvelopeSchema = z
     pt: z.array(z.number()).optional(),
     pr: z.array(z.array(z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]))),
     si: z.record(z.string(), setIndexEntrySchema).optional(),
+    aid: z.array(z.array(z.number().int().positive())).optional(),
   })
   .strict();
 
@@ -157,6 +158,7 @@ export function encodeCompactSearchIndex(
   const bt: number[] = [];
   const pt: number[] = [];
   const pr: CompactSearchIndexEnvelope['pr'] = [];
+  const aid: number[][] = [];
 
   let anyLevel = false;
   let anyRank = false;
@@ -168,6 +170,7 @@ export function encodeCompactSearchIndex(
   let anyPasscode = false;
   let anyBan = false;
   let anyPrice = false;
+  let anyArtIds = false;
 
   for (const card of cards) {
     i.push(card.id);
@@ -187,6 +190,7 @@ export function encodeCompactSearchIndex(
     if (card.passcode != null && card.passcode !== card.id) anyPasscode = true;
     if (card.banlistInfo?.banTcg) anyBan = true;
     if (card.prices?.tcgplayer != null) anyPrice = true;
+    if (card.artIds && (card.artIds.length > 1 || card.artIds[0] !== card.id)) anyArtIds = true;
 
     l.push(card.level ?? -1);
     rk.push(card.rank ?? -1);
@@ -204,6 +208,7 @@ export function encodeCompactSearchIndex(
         lex.ra.intern(card.rarities[index] ?? card.rarities[0] ?? 'Unknown'),
       ]),
     );
+    aid.push(card.artIds ?? [card.id]);
   }
 
   return {
@@ -228,6 +233,7 @@ export function encodeCompactSearchIndex(
     ...(anyBan ? { bt } : {}),
     ...(anyPrice ? { pt } : {}),
     pr,
+    ...(anyArtIds ? { aid } : {}),
     ...(setIndex ? { si: compactSetIndex(setIndex, lex.sn) } : {}),
   };
 }
@@ -271,6 +277,7 @@ export function decodeCompactSearchIndex(envelope: CompactSearchIndexEnvelope): 
     const linkMarkers = linkMarkerIdxs
       .map((idx) => lex.lk[idx])
       .filter((value): value is string => Boolean(value));
+    const artIds = envelope.aid?.[row];
 
     const card: CatalogSearchCard = {
       id,
@@ -291,6 +298,7 @@ export function decodeCompactSearchIndex(envelope: CompactSearchIndexEnvelope): 
       ...(passcodeRaw != null && passcodeRaw !== id ? { passcode: passcodeRaw } : {}),
       ...(banTcg ? { banlistInfo: { banTcg: banTcg as 'Forbidden' } } : {}),
       ...(tcgPrice != null && tcgPrice >= 0 ? { prices: { tcgplayer: tcgPrice } } : {}),
+      ...(artIds && (artIds.length > 1 || artIds[0] !== id) ? { artIds } : {}),
     };
     cards.push(card);
   }

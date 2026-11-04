@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 
-import {
-  cardDetailImageFallback,
-  cardDetailImageSrc,
-  YGO_CARD_ART_ASPECT_CLASS,
-} from '../catalog/cardArtUrl.ts';
+import { YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
+import { resolveArtIds, resolveSelectedArtId } from '../catalog/cardArt.ts';
+import { CatalogArtImage, CatalogArtThumbnail } from '../catalog/CatalogArtImage.tsx';
 import {
   buildCardDetailChips,
   buildCardDetailChipSearchHref,
@@ -32,6 +30,10 @@ import {
   cardDetailSetsVisibleCount,
   sortCardDetailSets,
 } from '../catalog/cardDetailSets.ts';
+import {
+  hasCuratedSetArtPrintings,
+  isSetRowMarkedForSelectedArt,
+} from '../catalog/setArtPrintings.ts';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
 import { buildSearchPathWithFormat } from '../catalog/searchCardLinks.ts';
 import {
@@ -51,12 +53,20 @@ import type { CardPrices } from '../shared/schema/core.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
-function CardDetailArt({ card }: { card: YugiohCard }) {
-  const [src, setSrc] = useState(() => cardDetailImageSrc(card));
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [artMissing, setArtMissing] = useState(false);
+function CardDetailArt({
+  card,
+  selectedArtId,
+  onSelectArtId,
+}: {
+  card: YugiohCard;
+  selectedArtId: number;
+  onSelectArtId: (imageId: number) => void;
+}) {
+  const artId = resolveSelectedArtId(card, selectedArtId);
+  const [viewerSrc, setViewerSrc] = useState(() => card.images.large);
   const [viewerOpen, setViewerOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const artIds = resolveArtIds(card);
 
   const openViewer = () => setViewerOpen(true);
   const closeViewer = () => setViewerOpen(false);
@@ -71,35 +81,43 @@ function CardDetailArt({ card }: { card: YugiohCard }) {
         aria-label={`View larger artwork for ${card.name}`}
       >
         <div
-          className={`relative mx-auto ${YGO_CARD_ART_ASPECT_CLASS} w-full max-w-full overflow-hidden rounded-md border border-border bg-surface-2 md:max-w-[435px] xl:max-w-[520px]`}
+          className={`relative mx-auto ${YGO_CARD_ART_ASPECT_CLASS} w-full max-w-[min(100%,280px)] overflow-hidden rounded-md border border-border bg-surface-2 sm:max-w-[300px] md:max-w-[280px]`}
         >
-          {artMissing ? (
-            <span className="sr-only">Artwork unavailable for {card.name}</span>
-          ) : (
-            <img
-              src={src}
-              alt={card.name}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => {
-                const fallback = cardDetailImageFallback(card, src);
-                if (fallback) {
-                  setImageLoaded(false);
-                  setSrc(fallback);
-                } else {
-                  setArtMissing(true);
-                  setImageLoaded(false);
-                }
-              }}
-              className={`pointer-events-none absolute inset-0 h-full w-full object-contain ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
-          )}
+          <CatalogArtImage
+            card={card}
+            imageId={artId}
+            size="large"
+            alt={card.name}
+            loading="eager"
+            onResolvedSrc={setViewerSrc}
+            imgClassName="absolute inset-0 h-full w-full object-cover object-left-top"
+          />
         </div>
       </button>
+      {artIds.length > 1 ? (
+        <ul
+          className="flex max-w-full list-none flex-wrap gap-1.5 p-0 pt-2"
+          aria-label="Artwork variants"
+        >
+          {artIds.map((imageId) => {
+            const selected = imageId === artId;
+            return (
+              <li key={imageId}>
+                <CatalogArtThumbnail
+                  card={card}
+                  imageId={imageId}
+                  selected={selected}
+                  onSelect={() => onSelectArtId(imageId)}
+                  ariaLabel={`Show artwork ${imageId} for ${card.name}`}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
       {viewerOpen ? (
         <CardImageZoomViewer
-          src={src}
+          src={viewerSrc}
           alt={card.name}
           onClose={closeViewer}
           triggerRef={triggerRef}
@@ -231,7 +249,15 @@ function CardDetailMarketPrices({
   );
 }
 
-function CardDetailSets({ card, setIndex }: { card: YugiohCard; setIndex?: SetIndex | null }) {
+function CardDetailSets({
+  card,
+  setIndex,
+  selectedArtId,
+}: {
+  card: YugiohCard;
+  setIndex?: SetIndex | null;
+  selectedArtId: number;
+}) {
   const [expanded, setExpanded] = useState(false);
   const sortedSets = useMemo(() => sortCardDetailSets(card.sets, setIndex), [card.sets, setIndex]);
   const totalCount = sortedSets.length;
@@ -241,6 +267,7 @@ function CardDetailSets({ card, setIndex }: { card: YugiohCard; setIndex?: SetIn
   const visibleSets = sortedSets.slice(0, visibleCount);
   const expandLabel = cardDetailSetsExpandButtonLabel(totalCount);
   const showCollapse = cardDetailSetsShowCollapseButton(totalCount, expanded);
+  const showArtMarks = hasCuratedSetArtPrintings(card.id);
 
   return (
     <section className="flex flex-col gap-2" aria-labelledby="card-sets-heading">
@@ -251,6 +278,8 @@ function CardDetailSets({ card, setIndex }: { card: YugiohCard; setIndex?: SetIn
         <ul className="m-0 list-none p-0">
           {visibleSets.map((entry, index) => {
             const releaseDate = cardDetailSetRowReleaseDate(entry.setName, setIndex);
+            const usesThisArt =
+              showArtMarks && isSetRowMarkedForSelectedArt(card.id, selectedArtId, entry.setCode);
             return (
               <li
                 key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}
@@ -268,6 +297,11 @@ function CardDetailSets({ card, setIndex }: { card: YugiohCard; setIndex?: SetIn
                     </span>
                   </span>
                   <span className="flex shrink-0 items-center gap-1.5">
+                    {usesThisArt ? (
+                      <span className="rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-2">
+                        This art
+                      </span>
+                    ) : null}
                     {releaseDate ? (
                       <span className="text-xs text-text-2 tabular-nums">{releaseDate}</span>
                     ) : null}
@@ -414,6 +448,8 @@ function CardDetailReadyView({
   searchQuery: string | null;
   formatParam: string | null;
 }) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const searchCard = getCatalogDerived(state.cards).cardById.get(cardId);
   const [detailCard, setDetailCard] = useState<YugiohCard | null>(null);
   const [detailLoading, setDetailLoading] = useState(Boolean(state.detailSource));
@@ -449,6 +485,27 @@ function CardDetailReadyView({
 
   const card = state.detailSource ? (detailCard ?? searchCard) : searchCard;
 
+  const requestedArtRaw = searchParams.get('art');
+  const requestedArtId =
+    requestedArtRaw != null && requestedArtRaw.length > 0
+      ? Number.parseInt(requestedArtRaw, 10)
+      : undefined;
+  const selectedArtId = resolveSelectedArtId(card, requestedArtId);
+
+  const selectArtId = (imageId: number) => {
+    const params = new URLSearchParams(searchParams);
+    if (imageId === card.id || imageId === resolveArtIds(card)[0]) {
+      params.delete('art');
+    } else {
+      params.set('art', String(imageId));
+    }
+    const search = params.toString();
+    navigate(
+      { pathname: `/search/card/${card.id}`, search: search ? `?${search}` : '' },
+      { replace: true },
+    );
+  };
+
   if (state.detailSource && detailLoading && !detailCard) {
     return (
       <DetailMessage title="Loading card…">Fetching full details for this card.</DetailMessage>
@@ -461,8 +518,13 @@ function CardDetailReadyView({
     <div className="flex flex-col gap-6">
       <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
-        <div className="w-full shrink-0 md:sticky md:top-4 md:max-w-[435px] md:self-start xl:max-w-[520px]">
-          <CardDetailArt key={card.id} card={card} />
+        <div className="w-full shrink-0 md:sticky md:top-4 md:max-w-[300px] md:self-start">
+          <CardDetailArt
+            key={`${card.id}-${selectedArtId}`}
+            card={card}
+            selectedArtId={selectedArtId}
+            onSelectArtId={selectArtId}
+          />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <header className="flex flex-wrap items-center gap-3">
@@ -496,7 +558,12 @@ function CardDetailReadyView({
               prices={card.prices}
               snapshotAt={state.generatedAt}
             />
-            <CardDetailSets key={card.id} card={card} setIndex={state.setIndex} />
+            <CardDetailSets
+              key={`${card.id}-${selectedArtId}`}
+              card={card}
+              setIndex={state.setIndex}
+              selectedArtId={selectedArtId}
+            />
           </div>
         </div>
       </div>

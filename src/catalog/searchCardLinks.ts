@@ -3,7 +3,7 @@ import { normalizeFormatId } from '../format/formatCatalog.ts';
 
 export function buildSearchCardDetailPath(
   cardId: number,
-  options?: { searchQuery?: string; formatParam?: string | null },
+  options?: { searchQuery?: string; formatParam?: string | null; artId?: number },
 ): string {
   const params = new URLSearchParams();
   const query = options?.searchQuery?.trim();
@@ -13,6 +13,9 @@ export function buildSearchCardDetailPath(
   const formatId = normalizeFormatId(options?.formatParam);
   if (formatId) {
     params.set(FORMAT_QUERY_KEY, formatId);
+  }
+  if (options?.artId != null && options.artId !== cardId) {
+    params.set('art', String(options.artId));
   }
   const search = params.toString();
   return `/search/card/${cardId}${search ? `?${search}` : ''}`;

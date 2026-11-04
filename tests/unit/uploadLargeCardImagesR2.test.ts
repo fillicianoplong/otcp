@@ -111,7 +111,7 @@ describe('uploadCardImagesR2', () => {
   });
 
   it('skips the step when credentials are missing', async () => {
-    const result = await uploadCardImagesR2({ cardIds: [1, 2], env: {} });
+    const result = await uploadCardImagesR2({ imageIds: [1, 2], env: {} });
     expect(result).toEqual({ ok: true, uploaded: 0, skipped: 0, skippedStep: true });
   });
 
@@ -130,7 +130,7 @@ describe('uploadCardImagesR2', () => {
     const fetchImpl = vi.fn(async () => imageResponse());
 
     const result = await uploadCardImagesR2({
-      cardIds: [46986420, 89631139],
+      imageIds: [46986420, 89631139],
       variants: ['large'],
       env: R2_ENV,
       s3Client: client,
@@ -159,7 +159,7 @@ describe('uploadCardImagesR2', () => {
     });
 
     const result = await uploadCardImagesR2({
-      cardIds: [89631139],
+      imageIds: [89631139],
       variants: ['small'],
       env: R2_ENV,
       s3Client: client,
@@ -183,7 +183,7 @@ describe('uploadLargeCardImagesR2', () => {
     });
 
     const result = await uploadLargeCardImagesR2({
-      cardIds: [89631139],
+      imageIds: [89631139],
       env: R2_ENV,
       s3Client: client,
       fetchImpl: fetchImpl as typeof fetch,
