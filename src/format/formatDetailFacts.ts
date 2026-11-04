@@ -1,9 +1,10 @@
+import { FORMAT_TCG_BANLIST_DATES, tcgBanlistDetailPath } from './tcgBanlistManifest.ts';
+import type { FormatDefinition, FormatId } from './formatCatalog.ts';
 import {
   getFormatBanlistSnapshot,
   isBanlistSnapshotFormatId,
   type BanlistSnapshotFormatId,
 } from './banlistSnapshots.ts';
-import type { FormatDefinition } from './formatCatalog.ts';
 import { DEFAULT_GENESYS_POINT_CAP } from './formatEngine/genesysRules.ts';
 import { getGenesysKonamiPointsDocument } from './genesysKonamiPoints.ts';
 
@@ -24,6 +25,7 @@ export type FormatSourceLink = {
 export type FormatDetailBanList = {
   readonly effectiveDate?: string;
   readonly listName: string;
+  readonly historyPath?: string;
 };
 
 export type FormatDetailCardPool = {
@@ -85,6 +87,11 @@ function mergeSourceLinks(
   return merged;
 }
 
+function historyPathForFormat(formatId: FormatId): string | undefined {
+  const dated = FORMAT_TCG_BANLIST_DATES[formatId as keyof typeof FORMAT_TCG_BANLIST_DATES];
+  return dated ? tcgBanlistDetailPath(dated) : undefined;
+}
+
 function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
   if (format.banlistSource === 'genesys-points') {
     return null;
@@ -93,17 +100,21 @@ function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
   const effectiveDate = format.sortDate;
   if (!effectiveDate) return null;
 
+  const historyPath = historyPathForFormat(format.id);
+
   if (format.banlistSource === 'curated-snapshot' && isBanlistSnapshotFormatId(format.id)) {
     const snapshot = getFormatBanlistSnapshot(format.id);
     return {
       effectiveDate: snapshot.effectiveDate,
       listName: snapshot.listName,
+      historyPath,
     };
   }
 
   return {
     effectiveDate,
     listName: format.banlistHeading,
+    historyPath,
   };
 }
 

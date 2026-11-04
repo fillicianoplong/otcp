@@ -84,3 +84,17 @@ When a card has printings but none resolve to a `tcgDate` in the published set i
 | Default deck cap | 100, user-settable in the deck editor (OD-12) |
 
 Point values in published card JSON follow YGOPRODeck until a maintainer updates data after reviewing Konami diff output.
+
+## TCG Forbidden & Limited history (`src/format/data/tcg/`)
+
+| Field | Value |
+|---|---|
+| Coverage | 83 Advanced Format TCG lists from **2002-05-07** (May 2002 Lists) through the latest Yugipedia category member |
+| Primary source | [Yugipedia — TCG Advanced Format Forbidden & Limited Lists](https://yugipedia.com/wiki/Category:TCG_Advanced_Format_Forbidden_%26_Limited_Lists) (`{{Limitation list}}` templates) |
+| Cross-check | [Format Library — Banlists](https://formatlibrary.com/banlists) (dates/headings only; ADR-004) |
+| Card ids | YGOPRODeck `cardinfo.php` name match at snapshot build time (`scripts/build-tcg-banlist-snapshots.mjs`) |
+| Manifest | `src/format/data/tcg/manifest.json` — timeline counts, Yugipedia URLs, gap roll-up |
+| Per-list JSON | `src/format/data/tcg/lists/YYYY-MM-DD.json` — compact rows (`id`, `name`, `status`; optional `passcode` when it differs from `id`; optional `note`). Previous lists are **not** embedded; the app loads the prior dated file from manifest order for diffs. |
+| Name gaps | Listed under `gaps` in the manifest and per-list `gaps` when present; Yugipedia `Maliss P` spellings map to YGOPRODeck `Maliss <P>` names; **Morphing Jar 2** maps to **Morphing Jar #2** |
+
+Refresh: run `node scripts/build-tcg-banlist-snapshots.mjs` (Yugipedia rate limits apply). GOAT / HAT / Tengu / Edison format pages link to their dated list routes under `/banlists/YYYY-MM-DD`.
