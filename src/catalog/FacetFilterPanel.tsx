@@ -20,6 +20,7 @@ import type {
 import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
 import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
 import type { FormatId } from '../format/formatCatalog.ts';
+import type { FormatOptionPoolCounts } from './formatOptionPoolCounts.ts';
 
 const LINK_ARROW_VALUES = [
   'Top',
@@ -201,7 +202,7 @@ type FacetFilterPanelProps = {
   setIndex?: SetIndex | null;
   activeFormatId?: FormatId | null;
   onFormatChange?: (formatId: FormatId | null) => void;
-  formatPoolCount?: number;
+  formatPoolCountsByFormatId?: FormatOptionPoolCounts;
 };
 
 export function FacetFilterPanel({
@@ -213,7 +214,7 @@ export function FacetFilterPanel({
   setIndex,
   activeFormatId = null,
   onFormatChange,
-  formatPoolCount,
+  formatPoolCountsByFormatId,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
   const countsByField = useMemo(() => {
@@ -257,7 +258,7 @@ export function FacetFilterPanel({
           <FormatFilterGroup
             value={activeFormatId}
             onChange={onFormatChange}
-            poolCount={formatPoolCount}
+            poolCountsByFormatId={formatPoolCountsByFormatId}
           />
         ) : null}
         {visibleDefinitions.map((def) => {
@@ -688,7 +689,7 @@ type PhoneFiltersSheetProps = {
   setIndex?: SetIndex | null;
   draftFormatId?: FormatId | null;
   onDraftFormatChange?: (formatId: FormatId | null) => void;
-  formatPoolCount?: number;
+  formatPoolCountsByFormatId?: FormatOptionPoolCounts;
 };
 
 export function PhoneFiltersSheet({
@@ -704,7 +705,7 @@ export function PhoneFiltersSheet({
   setIndex,
   draftFormatId = null,
   onDraftFormatChange,
-  formatPoolCount,
+  formatPoolCountsByFormatId,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -762,7 +763,7 @@ export function PhoneFiltersSheet({
           setIndex={setIndex}
           activeFormatId={draftFormatId}
           onFormatChange={onDraftFormatChange}
-          formatPoolCount={formatPoolCount}
+          formatPoolCountsByFormatId={formatPoolCountsByFormatId}
         />
       </div>
       <footer className="border-t border-border p-4">

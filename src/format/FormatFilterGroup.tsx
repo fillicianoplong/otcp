@@ -7,14 +7,15 @@ import {
   facetOptionShowMoreLess,
   facetOptionVisibleCount,
 } from '../catalog/facetOptionListLayout.ts';
-import { formatCatalogSortDateLabel } from './formatSortDateLabel.ts';
+import { FormatCatalogNameLabel, formatCatalogOptionAriaLabel } from './FormatCatalogNameLabel.tsx';
 import { listFormatsNewestFirst, type FormatId } from './formatCatalog.ts';
+import type { FormatOptionPoolCounts } from '../catalog/formatOptionPoolCounts.ts';
 
 type FormatFilterGroupProps = {
   value: FormatId | null;
   onChange: (formatId: FormatId | null) => void;
-  /** Shown beside Advanced / Traditional when the catalog is loaded. */
-  poolCount?: number;
+  /** Per-format pool sizes with the current query and facet filters applied. */
+  poolCountsByFormatId?: FormatOptionPoolCounts;
 };
 
 type FormatOption = {
@@ -25,22 +26,24 @@ type FormatOption = {
 
 function FormatOptionRow({
   name,
-  dateLabel,
+  sortDate,
   selected,
   count,
   onSelect,
 }: {
   name: string;
-  dateLabel: string | null;
+  sortDate?: string;
   selected: boolean;
   count?: number;
   onSelect: () => void;
 }) {
+  const ariaLabel = formatCatalogOptionAriaLabel(name, sortDate);
   return (
     <button
       type="button"
       role="radio"
       aria-checked={selected}
+      aria-label={ariaLabel}
       onClick={onSelect}
       className={`flex min-h-8 w-full items-center gap-2 rounded-sm text-left text-sm text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong ${
         selected ? 'font-medium text-heading' : ''
@@ -54,12 +57,11 @@ function FormatOptionRow({
       >
         {selected ? <span className="size-1.5 rounded-full bg-on-accent" /> : null}
       </span>
-      <span className="flex min-w-0 flex-1 items-baseline gap-1.5 truncate">
-        <span className="truncate">{name}</span>
-        {dateLabel ? (
-          <span className="shrink-0 text-xs tabular-nums text-text-2">{dateLabel}</span>
-        ) : null}
-      </span>
+      <FormatCatalogNameLabel
+        name={name}
+        sortDate={sortDate}
+        nameClassName={selected ? 'font-medium text-heading' : undefined}
+      />
       {count != null ? (
         <span className="ml-auto shrink-0 tabular-nums text-text-2">{count.toLocaleString()}</span>
       ) : null}
@@ -67,7 +69,11 @@ function FormatOptionRow({
   );
 }
 
-export function FormatFilterGroup({ value, onChange, poolCount }: FormatFilterGroupProps) {
+export function FormatFilterGroup({
+  value,
+  onChange,
+  poolCountsByFormatId,
+}: FormatFilterGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [listExpanded, setListExpanded] = useState(false);
 
@@ -110,15 +116,14 @@ export function FormatFilterGroup({ value, onChange, poolCount }: FormatFilterGr
           >
             <ul className="flex flex-col gap-0.5">
               {visibleOptions.map((option) => {
-                const dateLabel = formatCatalogSortDateLabel(option.sortDate);
                 const selected = value === option.id;
                 return (
                   <li key={option.id ?? 'none'}>
                     <FormatOptionRow
                       name={option.name}
-                      dateLabel={dateLabel}
+                      sortDate={option.sortDate}
                       selected={selected}
-                      count={option.id ? poolCount : undefined}
+                      count={option.id ? poolCountsByFormatId?.[option.id] : undefined}
                       onSelect={() => onChange(option.id)}
                     />
                   </li>
