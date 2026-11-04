@@ -218,6 +218,9 @@ function GuestDeckCard({
         <p className="text-sm text-text">{guestDeckSummaryLine(draft)}</p>
       </div>
       <div className={deckCardActionsClassName}>
+        <Link to={`/decks/edit/${draft.id}`} className={deckSecondaryActionClassName}>
+          Open
+        </Link>
         {signedIn ? (
           <button
             type="button"

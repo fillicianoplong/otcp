@@ -4,6 +4,7 @@ import {
   earliestTcgReleaseForCard,
   isEarliestReleaseOnOrBefore,
 } from './cardEarliestTcgRelease.ts';
+import { isGenesysLegalCardType } from './formatEngine/genesysRules.ts';
 import { getFormatById, normalizeFormatId } from './formatCatalog.ts';
 
 /** Whether a published card belongs to the format's card pool (FR-13). */
@@ -20,6 +21,9 @@ export function isCardInFormatPool(
 
   switch (format.poolRule) {
     case 'full-tcg':
+      if (format.banlistSource === 'genesys-points' && !isGenesysLegalCardType(card.type)) {
+        return false;
+      }
       return true;
     case 'tcg-earliest-on-or-before': {
       const cutoff = format.poolCutoffDate;

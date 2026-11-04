@@ -38,15 +38,18 @@ export type FormatDefinition = {
 };
 
 /** Must-format ids shipped in v1; extend this union as M4 issues land (#34–#38). */
-export type FormatId = 'advanced' | 'traditional' | 'hat' | 'tengu' | 'edison' | 'goat';
+export type FormatId = 'advanced' | 'traditional' | 'genesys' | 'hat' | 'tengu' | 'edison' | 'goat';
 
 export type FormatPoolRule = 'full-tcg' | 'tcg-earliest-on-or-before';
 
-export type FormatBanlistSource = 'tcg-current' | 'curated-snapshot';
+export type FormatBanlistSource = 'tcg-current' | 'curated-snapshot' | 'genesys-points';
 
 const ADVANCED_DECK_RULES = 'Main 40–60, Extra 0–15, Side 0–15';
 
 const KONAMI_TCG_CURRENT_LIST_URL = 'https://www.yugioh-card.com/en/limited/list_2026-02-02/';
+const KONAMI_GENESYS_URL = 'https://www.yugioh-card.com/en/genesys/';
+const KONAMI_GENESYS_INTRO_URL =
+  'https://yugiohblog.konami.com/2025/news-updates/introducing-ygo-tcg-genesys/';
 
 const GOAT_SNAPSHOT_URL = 'https://www.goatformat.com/cardpool.html';
 const FORMAT_LIBRARY_GOAT_URL = 'https://formatlibrary.com/formats/goat';
@@ -88,6 +91,24 @@ export const FORMAT_CATALOG: readonly FormatDefinition[] = [
     traditionalForbiddenAsLimited: true,
     sortDate: '2026-02-02',
     sortDateSource: `Same TCG Forbidden & Limited List as Advanced, effective 2026-02-02 (${KONAMI_TCG_CURRENT_LIST_URL})`,
+  },
+  {
+    id: 'genesys',
+    name: 'Genesys',
+    description:
+      'Konami introduced Yu-Gi-Oh! TCG Genesys on September 22, 2025 as a sanctioned alternate format where deck construction uses a point budget instead of the TCG Forbidden & Limited List.',
+    detailSourceLinks: [
+      { label: 'Yu-Gi-Oh! GENESYS', href: KONAMI_GENESYS_URL },
+      { label: 'Introducing Yu-Gi-Oh! TCG Genesys', href: KONAMI_GENESYS_INTRO_URL },
+    ],
+    cardSubtitle: 'Point cap, no Link or Pendulum',
+    banlistHeading: 'Konami Genesys point list',
+    deckRulesSummary: ADVANCED_DECK_RULES,
+    poolRule: 'full-tcg',
+    banlistSource: 'genesys-points',
+    traditionalForbiddenAsLimited: false,
+    sortDate: '2026-02-02',
+    sortDateSource: `Genesys format page sort key grouped with current TCG formats (${KONAMI_GENESYS_URL})`,
   },
   {
     id: 'hat',

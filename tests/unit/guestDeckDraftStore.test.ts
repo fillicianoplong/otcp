@@ -50,7 +50,8 @@ describe('guestDeckDraftStore', () => {
   it('persists through a reload simulation', () => {
     const created = createGuestDeckDraft({ name: 'Persist me' });
     const raw = readLocalStorageString(GUEST_DECK_DRAFTS_STORAGE_KEY);
-    expect(raw).toContain('"version":1');
+    expect(raw).toContain('"version":2');
+    expect(raw).toContain('"formatId":"advanced"');
     expect(raw).toContain('Persist me');
 
     clearGuestDeckDraftsStorage();

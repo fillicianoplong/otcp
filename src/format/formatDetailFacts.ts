@@ -4,6 +4,8 @@ import {
   type BanlistSnapshotFormatId,
 } from './banlistSnapshots.ts';
 import type { FormatDefinition } from './formatCatalog.ts';
+import { DEFAULT_GENESYS_POINT_CAP } from './formatEngine/genesysRules.ts';
+import { getGenesysKonamiPointsDocument } from './genesysKonamiPoints.ts';
 
 export type FormatSourceLink = {
   readonly label: string;
@@ -25,7 +27,14 @@ export type FormatDetailFacts = {
   readonly description: string | null;
   readonly banList: FormatDetailBanList | null;
   readonly cardPool: FormatDetailCardPool | null;
+  readonly genesysDetail: FormatDetailGenesysFacts | null;
   readonly sourceLinks: readonly FormatSourceLink[];
+};
+
+export type FormatDetailGenesysFacts = {
+  readonly banListName: string;
+  readonly pointCap: number;
+  readonly notIncluded: string;
 };
 
 /** Catalog exclusion notes use an "Excludes …" prefix; the grid shows the set name only. */
@@ -68,6 +77,10 @@ function mergeSourceLinks(
 }
 
 function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
+  if (format.banlistSource === 'genesys-points') {
+    return null;
+  }
+
   const effectiveDate = format.sortDate;
   if (!effectiveDate) return null;
 
@@ -100,6 +113,23 @@ function buildCardPool(format: FormatDefinition): FormatDetailCardPool | null {
 
 /** Built from catalog entries and curated snapshot JSON only. */
 export function buildFormatDetailFacts(format: FormatDefinition): FormatDetailFacts {
+  const description = format.description?.trim() ? format.description.trim() : null;
+
+  if (format.banlistSource === 'genesys-points') {
+    const konami = getGenesysKonamiPointsDocument();
+    return {
+      description,
+      banList: null,
+      cardPool: null,
+      genesysDetail: {
+        banListName: format.banlistHeading,
+        pointCap: konami.standardPointCap ?? DEFAULT_GENESYS_POINT_CAP,
+        notIncluded: 'Link and Pendulum Monsters',
+      },
+      sourceLinks: mergeSourceLinks([], format.detailSourceLinks),
+    };
+  }
+
   let sourceLinks: FormatSourceLink[] = [];
   if (format.banlistSource === 'curated-snapshot' && isBanlistSnapshotFormatId(format.id)) {
     sourceLinks = snapshotSourceLinks(format.id);
@@ -110,13 +140,13 @@ export function buildFormatDetailFacts(format: FormatDefinition): FormatDetailFa
     }
   }
 
-  const description = format.description?.trim();
   sourceLinks = mergeSourceLinks(sourceLinks, format.detailSourceLinks);
 
   return {
-    description: description ? description : null,
+    description,
     banList: buildBanList(format),
     cardPool: buildCardPool(format),
+    genesysDetail: null,
     sourceLinks,
   };
 }
