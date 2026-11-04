@@ -2,7 +2,7 @@ import { catalogSearchSetsForBrowse } from '../schema/catalogSearch.ts';
 import type { CatalogDetailOverlay, CatalogSearchCard } from '../schema/catalogSearch.ts';
 import type { YugiohCard } from '../schema/card.ts';
 import { OTCP_CARD_SCHEMA_VERSION } from '../schema/constants.ts';
-import { publishedImagePaths } from '../cardImageUrls.ts';
+import { publishedDefaultArtPaths } from '../cardImageUrls.ts';
 
 export function detailBucketObjectName(bucket: number): string {
   return `bucket-${String(bucket).padStart(5, '0')}.json`;
@@ -16,7 +16,7 @@ export function mergeCatalogSearchWithDetail(
   searchCard: CatalogSearchCard,
   overlay: CatalogDetailOverlay | undefined,
 ): YugiohCard {
-  const images = publishedImagePaths(searchCard.id);
+  const images = publishedDefaultArtPaths(searchCard.id);
   const { setNames, rarities, detailBucket, ...core } = searchCard;
   void setNames;
   void rarities;
@@ -27,6 +27,7 @@ export function mergeCatalogSearchWithDetail(
     images,
     text: overlay?.text ?? searchCard.text ?? '',
     sets: overlay?.sets ?? catalogSearchSetsForBrowse(searchCard),
+    ...(searchCard.artIds ? { artIds: searchCard.artIds } : {}),
   };
   if (!overlay) return base;
   return {

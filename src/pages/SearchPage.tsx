@@ -38,7 +38,15 @@ import {
   type FilterState,
   type FilterStateUpdater,
 } from '../catalog/filterEngine.ts';
-import { formatCardCount } from '../catalog/formatCardCount.ts';
+import { formatCatalogResultCount } from '../catalog/formatCardCount.ts';
+import { AllArtworksSwitch } from '../catalog/AllArtworksSwitch.tsx';
+import {
+  ALL_ARTWORKS_QUERY_KEY,
+  persistAllArtworksPreference,
+  resolveAllArtworksPreference,
+  writeAllArtworksParam,
+} from '../catalog/allArtworksPreference.ts';
+import { expandCardsToArtTiles, catalogResultCount } from '../catalog/cardArt.ts';
 import {
   countActiveFacetSelections,
   filterStateToChips,
@@ -87,6 +95,10 @@ export function SearchPage() {
   );
   const activeFormatId = resolvedFormat.formatId;
   const formatParam = activeFormatId;
+  const allArtworks = useMemo(
+    () => resolveAllArtworksPreference(searchParams.get(ALL_ARTWORKS_QUERY_KEY)),
+    [searchParams],
+  );
   const filterStateRef = useRef(filterState);
   useEffect(() => {
     filterStateRef.current = filterState;
@@ -185,6 +197,48 @@ export function SearchPage() {
     }).matchCount;
   }, [activeFormatId, catalogDerived, catalogSetIndex, filterState, trimmedQuery]);
 
+  const visibleTileCount = useMemo(() => {
+    if (!catalogDerived) return 0;
+    const cards = queryCatalog(catalogDerived, {
+      filterState,
+      query: trimmedQuery,
+      formatParam: activeFormatId,
+      setIndex: catalogSetIndex,
+    }).visibleCards;
+    return catalogResultCount(matchCount, expandCardsToArtTiles(cards, allArtworks), allArtworks);
+  }, [
+    activeFormatId,
+    allArtworks,
+    catalogDerived,
+    catalogSetIndex,
+    filterState,
+    matchCount,
+    trimmedQuery,
+  ]);
+
+  const draftVisibleTileCount = useMemo(() => {
+    if (!catalogDerived) return 0;
+    const cards = queryCatalog(catalogDerived, {
+      filterState: phoneDraft,
+      query: trimmedQuery,
+      formatParam: phoneDraftFormatId,
+      setIndex: catalogSetIndex,
+    }).visibleCards;
+    return catalogResultCount(
+      draftMatchCount,
+      expandCardsToArtTiles(cards, allArtworks),
+      allArtworks,
+    );
+  }, [
+    allArtworks,
+    catalogDerived,
+    catalogSetIndex,
+    draftMatchCount,
+    phoneDraft,
+    phoneDraftFormatId,
+    trimmedQuery,
+  ]);
+
   const activeFilterCount = countActiveFacetSelections(filterState) + (activeFormatId ? 1 : 0);
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
 
@@ -248,6 +302,20 @@ export function SearchPage() {
         filterStateRef.current = cleared;
         writeFilterStateToParams(params, cleared);
       }
+      const search = params.toString();
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : '' },
+        { replace: true, state: withoutSearchScrollRestore(location.state) },
+      );
+    },
+    [location.pathname, location.state, navigate, searchParams],
+  );
+
+  const setAllArtworks = useCallback(
+    (enabled: boolean) => {
+      persistAllArtworksPreference(enabled);
+      const params = new URLSearchParams(searchParams);
+      writeAllArtworksParam(params, enabled);
       const search = params.toString();
       navigate(
         { pathname: location.pathname, search: search ? `?${search}` : '' },
@@ -360,12 +428,13 @@ export function SearchPage() {
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-text-2" aria-live="polite">
-                <span>{formatCardCount(matchCount)}</span>
+                {formatCatalogResultCount(visibleTileCount, allArtworks)}
                 {activeFormatId ? (
                   <span className="ml-3">format {formatDisplayName(activeFormatId)}</span>
                 ) : null}
               </p>
               <div className="flex flex-wrap items-center gap-2">
+                <AllArtworksSwitch enabled={allArtworks} onChange={setAllArtworks} />
                 {effectiveViewMode === 'table' ? (
                   <CatalogTableColumnsMenu
                     visibility={tableColumnVisibility}
@@ -406,6 +475,7 @@ export function SearchPage() {
             showResultCount={false}
             viewMode={viewMode}
             formatParam={formatParam}
+            allArtworks={allArtworks}
             tableAvailable={tableViewportOk}
             tableColumnVisibility={tableColumnVisibility}
             tableSort={tableSort}
@@ -428,7 +498,7 @@ export function SearchPage() {
             commitFilterAndFormat(phoneDraft, phoneDraftFormatId);
             setPhoneFiltersOpen(false);
           }}
-          resultCount={draftMatchCount}
+          resultCount={draftVisibleTileCount}
           draftGroupCounts={draftFacetGroupCounts}
           catalogFieldIds={catalogFieldIds}
           setIndex={catalogSetIndex}

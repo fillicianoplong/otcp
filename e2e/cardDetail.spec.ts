@@ -1,15 +1,16 @@
 import { expect, test } from '@playwright/test';
 
 import { routeCardDetailCatalogFixture } from './fixtures/cardDetailCatalogRoute.ts';
+import { SEARCH_ALL_ART_OFF } from './helpers/searchAllArt.ts';
 
 test.describe('Card detail prices', () => {
   test('opening a sample card shows market prices inside the sets section', async ({ page }) => {
-    await page.goto('/otcp/search');
-    await expect(page.getByRole('link', { name: 'Dark Magician' })).toBeVisible({
+    await page.goto(SEARCH_ALL_ART_OFF);
+    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
       timeout: 15_000,
     });
 
-    await page.getByRole('link', { name: 'Dark Magician' }).click();
+    await page.getByRole('link', { name: 'Dark Magician', exact: true }).click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
 
     await expect(page.getByRole('heading', { name: 'Dark Magician' })).toBeVisible();
@@ -34,9 +35,11 @@ test.describe('Card detail prices', () => {
   });
 
   test('card artwork zoom viewer opens and closes', async ({ page }) => {
-    await page.goto('/otcp/search');
-    await expect(page.getByText('Dark Magician')).toBeVisible({ timeout: 15_000 });
-    await page.getByRole('link', { name: 'Dark Magician' }).click();
+    await page.goto(SEARCH_ALL_ART_OFF);
+    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.getByRole('link', { name: 'Dark Magician', exact: true }).click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
 
     const trigger = page.getByRole('button', { name: 'View larger artwork for Dark Magician' });
@@ -115,7 +118,7 @@ test.describe('Card detail prices', () => {
 
     await page.getByRole('link', { name: 'Search for cards with Archetype Dark Magician' }).click();
     await expect(page).toHaveURL(/\/otcp\/search\?.*f=/);
-    await expect(page.getByText('1 card')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('5 artworks')).toBeVisible({ timeout: 15_000 });
     await expect(
       page
         .getByRole('list', { name: 'Active filters' })
@@ -201,9 +204,11 @@ test.describe('Card detail prices', () => {
   });
 
   test('store links open vendor search pages in a new tab', async ({ page }) => {
-    await page.goto('/otcp/search');
-    await expect(page.getByText('Dark Magician')).toBeVisible({ timeout: 15_000 });
-    await page.getByRole('link', { name: 'Dark Magician' }).click();
+    await page.goto(SEARCH_ALL_ART_OFF);
+    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.getByRole('link', { name: 'Dark Magician', exact: true }).click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
 
     const stores = [

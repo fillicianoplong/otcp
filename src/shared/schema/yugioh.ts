@@ -34,6 +34,8 @@ export const yugiohCardExtensionSchema = z
     genesysPoints: z.number().int().min(0).optional(),
     /** True when YGOPRODeck `misc_info.formats` includes Speed Duel (FR-16). */
     speedDuelLegal: z.boolean().optional(),
+    /** YGOPRODeck card_images ids; default art first. */
+    artIds: z.array(z.number().int().positive()).min(1).optional(),
   })
   .strict();
 

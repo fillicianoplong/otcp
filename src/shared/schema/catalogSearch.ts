@@ -31,6 +31,7 @@ export const catalogSearchCardSchema = otcpCardCoreSchema
     rarities: z.array(z.string().min(1)),
     prices: cardPricesSchema.optional(),
     detailBucket: z.number().int().nonnegative(),
+    artIds: z.array(z.number().int().positive()).min(1).optional(),
   })
   .strict();
 

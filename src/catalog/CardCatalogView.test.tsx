@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 /// <reference types="@testing-library/jest-dom" />
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -68,21 +68,27 @@ describe('CardCatalogView grid tiles', () => {
     expect(link.className).not.toMatch(/\bborder-border\b/);
     expect(link.className).not.toMatch(/\bbg-surface\b/);
 
-    const image = within(link).getByRole('img', { name: 'Blue-Eyes White Dragon' });
+    const image = within(link).getByRole('presentation');
+    expect(image.tagName).toBe('IMG');
     expect(image.getAttribute('loading')).toBe('lazy');
+    expect(image.getAttribute('alt')).toBe('');
     expect(screen.queryByText('Blue-Eyes White Dragon', { selector: 'p' })).toBeNull();
   });
 
   it('shows the card name on the no-image fallback', async () => {
     renderGrid();
 
-    await screen.findByRole('link', { name: 'Blue-Eyes White Dragon' });
-    const image = screen.getByRole('img', { name: 'Blue-Eyes White Dragon' });
-    image.dispatchEvent(new Event('error'));
+    const link = await screen.findByRole('link', { name: 'Blue-Eyes White Dragon' });
+    const image = () => within(link).getByRole('presentation');
+    fireEvent.error(image());
+    await waitFor(() => {
+      expect(image().getAttribute('src')).toContain('/otcp/card-images/small/89631139.jpg');
+    });
+    fireEvent.error(image());
 
     await waitFor(() => {
-      expect(screen.queryByRole('img', { name: 'Blue-Eyes White Dragon' })).toBeNull();
-      expect(screen.getByText('Blue-Eyes White Dragon', { selector: 'span' })).toBeTruthy();
+      expect(within(link).getByText('Blue-Eyes White Dragon', { selector: 'span' })).toBeTruthy();
+      expect(within(link).queryByRole('presentation')).toBeNull();
     });
   });
 });

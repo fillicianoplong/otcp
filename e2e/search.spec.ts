@@ -1,23 +1,22 @@
 import { expect, test } from '@playwright/test';
 
+import { SEARCH_ALL_ART_OFF, searchPathWithAllArtOff } from './helpers/searchAllArt.ts';
+
 test.describe('Search on Search page', () => {
   test('typing a unique name narrows the grid to one card', async ({ page }) => {
-    await page.goto('/otcp/search');
-    await expect(page.getByRole('link', { name: 'Dark Magician' })).toBeVisible({
+    await page.goto(searchPathWithAllArtOff('magician'));
+    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
       timeout: 15_000,
     });
 
-    const search = page.getByLabel('Find a card');
-    await search.fill('magician');
-
     await expect(page.getByText('1 card')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Dark Magician' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Blue-Eyes White Dragon' })).not.toBeVisible();
     await expect(page.getByRole('link', { name: 'Monster Reborn' })).not.toBeVisible();
   });
 
   test('typing a passcode narrows the grid to that card', async ({ page }) => {
-    await page.goto('/otcp/search');
+    await page.goto(SEARCH_ALL_ART_OFF);
     await expect(page.getByRole('link', { name: 'Blue-Eyes White Dragon' })).toBeVisible({
       timeout: 15_000,
     });
@@ -33,7 +32,7 @@ test.describe('Search on Search page', () => {
   test('opening a card from scrolled search starts at the top and restores scroll on back', async ({
     page,
   }) => {
-    await page.goto('/otcp/search?view=grid');
+    await page.goto('/otcp/search?view=grid&allArt=0');
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
     const searchRegion = page.getByRole('region', { name: 'Search' });
 
@@ -53,7 +52,7 @@ test.describe('Search on Search page', () => {
     await expect.poll(async () => page.evaluate(() => window.scrollY)).toBe(0);
 
     await backControl.click();
-    await expect(page).toHaveURL(/\/otcp\/search(\?view=grid)?\/?$/);
+    await expect(page).toHaveURL(/\/otcp\/search(\?view=grid(&allArt=0)?)?\/?$/);
     await expect(page.getByRole('link', { name: 'Monster Reborn' })).toBeVisible();
     await expect
       .poll(async () => page.evaluate(() => window.scrollY))
@@ -61,7 +60,7 @@ test.describe('Search on Search page', () => {
   });
 
   test('returning from a card restores scroll position and loaded batches', async ({ page }) => {
-    await page.goto('/otcp/search?view=grid');
+    await page.goto('/otcp/search?view=grid&allArt=0');
     await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: 'Grid view' })).toHaveAttribute(
       'aria-pressed',
@@ -79,7 +78,7 @@ test.describe('Search on Search page', () => {
     await expect(page).toHaveURL(/\/otcp\/search\/card\//);
 
     await page.getByRole('button', { name: '← Back to Search' }).click();
-    await expect(page).toHaveURL(/\/otcp\/search(\?view=grid)?\/?$/);
+    await expect(page).toHaveURL(/\/otcp\/search(\?view=grid(&allArt=0)?)?\/?$/);
     await expect(page.getByRole('link', { name: 'Monster Reborn' })).toBeVisible();
     await expect
       .poll(async () => page.evaluate(() => window.scrollY))

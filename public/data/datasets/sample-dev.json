@@ -70,8 +70,9 @@
       "text": "The ultimate wizard in terms of attack and defense.",
       "images": {
         "small": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/small/46986420.webp",
-        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/46986420.webp"
+        "large": "https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev/ygo/large/46986420.webp"
       },
+      "artIds": [46986420, 46986421, 46986414, 46986415, 46986416],
       "sets": [
         {
           "setCode": "SDY-006",

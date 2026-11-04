@@ -18,11 +18,8 @@ import {
 import { listKonamiGenesysPointEntries, normalizeGenesysCardName } from './genesysKonamiPoints.ts';
 import { isCardInFormatPool } from './formatPool.ts';
 
-<<<<<<< HEAD
 export type BanlistSectionId =
   'forbidden' | 'limited' | 'semi-limited' | 'no-longer-restricted' | `genesys-points-${number}`;
-=======
-export type BanlistSectionId = 'forbidden' | 'limited' | 'semi-limited' | 'no-longer-restricted';
 
 export type BanlistSectionHeading =
   | 'Forbidden'
@@ -32,7 +29,6 @@ export type BanlistSectionHeading =
   | 'New to Forbidden'
   | 'New to Limited'
   | 'New to Semi-Limited';
->>>>>>> 7bb700c2 (Add TCG banlists history pages and dated snapshots)
 
 export type FormatBanlistCardEntry = {
   readonly card: YugiohCard;
@@ -66,7 +62,7 @@ export type TcgBanlistDetailPageModel = {
 
 const RESTRICTED_SECTIONS: readonly {
   id: BanlistSectionId;
-  heading: string;
+  heading: BanlistSectionHeading;
   status: BanlistSnapshotCard['status'];
 }[] = [
   { id: 'forbidden', heading: 'Forbidden', status: 'forbidden' },
@@ -164,7 +160,55 @@ function buildSnapshotSections(
   };
 }
 
-<<<<<<< HEAD
+export function buildTcgBanlistDetailPageModel(
+  snapshot: {
+    effectiveDate: string;
+    listName: string;
+    cards: readonly BanlistSnapshotCard[];
+  },
+  previousCards: readonly BanlistSnapshotCard[] | undefined,
+  catalogCards: readonly YugiohCard[],
+): TcgBanlistDetailPageModel {
+  const withBadges = buildSectionsFromSnapshotRows(snapshot.cards, previousCards, catalogCards, {
+    includeBadges: true,
+  });
+  const fullOnly = buildSectionsFromSnapshotRows(snapshot.cards, previousCards, catalogCards, {
+    includeBadges: false,
+  }).filter((section) => section.id !== 'no-longer-restricted');
+
+  const changeHeadingById: Record<
+    Exclude<BanlistSectionId, 'no-longer-restricted' | `genesys-points-${number}`>,
+    BanlistSectionHeading
+  > = {
+    forbidden: 'New to Forbidden',
+    limited: 'New to Limited',
+    'semi-limited': 'New to Semi-Limited',
+  };
+
+  const changeSections: FormatBanlistSection[] = [];
+  for (const section of withBadges) {
+    if (section.id === 'no-longer-restricted') {
+      if (section.cards.length > 0) changeSections.push(section);
+      continue;
+    }
+    if (section.id.startsWith('genesys-points-')) continue;
+    const changedCards = section.cards.filter((entry) => entry.changeBadge !== null);
+    if (changedCards.length === 0) continue;
+    changeSections.push({
+      id: section.id,
+      heading: changeHeadingById[section.id as keyof typeof changeHeadingById],
+      cards: changedCards,
+    });
+  }
+
+  return {
+    effectiveDate: snapshot.effectiveDate,
+    listName: snapshot.listName,
+    changeSections,
+    fullSections: fullOnly,
+  };
+}
+
 function buildGenesysPointSections(
   _format: FormatDefinition,
   catalogCards: readonly YugiohCard[],
@@ -216,53 +260,6 @@ function buildSpeedDuelPoolPreview(
   return {
     heading: 'Speed Duel pool',
     cards: sortByName(entries),
-=======
-export function buildTcgBanlistDetailPageModel(
-  snapshot: {
-    effectiveDate: string;
-    listName: string;
-    cards: readonly BanlistSnapshotCard[];
-  },
-  previousCards: readonly BanlistSnapshotCard[] | undefined,
-  catalogCards: readonly YugiohCard[],
-): TcgBanlistDetailPageModel {
-  const withBadges = buildSectionsFromSnapshotRows(snapshot.cards, previousCards, catalogCards, {
-    includeBadges: true,
-  });
-  const fullOnly = buildSectionsFromSnapshotRows(snapshot.cards, previousCards, catalogCards, {
-    includeBadges: false,
-  }).filter((section) => section.id !== 'no-longer-restricted');
-
-  const changeHeadingById: Record<
-    Exclude<BanlistSectionId, 'no-longer-restricted'>,
-    BanlistSectionHeading
-  > = {
-    forbidden: 'New to Forbidden',
-    limited: 'New to Limited',
-    'semi-limited': 'New to Semi-Limited',
-  };
-
-  const changeSections: FormatBanlistSection[] = [];
-  for (const section of withBadges) {
-    if (section.id === 'no-longer-restricted') {
-      if (section.cards.length > 0) changeSections.push(section);
-      continue;
-    }
-    const changedCards = section.cards.filter((entry) => entry.changeBadge !== null);
-    if (changedCards.length === 0) continue;
-    changeSections.push({
-      id: section.id,
-      heading: changeHeadingById[section.id],
-      cards: changedCards,
-    });
-  }
-
-  return {
-    effectiveDate: snapshot.effectiveDate,
-    listName: snapshot.listName,
-    changeSections,
-    fullSections: fullOnly,
->>>>>>> 7bb700c2 (Add TCG banlists history pages and dated snapshots)
   };
 }
 

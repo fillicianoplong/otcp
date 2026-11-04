@@ -1,9 +1,10 @@
 import { Link } from 'react-router';
-import { useState } from 'react';
 
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { BanThumbMarker } from './BanThumbMarker.tsx';
 import { buildSearchCardDetailPath } from './searchCardLinks.ts';
+import { CatalogArtImage } from './CatalogArtImage.tsx';
+import { catalogGridTileAriaLabel } from './catalogArtTileLabel.ts';
 import {
   banMarkerForStatus,
   isFormatBanContextActive,
@@ -18,43 +19,29 @@ import {
 import { ListRowCompactIcons } from './ListRowCompactIcons.tsx';
 import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
 
-function ListRowNoImageThumb({ compact }: { compact?: boolean }) {
-  return (
-    <div
-      className={`flex aspect-[59/86] w-full flex-col items-center justify-center rounded-sm bg-surface-2 text-center text-text-2 ${
-        compact ? 'gap-0 px-0.5 text-[9px] leading-tight' : 'gap-1 px-2 text-xs'
-      }`}
-    >
-      <span>No image</span>
-    </div>
-  );
-}
-
 function ListRowThumbnail({
   card,
+  imageId,
   formatParam,
 }: {
   card: YugiohCard;
+  imageId?: number;
   formatParam: string | null | undefined;
 }) {
-  const [missing, setMissing] = useState(false);
   const formatActive = isFormatBanContextActive(formatParam);
   const banStatus = resolveCardBanForFormat(card, formatParam);
+  const artId = imageId ?? card.id;
 
   return (
     <div className="relative w-9 shrink-0 overflow-hidden rounded-sm bg-surface-2 md:w-9">
-      {missing ? (
-        <ListRowNoImageThumb compact />
-      ) : (
-        <img
-          src={card.images.small}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          onError={() => setMissing(true)}
-          className="aspect-[59/86] w-full object-cover"
-        />
-      )}
+      <CatalogArtImage
+        card={card}
+        imageId={artId}
+        size="small"
+        alt=""
+        loading="lazy"
+        imgClassName="aspect-[59/86] w-full object-cover"
+      />
       {formatActive && banStatus ? (
         <BanThumbMarker status={banStatus} className="md:hidden" />
       ) : null}
@@ -101,12 +88,14 @@ function ListRowBanCell({
 
 export function CardListRow({
   card,
+  imageId,
   searchQuery,
   formatParam,
   onBeforeNavigate,
   detailPath: detailPathOverride,
 }: {
   card: YugiohCard;
+  imageId?: number;
   searchQuery: string;
   formatParam: string | null | undefined;
   onBeforeNavigate?: () => void;
@@ -117,7 +106,9 @@ export function CardListRow({
   const statsLine = buildListRowStatsLine(card);
 
   const detailPath =
-    detailPathOverride ?? buildSearchCardDetailPath(card.id, { searchQuery, formatParam });
+    detailPathOverride ??
+    buildSearchCardDetailPath(card.id, { searchQuery, formatParam, artId: imageId });
+  const tileLabel = imageId != null ? catalogGridTileAriaLabel(card, imageId) : card.name;
 
   return (
     <li>
@@ -125,9 +116,10 @@ export function CardListRow({
         to={detailPath}
         state={{ fromSearch: true }}
         onClick={onBeforeNavigate}
+        aria-label={tileLabel}
         className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3 rounded-md border border-border bg-surface px-2 py-2 transition-colors hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong md:grid-cols-[2.25rem_minmax(10rem,1.6fr)_minmax(9rem,1.2fr)_5.75rem_minmax(8.5rem,1fr)_2.25rem] md:items-center"
       >
-        <ListRowThumbnail card={card} formatParam={formatParam} />
+        <ListRowThumbnail card={card} imageId={imageId} formatParam={formatParam} />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-heading">{card.name}</p>
           <ListRowCompactIcons card={card} />

@@ -19,7 +19,11 @@ import { buildSetIndex } from './buildSetIndex.ts';
 import { resolveR2PublicBaseUrl } from './imagePaths.ts';
 import { uploadCardImagesR2, type UploadCardImagesR2Options } from './uploadLargeCardImagesR2.ts';
 import { sha256HexFile } from './hash.ts';
-import { mapYgoprodeckResponse, type YgoprodeckDropCounts } from './mapYgoprodeck.ts';
+import {
+  mapYgoprodeckResponse,
+  collectHostedImageIdsFromRows,
+  type YgoprodeckDropCounts,
+} from './mapYgoprodeck.ts';
 import {
   buildSearchIndexEnvelope,
   DEFAULT_DETAIL_BUCKET_SIZE,
@@ -114,7 +118,7 @@ export async function runPipeline(
   const { cards, dropped } = mapYgoprodeckResponse(response.data, publicBaseUrl);
 
   const r2Result = await uploadCardImagesR2({
-    cardIds: cards.map((card) => card.id),
+    imageIds: collectHostedImageIdsFromRows(response.data),
     variants: ['large', 'small'],
     env: r2Env,
     s3Client: options.r2?.s3Client,
