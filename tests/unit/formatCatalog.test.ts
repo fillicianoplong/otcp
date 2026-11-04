@@ -12,26 +12,27 @@ import {
 import { formatCatalogSortDatePrefix } from '../../src/format/formatSortDateLabel.ts';
 
 describe('formatCatalog', () => {
-  it('lists Advanced, Traditional, and S-03 historical formats', () => {
-    expect(listFormats()).toHaveLength(5);
+  it('lists Advanced, Traditional, and curated historical formats', () => {
+    expect(listFormats()).toHaveLength(6);
     expect(FORMAT_CATALOG.map((f) => f.id)).toEqual([
       'advanced',
       'traditional',
       'hat',
       'tengu',
+      'edison',
       'goat',
     ]);
   });
 
   it('sorts formats newest banlist date first', () => {
     const ids = listFormatsNewestFirst().map((f) => f.id);
-    expect(ids).toEqual(['advanced', 'traditional', 'hat', 'tengu', 'goat']);
+    expect(ids).toEqual(['advanced', 'traditional', 'hat', 'tengu', 'edison', 'goat']);
   });
 
   it('resolves format ids case-insensitively', () => {
     expect(normalizeFormatId('Advanced')).toBe('advanced');
     expect(normalizeFormatId('GOAT')).toBe('goat');
-    expect(normalizeFormatId('edison')).toBeNull();
+    expect(normalizeFormatId('edison')).toBe('edison');
   });
 
   it('looks up definitions by id', () => {
@@ -41,6 +42,11 @@ describe('formatCatalog', () => {
     expect(advanced?.traditionalForbiddenAsLimited).toBe(false);
     expect(advanced?.sortDate).toBe('2026-02-02');
     expect(advanced?.sortDateSource).toContain('yugioh-card.com/en/limited/list_2026-02-02');
+
+    const edison = getFormatById('edison');
+    expect(edison?.poolCutoffDate).toBe('2010-04-16');
+    expect(edison?.banlistSource).toBe('curated-snapshot');
+    expect(edison?.sortDate).toBe('2010-03-01');
 
     const goat = getFormatById('goat');
     expect(goat?.poolRule).toBe('tcg-earliest-on-or-before');
@@ -63,6 +69,7 @@ describe('formatCatalog', () => {
   it('formats display names from the catalog', () => {
     expect(formatDisplayName('traditional')).toBe('Traditional');
     expect(formatDisplayName('tengu')).toBe('Tengu Plant');
+    expect(formatDisplayName('edison')).toBe('Edison');
   });
 });
 

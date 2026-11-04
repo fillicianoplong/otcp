@@ -3,13 +3,14 @@ import type { FormatId } from './formatCatalog.ts';
 import goatJson from './data/goat.json' with { type: 'json' };
 import hatJson from './data/hat.json' with { type: 'json' };
 import tenguJson from './data/tengu.json' with { type: 'json' };
+import edisonJson from './data/edison.json' with { type: 'json' };
 import {
   formatBanlistSnapshotSchema,
   type BanlistSnapshotCard,
   type FormatBanlistSnapshot,
 } from './banlistSnapshotSchema.ts';
 
-const SNAPSHOT_FORMAT_IDS = ['goat', 'hat', 'tengu'] as const;
+const SNAPSHOT_FORMAT_IDS = ['goat', 'hat', 'tengu', 'edison'] as const;
 export type BanlistSnapshotFormatId = (typeof SNAPSHOT_FORMAT_IDS)[number];
 
 function parseSnapshot(raw: unknown): FormatBanlistSnapshot {
@@ -20,6 +21,7 @@ const RAW_SNAPSHOTS: Record<BanlistSnapshotFormatId, FormatBanlistSnapshot> = {
   goat: parseSnapshot(goatJson),
   hat: parseSnapshot(hatJson),
   tengu: parseSnapshot(tenguJson),
+  edison: parseSnapshot(edisonJson),
 };
 
 type SnapshotIndex = {

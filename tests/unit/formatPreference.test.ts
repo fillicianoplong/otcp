@@ -33,7 +33,7 @@ describe('formatPreference', () => {
   it('ignores invalid stored values', () => {
     const resolved = resolveFormatPreference({
       urlParam: null,
-      storedRaw: 'edison',
+      storedRaw: 'genesys',
     });
     expect(resolved.formatId).toBeNull();
     expect(resolved.invalidStored).toBe(true);

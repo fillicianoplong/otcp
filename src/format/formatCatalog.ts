@@ -26,7 +26,7 @@ export type FormatDefinition = {
 };
 
 /** Must-format ids shipped in v1; extend this union as M4 issues land (#34–#38). */
-export type FormatId = 'advanced' | 'traditional' | 'hat' | 'tengu' | 'goat';
+export type FormatId = 'advanced' | 'traditional' | 'hat' | 'tengu' | 'edison' | 'goat';
 
 export type FormatPoolRule = 'full-tcg' | 'tcg-earliest-on-or-before';
 
@@ -41,6 +41,8 @@ const HAT_LIST_ARCHIVE_URL =
   'https://web.archive.org/web/20140825020840/http://www.yugioh-card.com/en/limited/Apr_2014.html';
 const TENGU_LIST_ARCHIVE_URL =
   'https://web.archive.org/web/20120226021414/http://www.yugioh-card.com/en/limited/11_09_list.html';
+const EDISON_LIST_YUGIPEDIA_URL = 'https://yugipedia.com/wiki/March_2010_Lists_(TCG)';
+const EDISON_RULES_URL = 'https://edisonformat.net/rules/banlist';
 
 export const FORMAT_CATALOG: readonly FormatDefinition[] = [
   {
@@ -96,6 +98,21 @@ export const FORMAT_CATALOG: readonly FormatDefinition[] = [
     traditionalForbiddenAsLimited: false,
     sortDate: '2011-09-01',
     sortDateSource: `Archived Konami list effective 2011-09-01 (${TENGU_LIST_ARCHIVE_URL})`,
+  },
+  {
+    id: 'edison',
+    name: 'Edison',
+    cardSubtitle: 'March 2010 list · Duelist Pack: Kaiba pool',
+    banlistHeading: 'March 2010 TCG Forbidden & Limited List',
+    deckRulesSummary: ADVANCED_DECK_RULES,
+    poolRule: 'tcg-earliest-on-or-before',
+    poolCutoffDate: '2010-04-16',
+    poolCutoffSource:
+      'Duelist Pack: Kaiba (2010-04-16) per edisonformat.net and YGOPRODeck set dates; see docs/formats-sources.md.',
+    banlistSource: 'curated-snapshot',
+    traditionalForbiddenAsLimited: false,
+    sortDate: '2010-03-01',
+    sortDateSource: `March 2010 TCG list (${EDISON_LIST_YUGIPEDIA_URL}); pool rule (${EDISON_RULES_URL})`,
   },
   {
     id: 'goat',
