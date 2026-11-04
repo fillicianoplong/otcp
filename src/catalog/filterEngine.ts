@@ -54,6 +54,8 @@ export type FilterApplyOptions = {
   searchIds?: readonly number[];
   /** When set, Legality facet indexing and filtering use this format's banlist. */
   formatParam?: string | null;
+  /** Restrict facet counts and filtering to this format's card pool (FR-13). */
+  poolCatalogIds?: readonly number[];
 };
 
 export type FilterApplyResult = {
@@ -332,7 +334,7 @@ export class FilterEngine {
       normalizeFilterState(state),
       options.formatParam,
     );
-    this.fillBaseMask(options.searchIds);
+    this.fillBaseMask(options);
     const activeFields = this.fieldsForApply(options.formatParam);
     const out: FacetGroupCounts[] = [];
     for (const field of activeFields) {
@@ -368,8 +370,19 @@ export class FilterEngine {
     return 0;
   }
 
-  private fillBaseMask(searchIds: readonly number[] | undefined): void {
+  private fillBaseMask(options: FilterApplyOptions): void {
+    const poolCatalogIds = options.poolCatalogIds;
+    if (poolCatalogIds !== undefined) {
+      this.baseMask.fill(0);
+      for (const id of poolCatalogIds) {
+        const row = this.rowById.get(id);
+        if (row !== undefined) setBit(this.baseMask, row);
+      }
+      return;
+    }
+
     this.baseMask.set(this.all);
+    const searchIds = options.searchIds;
     if (!searchIds) return;
     this.baseMask.fill(0);
     for (const id of searchIds) {
@@ -431,7 +444,7 @@ export class FilterEngine {
     skipFieldId?: FacetFieldId,
     options: FilterApplyOptions = {},
   ): void {
-    this.fillBaseMask(options.searchIds);
+    this.fillBaseMask(options);
     this.prepareUnions(state, options.formatParam);
     target.set(this.baseMask);
     for (const field of this.fieldsForApply(options.formatParam)) {

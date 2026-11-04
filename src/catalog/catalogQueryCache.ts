@@ -10,12 +10,14 @@ import {
 import { filterStateSignature } from './filterUrlState.ts';
 import { filterCatalogIdsByFormatPool, visibleCardsFromPoolIds } from './formatPoolQuery.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import type { SetIndex } from '../shared/schema/setIndex.ts';
 
 export type CatalogQueryInput = {
   filterState?: FilterState;
   query?: string;
   tableSort?: CatalogTableSortState;
   formatParam?: string | null;
+  setIndex?: SetIndex | null;
 };
 
 export type CatalogQueryResult = {
@@ -93,6 +95,7 @@ function buildFilterEntry(
   filterState: FilterState,
   query: string,
   formatParam: string | null | undefined,
+  setIndex: SetIndex | null | undefined,
 ): FilterCacheEntry {
   const filterSig = filterStateSignature(filterState);
   const cacheKey = filterCacheKey(query, filterSig, formatParam);
@@ -107,9 +110,17 @@ function buildFilterEntry(
   if (query.length > 0) {
     searchIds = derived.searchIndex.query(query).ids;
   }
+  const scopeIds = searchIds ?? derived.allIdsByName;
+  const poolCatalogIds = filterCatalogIdsByFormatPool(
+    scopeIds,
+    derived.cardById,
+    formatParam,
+    setIndex,
+  );
   const applyOptions: FilterApplyOptions = {
     ...(searchIds ? { searchIds } : {}),
     formatParam,
+    poolCatalogIds,
   };
   const applied = derived.filterEngine.apply(filterState, applyOptions);
   const facetGroupCounts = derived.filterEngine.recount(filterState, applyOptions);
@@ -131,12 +142,19 @@ export function queryCatalog(
 ): CatalogQueryResult {
   const filterState = input.filterState ?? emptyFilterState();
   const query = normalizeQuery(input.query);
-  const filterEntry = buildFilterEntry(derived, filterState, query, input.formatParam);
+  const filterEntry = buildFilterEntry(
+    derived,
+    filterState,
+    query,
+    input.formatParam,
+    input.setIndex,
+  );
 
   const pooledIds = filterCatalogIdsByFormatPool(
     filterEntry.ids,
     derived.cardById,
     input.formatParam,
+    input.setIndex,
   );
   let visibleCards = filterEntry.visibleCards;
   let matchCount = filterEntry.matchCount;
