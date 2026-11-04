@@ -6,6 +6,7 @@ import {
 } from './cardEarliestTcgRelease.ts';
 import { isGenesysLegalCardType } from './formatEngine/genesysRules.ts';
 import { getFormatById, normalizeFormatId } from './formatCatalog.ts';
+import { isSpeedDuelPoolCard } from './speedDuel.ts';
 
 /** Whether a published card belongs to the format's card pool (FR-13). */
 export function isCardInFormatPool(
@@ -25,6 +26,8 @@ export function isCardInFormatPool(
         return false;
       }
       return true;
+    case 'speed-duel-ygoprodeck':
+      return isSpeedDuelPoolCard(card);
     case 'tcg-earliest-on-or-before': {
       const cutoff = format.poolCutoffDate;
       if (!cutoff) return true;

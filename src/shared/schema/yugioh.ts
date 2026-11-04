@@ -9,6 +9,8 @@ export const yugiohBanlistInfoSchema = z
     banTcg: banStatusSchema.optional(),
     banOcg: banStatusSchema.optional(),
     banGoat: banStatusSchema.optional(),
+    /** YGOPRODeck Speed Duel list when present on the card row. */
+    banSpeedDuel: banStatusSchema.optional(),
   })
   .strict();
 
@@ -30,6 +32,8 @@ export const yugiohCardExtensionSchema = z
     monsterDesc: z.string().min(1).optional(),
     banlistInfo: yugiohBanlistInfoSchema.optional(),
     genesysPoints: z.number().int().min(0).optional(),
+    /** True when YGOPRODeck `misc_info.formats` includes Speed Duel (FR-16). */
+    speedDuelLegal: z.boolean().optional(),
   })
   .strict();
 

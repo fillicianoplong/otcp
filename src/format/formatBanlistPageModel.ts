@@ -15,6 +15,7 @@ import {
   isGenesysPlaceholderCardId,
 } from './genesysPlaceholderCard.ts';
 import { listKonamiGenesysPointEntries, normalizeGenesysCardName } from './genesysKonamiPoints.ts';
+import { isCardInFormatPool } from './formatPool.ts';
 
 export type BanlistSectionId =
   'forbidden' | 'limited' | 'semi-limited' | 'no-longer-restricted' | `genesys-points-${number}`;
@@ -35,6 +36,11 @@ export type FormatBanlistSection = {
 export type FormatBanlistPageModel = {
   readonly effectiveDate: string | null;
   readonly sections: readonly FormatBanlistSection[];
+  /** Pool cards as name tiles when restricted sections are empty. */
+  readonly poolPreview?: {
+    readonly heading: string;
+    readonly cards: readonly FormatBanlistCardEntry[];
+  };
 };
 
 const RESTRICTED_SECTIONS: readonly {
@@ -161,6 +167,26 @@ function buildGenesysPointSections(
   };
 }
 
+function banlistSectionsHaveCards(sections: readonly FormatBanlistSection[]): boolean {
+  return sections.some((section) => section.cards.length > 0);
+}
+
+function buildSpeedDuelPoolPreview(
+  formatId: FormatDefinition['id'],
+  catalogCards: readonly YugiohCard[],
+): FormatBanlistPageModel['poolPreview'] {
+  const entries: FormatBanlistCardEntry[] = [];
+  for (const card of catalogCards) {
+    if (!isCardInFormatPool(card, formatId)) continue;
+    entries.push({ card, banStatus: null, changeBadge: null });
+  }
+  if (entries.length === 0) return undefined;
+  return {
+    heading: 'Speed Duel pool',
+    cards: sortByName(entries),
+  };
+}
+
 function buildTcgCurrentSections(
   format: FormatDefinition,
   catalogCards: readonly YugiohCard[],
@@ -173,6 +199,7 @@ function buildTcgCurrentSections(
   };
 
   for (const card of catalogCards) {
+    if (!isCardInFormatPool(card, formatId)) continue;
     const banStatus = resolveFormatBanStatus(card, formatId);
     if (!banStatus) continue;
     grouped[banStatus].push({ card, banStatus, changeBadge: null });
@@ -200,7 +227,14 @@ export function buildFormatBanlistPageModel(
   if (format.banlistSource === 'curated-snapshot') {
     return buildSnapshotSections(format, catalogCards);
   }
-  return buildTcgCurrentSections(format, catalogCards);
+  const model = buildTcgCurrentSections(format, catalogCards);
+  if (format.id === 'speed-duel' && !banlistSectionsHaveCards(model.sections)) {
+    const poolPreview = buildSpeedDuelPoolPreview(format.id, catalogCards);
+    if (poolPreview) {
+      return { ...model, poolPreview };
+    }
+  }
+  return model;
 }
 
 export { isGenesysPlaceholderCardId };

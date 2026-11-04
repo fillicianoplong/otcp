@@ -60,6 +60,19 @@ The 132-row snapshot matches the March 2010 Forbidden / Limited / Semi-Limited t
 
 When a card has printings but none resolve to a `tcgDate` in the published set index, `isCardInFormatPool` excludes it from GOAT / HAT / Tengu / Edison. Those cards are not flagged in banlist JSON; they are pool-only gaps.
 
+## Speed Duel
+
+| Field | Value |
+|---|---|
+| Pool source | YGOPRODeck `format=Speed Duel` and `misc_info.formats` includes `Speed Duel` ([API Guide](https://ygoprodeck.com/api-guide/)) |
+| Pool in app | Published `speedDuelLegal: true` on each card row after pipeline ingest (`misc=yes`) |
+| Deck sizes | Main 20–30, Extra 0–6, Side 0–6 ([Konami Speed Duel Guide PDF](https://img.yugioh-card.com/en/downloads/rulebook/Speed_Duel_Guide_EN.pdf)) |
+| Skill cards | `type=Skill Card`; at most one active Skill ([API Guide — Skill Card](https://ygoprodeck.com/api-guide/)) |
+| Banlist effective date (`sortDate`) | 2026-07-10 (NA WCQ 2026 Speed Duel public list per [Yugipedia](https://yugipedia.com/wiki/July_2026_Lists_(Speed_Duel))) |
+| Banlist in app | `banlistInfo.banSpeedDuel` when YGOPRODeck supplies `ban_speed_duel`; otherwise TCG `banTcg` fallback for cards in the Speed Duel pool |
+
+**Open:** YGOPRODeck `banlist_info` documents only `ban_tcg`, `ban_ocg`, and `ban_goat`; there is no bulk `banlist=Speed Duel` API parameter. A curated Speed Duel snapshot JSON (like GOAT/HAT) is still outstanding when upstream adds a dedicated field or an export.
+
 ## Genesys
 
 | Field | Value |

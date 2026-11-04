@@ -119,4 +119,18 @@ describe('mapYgoprodeckCard prices', () => {
     expect(card.rank).toBeUndefined();
     expect(card.linkRating).toBeUndefined();
   });
+
+  it('sets speedDuelLegal when misc_info formats includes Speed Duel', () => {
+    const card = mapYgoprodeckCard(
+      {
+        id: 300302050,
+        name: 'HEROES UNITE - FUSION!!',
+        type: 'Skill Card',
+        desc: 'Skill text',
+        misc_info: [{ formats: ['Speed Duel', 'Common Charity'] }],
+      },
+      R2_CARD_IMAGES_PUBLIC_BASE_URL,
+    );
+    expect(card.speedDuelLegal).toBe(true);
+  });
 });

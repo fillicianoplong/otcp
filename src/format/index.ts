@@ -29,6 +29,19 @@ export {
 } from './formatBanStatus.ts';
 export { isCardInFormatPool } from './formatPool.ts';
 export {
+  activeSkillId,
+  countMainDeckCards,
+  deckSizeViolationMessage,
+  evaluateDeckAdd,
+  evaluateDeckSizes,
+  type DeckAddEvaluation,
+  type DeckListState,
+  type DeckSection,
+  type RefuseDeckAddReason,
+} from './formatEngine.ts';
+export { deckSectionLimitsForFormat, formatUsesSkillSlot } from './formatDeckRules.ts';
+export { isSkillCard, isSpeedDuelPoolCard } from './speedDuel.ts';
+export {
   FORMAT_STORAGE_KEY,
   applyFormatToSearchParams,
   readFormatPreference,

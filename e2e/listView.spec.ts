@@ -4,7 +4,7 @@ test.describe('List view on Search page', () => {
   test('switching to list shows named rows and filters still apply', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/otcp/search');
-    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
 
     await page.getByRole('button', { name: 'List view' }).click();
     await expect(page.getByRole('button', { name: 'List view' })).toHaveAttribute(
@@ -24,7 +24,7 @@ test.describe('List view on Search page', () => {
   test('stored list preference shows as table on desktop without list toggle', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/otcp/search?view=list');
-    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: 'List view' })).toBeHidden();
     await expect(page.getByRole('button', { name: 'Table view' })).toHaveAttribute(
       'aria-pressed',
@@ -41,7 +41,7 @@ test.describe('List view on Search page', () => {
   test('phone list rows show compact YGO icons instead of long type lines', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/otcp/search');
-    await expect(page.getByText('24 cards')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('26 cards')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: 'Table view' })).toBeHidden();
     await page.getByRole('button', { name: 'List view' }).click();
 

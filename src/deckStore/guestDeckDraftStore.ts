@@ -21,6 +21,7 @@ const guestDeckDraftSchema = z.object({
   extra: z.array(cardIdSchema),
   side: z.array(cardIdSchema),
   genesysCap: z.number().int().min(0).optional(),
+  skillId: cardIdSchema.nullable().optional(),
   updatedAt: z.string().min(1),
 });
 
@@ -142,6 +143,7 @@ export function createGuestDeckDraft(input: GuestDeckDraftInput = {}): GuestDeck
     extra: input.extra ?? [],
     side: input.side ?? [],
     ...(input.genesysCap != null ? { genesysCap: Math.trunc(input.genesysCap) } : {}),
+    ...(input.skillId !== undefined ? { skillId: input.skillId } : {}),
     updatedAt: nowIso(),
   };
 
@@ -175,6 +177,7 @@ export function updateGuestDeckDraft(
       : update.genesysCap !== undefined
         ? { genesysCap: Math.trunc(update.genesysCap) }
         : {}),
+    ...(update.skillId !== undefined ? { skillId: update.skillId } : {}),
     updatedAt: nowIso(),
   };
 

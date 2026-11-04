@@ -86,6 +86,7 @@
       "def": 2100,
       "race": "Spellcaster",
       "archetype": "Dark Magician",
+      "speedDuelLegal": true,
       "prices": {
         "tcgplayer": 1.23,
         "coolstuffinc": 1.1,
@@ -192,6 +193,7 @@
       "atk": 2500,
       "def": 1200,
       "race": "Fiend",
+      "speedDuelLegal": true,
       "prices": {
         "tcgplayer": 0.89
       }
@@ -660,6 +662,49 @@
       "atk": 0,
       "def": 0,
       "race": "Dragon"
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 300302050,
+      "name": "HEROES UNITE - FUSION!!",
+      "type": "Skill Card",
+      "text": "Activate this Skill during your Main Phase.",
+      "images": {
+        "small": "https://images.ygoprodeck.com/images/cards_small/300302050.jpg",
+        "large": "https://images.ygoprodeck.com/images/cards/300302050.jpg"
+      },
+      "sets": [
+        {
+          "setCode": "SGX2-ENS01",
+          "setName": "Speed Duel GX: Midterm Paradox",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 300302050,
+      "race": "Jaden Yuki",
+      "archetype": "HERO",
+      "speedDuelLegal": true
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "id": 300302022,
+      "name": "Ancient Fusion",
+      "type": "Skill Card",
+      "text": "Activate this Skill if you control a Level 5 or higher Fusion Monster.",
+      "images": {
+        "small": "https://images.ygoprodeck.com/images/cards_small/300302022.jpg",
+        "large": "https://images.ygoprodeck.com/images/cards/300302022.jpg"
+      },
+      "sets": [
+        {
+          "setCode": "SGX1-ENS01",
+          "setName": "Speed Duel GX: Duel Academy Box",
+          "setRarity": "Common"
+        }
+      ],
+      "passcode": 300302022,
+      "race": "Alexis Rhodes",
+      "speedDuelLegal": true
     }
   ]
 }

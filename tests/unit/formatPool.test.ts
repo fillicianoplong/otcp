@@ -64,4 +64,14 @@ describe('formatPool tcg-earliest-on-or-before', () => {
     const future = cardInSet(6, 'Future', 'Photon Shockwave');
     expect(isCardInFormatPool(future, 'advanced', setIndex)).toBe(true);
   });
+
+  it('uses speedDuelLegal for Speed Duel and excludes other TCG cards', () => {
+    const legal: YugiohCard = {
+      ...cardInSet(10, 'Speed card', 'Metal Raiders'),
+      speedDuelLegal: true,
+    };
+    const illegal = cardInSet(11, 'TCG only', 'Metal Raiders');
+    expect(isCardInFormatPool(legal, 'speed-duel', setIndex)).toBe(true);
+    expect(isCardInFormatPool(illegal, 'speed-duel', setIndex)).toBe(false);
+  });
 });

@@ -68,14 +68,15 @@ function guestDeckSummaryLine(draft: GuestDeckDraft): string {
   const main = draft.main.length;
   const extra = draft.extra.length;
   const side = draft.side.length;
-  return `Main ${main} · Extra ${extra} · Side ${side} · ${formatDeckUpdatedLabel(draft.updatedAt)} · Local draft`;
+  const skill = draft.skillId ? '  Skill set' : '';
+  return `Main ${main}   Extra ${extra}   Side ${side}${skill}   ${formatDisplayName(draft.formatId)}   ${formatDeckUpdatedLabel(draft.updatedAt)}   Local draft`;
 }
 
 function savedDeckSummaryLine(deck: SavedDeck): string {
   const main = deck.main.length;
   const extra = deck.extra.length;
   const side = deck.side.length;
-  return `Main ${main} · Extra ${extra} · Side ${side} · ${formatDisplayName(deck.formatId)} · ${formatDeckUpdatedLabel(deck.updatedAt)}`;
+  return `Main ${main}   Extra ${extra}   Side ${side}   ${formatDisplayName(deck.formatId)}   ${formatDeckUpdatedLabel(deck.updatedAt)}`;
 }
 
 type DeckSignInGatedActionProps = {
@@ -234,6 +235,9 @@ function GuestDeckCard({
           <DeckSignInGatedAction label="Save" accountPath={saveAccountPath} />
         )}
         <DeckSignInGatedAction label="Share" accountPath={shareAccountPath} />
+        <Link to={`/decks/edit/${draft.id}`} className={deckSecondaryActionClassName}>
+          Open
+        </Link>
         <button
           type="button"
           className={deckSecondaryActionClassName}

@@ -2,6 +2,11 @@ export type YgoBanlistInfo = {
   ban_tcg?: string;
   ban_ocg?: string;
   ban_goat?: string;
+  ban_speed_duel?: string;
+};
+
+export type YgoMiscInfo = {
+  formats?: string[];
 };
 
 export type YgoCardSet = {
@@ -39,6 +44,7 @@ export type YgoApiCard = {
   scale?: number;
   genesys_points?: number;
   banlist_info?: YgoBanlistInfo;
+  misc_info?: YgoMiscInfo[];
   card_sets?: YgoCardSet[];
   card_prices?: YgoCardPrices[];
 };

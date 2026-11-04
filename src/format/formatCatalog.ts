@@ -38,18 +38,24 @@ export type FormatDefinition = {
 };
 
 /** Must-format ids shipped in v1; extend this union as M4 issues land (#34–#38). */
-export type FormatId = 'advanced' | 'traditional' | 'genesys' | 'hat' | 'tengu' | 'edison' | 'goat';
+export type FormatId =
+  'advanced' | 'traditional' | 'speed-duel' | 'genesys' | 'hat' | 'tengu' | 'edison' | 'goat';
 
-export type FormatPoolRule = 'full-tcg' | 'tcg-earliest-on-or-before';
+export type FormatPoolRule = 'full-tcg' | 'tcg-earliest-on-or-before' | 'speed-duel-ygoprodeck';
 
 export type FormatBanlistSource = 'tcg-current' | 'curated-snapshot' | 'genesys-points';
 
 const ADVANCED_DECK_RULES = 'Main 40–60, Extra 0–15, Side 0–15';
 
+const SPEED_DUEL_DECK_RULES = 'Main 20–30, Extra 0–6, Side 0–6, 1 Skill';
+
 const KONAMI_TCG_CURRENT_LIST_URL = 'https://www.yugioh-card.com/en/limited/list_2026-02-02/';
 const KONAMI_GENESYS_URL = 'https://www.yugioh-card.com/en/genesys/';
 const KONAMI_GENESYS_INTRO_URL =
   'https://yugiohblog.konami.com/2025/news-updates/introducing-ygo-tcg-genesys/';
+
+const KONAMI_SPEED_DUEL_FNL_PAGE_URL =
+  'https://www.yugioh-card.com/eu/play/speed-duel-forbidden-limited-list/';
 
 const GOAT_SNAPSHOT_URL = 'https://www.goatformat.com/cardpool.html';
 const FORMAT_LIBRARY_GOAT_URL = 'https://formatlibrary.com/formats/goat';
@@ -91,6 +97,20 @@ export const FORMAT_CATALOG: readonly FormatDefinition[] = [
     traditionalForbiddenAsLimited: true,
     sortDate: '2026-02-02',
     sortDateSource: `Same TCG Forbidden & Limited List as Advanced, effective 2026-02-02 (${KONAMI_TCG_CURRENT_LIST_URL})`,
+  },
+  {
+    id: 'speed-duel',
+    name: 'Speed Duel',
+    description:
+      'Konami launched Speed Duel for the physical TCG in January 2019 with Speed Duel Starter Decks: Destiny Masters and Duelists of Tomorrow (North America launch 25 January 2019), adapting the faster Yu-Gi-Oh! Duel Links style of play for tabletop Duels.',
+    cardSubtitle: 'Speed Duel pool, Skill cards',
+    banlistHeading: 'Speed Duel Forbidden & Limited List',
+    deckRulesSummary: SPEED_DUEL_DECK_RULES,
+    poolRule: 'speed-duel-ygoprodeck',
+    banlistSource: 'tcg-current',
+    traditionalForbiddenAsLimited: false,
+    sortDate: '2026-07-10',
+    sortDateSource: `NA WCQ 2026 Speed Duel public list effective 2026-07-10 (${KONAMI_SPEED_DUEL_FNL_PAGE_URL})`,
   },
   {
     id: 'genesys',
@@ -206,11 +226,17 @@ export function listFormats(): readonly FormatDefinition[] {
   return FORMAT_CATALOG;
 }
 
+/** Formats grid / filter order: Speed Duel follows Advanced and Traditional despite a newer ban snapshot. */
+function formatListSortDate(format: FormatDefinition): string {
+  if (format.id === 'speed-duel') return '2026-02-02';
+  return format.sortDate ?? '';
+}
+
 /** Newest `sortDate` first; ties keep catalog order; undated formats sort last. */
 export function listFormatsNewestFirst(): readonly FormatDefinition[] {
   return [...FORMAT_CATALOG].sort((left, right) => {
-    const leftDate = left.sortDate ?? '';
-    const rightDate = right.sortDate ?? '';
+    const leftDate = formatListSortDate(left);
+    const rightDate = formatListSortDate(right);
     if (leftDate !== rightDate) {
       if (!leftDate) return 1;
       if (!rightDate) return -1;
