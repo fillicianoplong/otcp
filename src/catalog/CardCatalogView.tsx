@@ -8,7 +8,7 @@ import { expandCardsToArtTiles, catalogResultCount, type CatalogArtTile } from '
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
 import { CATALOG_GRID_CLASS, CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
-import { CatalogGridTileFrame, CatalogGridTileImage } from './CatalogGridTileArt.tsx';
+import { CatalogGridTileFrame } from './CatalogGridTileArt.tsx';
 import {
   gridHasMore,
   initialGridVisibleCount,
