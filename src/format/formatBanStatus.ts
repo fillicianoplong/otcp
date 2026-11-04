@@ -5,12 +5,18 @@ import { getFormatById, normalizeFormatId } from './formatCatalog.ts';
 
 type TcgBanField = 'banTcg';
 
+type SpeedDuelBanField = 'banSpeedDuel';
+
 function tcgBanStatus(card: YugiohCard): BanDisplayStatus | undefined {
   return card.banlistInfo?.banTcg;
 }
 
 function tcgBanFieldForFormat(): TcgBanField {
   return 'banTcg';
+}
+
+function speedDuelBanField(): SpeedDuelBanField {
+  return 'banSpeedDuel';
 }
 
 /** Raw TCG list status before Traditional remapping. */
@@ -41,6 +47,9 @@ export function resolveFormatBanStatus(
 
   if (format.banlistSource === 'curated-snapshot' && isBanlistSnapshotFormatId(formatId)) {
     raw = resolveSnapshotBanStatus(formatId, card.id, card.passcode);
+  } else if (formatId === 'speed-duel') {
+    const field = speedDuelBanField();
+    raw = card.banlistInfo?.[field] ?? card.banlistInfo?.banTcg ?? null;
   } else {
     const field = tcgBanFieldForFormat();
     raw = card.banlistInfo?.[field] ?? null;

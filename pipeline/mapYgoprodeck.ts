@@ -48,12 +48,27 @@ function mapBanlistInfo(info: YgoBanlistInfo | undefined): YugiohCard['banlistIn
   const banTcg = mapBanField(info.ban_tcg);
   const banOcg = mapBanField(info.ban_ocg);
   const banGoat = mapBanField(info.ban_goat);
-  if (!banTcg && !banOcg && !banGoat) return undefined;
+  const banSpeedDuel = mapBanField(info.ban_speed_duel);
+  if (!banTcg && !banOcg && !banGoat && !banSpeedDuel) return undefined;
   return {
     ...(banTcg ? { banTcg } : {}),
     ...(banOcg ? { banOcg } : {}),
     ...(banGoat ? { banGoat } : {}),
+    ...(banSpeedDuel ? { banSpeedDuel } : {}),
   };
+}
+
+function miscFormatsIncludeSpeedDuel(card: YgoApiCard): boolean {
+  const rows = card.misc_info;
+  if (!rows || rows.length === 0) return false;
+  for (const row of rows) {
+    for (const format of row.formats ?? []) {
+      if (format.trim().toLowerCase() === 'speed duel') {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function mapSets(card: YgoApiCard): CardSet[] {
@@ -142,6 +157,10 @@ export function mapYgoprodeckCard(card: YgoApiCard, publicBaseUrl: string): Yugi
 
   const banlistInfo = mapBanlistInfo(card.banlist_info);
   if (banlistInfo) mapped.banlistInfo = banlistInfo;
+
+  if (miscFormatsIncludeSpeedDuel(card)) {
+    mapped.speedDuelLegal = true;
+  }
 
   return mapped;
 }

@@ -18,6 +18,7 @@ import {
   buildFormatBanlistPageModel,
   type FormatBanlistCardEntry,
   type FormatBanlistSection,
+  type FormatBanlistPageModel,
 } from '../format/formatBanlistPageModel.ts';
 import { isGenesysPlaceholderCardId } from '../format/genesysPlaceholderCard.ts';
 import {
@@ -218,6 +219,35 @@ function FormatBanListSection({
   );
 }
 
+function FormatPoolPreviewGrid({
+  preview,
+  formatId,
+}: {
+  preview: NonNullable<FormatBanlistPageModel['poolPreview']>;
+  formatId: FormatId;
+}) {
+  if (preview.cards.length === 0) return null;
+
+  return (
+    <section
+      aria-labelledby="speed-duel-pool-preview"
+      className="flex flex-col gap-3 overflow-x-hidden rounded-md border border-border bg-surface p-3"
+    >
+      <div className="flex items-baseline justify-between gap-2 px-1">
+        <h2 id="speed-duel-pool-preview" className="text-base font-semibold text-heading">
+          {preview.heading}
+        </h2>
+        <span className="text-xs text-text-2">{formatCardCount(preview.cards.length)}</span>
+      </div>
+      <ul className={CATALOG_GRID_CLASS}>
+        {preview.cards.map((entry) => (
+          <FormatBanGridTile key={entry.card.id} entry={entry} formatId={formatId} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function FormatDetailPage() {
   const { formatId: formatIdParam } = useParams();
   const formatId = normalizeFormatId(formatIdParam);
@@ -269,6 +299,9 @@ export function FormatDetailPage() {
     );
   }
 
+  const restrictedSections = pageModel.sections.filter((section) => section.cards.length > 0);
+  const poolPreview = restrictedSections.length === 0 ? pageModel.poolPreview : undefined;
+
   return (
     <div className="flex min-w-0 flex-col gap-6 overflow-x-hidden">
       <div className="flex flex-col gap-3">
@@ -295,13 +328,43 @@ export function FormatDetailPage() {
       </div>
 
       <div className="flex min-w-0 flex-col gap-4">
-        {pageModel.sections.map((section) =>
+        {restrictedSections.map((section) =>
           viewMode === 'list' ? (
             <FormatBanListSection key={section.id} section={section} formatId={formatId} />
           ) : (
             <FormatBanGridSection key={section.id} section={section} formatId={formatId} />
           ),
         )}
+        {poolPreview ? (
+          viewMode === 'list' ? (
+            <section
+              aria-labelledby="speed-duel-pool-preview"
+              className="overflow-hidden rounded-md border border-border bg-surface"
+            >
+              <div className="flex items-baseline justify-between gap-2 border-b border-border px-3 py-2">
+                <h2 id="speed-duel-pool-preview" className="text-base font-semibold text-heading">
+                  {poolPreview.heading}
+                </h2>
+                <span className="text-xs text-text-2">
+                  {formatCardCount(poolPreview.cards.length)}
+                </span>
+              </div>
+              <ul className="divide-y divide-border">
+                {poolPreview.cards.map((entry) => (
+                  <CardListRow
+                    key={entry.card.id}
+                    card={entry.card}
+                    searchQuery=""
+                    formatParam={formatId}
+                    detailPath={buildSearchCardDetailPath(entry.card.id, { formatParam: formatId })}
+                  />
+                ))}
+              </ul>
+            </section>
+          ) : (
+            <FormatPoolPreviewGrid preview={poolPreview} formatId={formatId} />
+          )
+        ) : null}
       </div>
     </div>
   );
