@@ -5,29 +5,30 @@ import { BanThumbMarker } from '../catalog/BanThumbMarker.tsx';
 import { CardListRow } from '../catalog/CardListRow.tsx';
 import { CATALOG_GRID_CLASS } from '../catalog/catalogGridLayout.ts';
 import { buildSearchCardDetailPath } from '../catalog/searchCardLinks.ts';
-import { banMarkerForStatus, type BanDisplayStatus } from '../catalog/formatBanContext.ts';
 import { formatCardCount } from '../catalog/formatCardCount.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
-import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
-import { resolveYgoBanStatusIconPath } from '../catalog/cardIcons.ts';
+import { BanlistChangeBadgeMarker } from '../format/BanlistChangeBadgeMarker.tsx';
+import { buildFormatDetailFacts } from '../format/formatDetailFacts.ts';
+import { FormatDetailFactsBlock } from '../format/FormatDetailFactsBlock.tsx';
 import {
   FormatBanlistViewToggle,
   type FormatBanlistViewMode,
 } from '../format/FormatBanlistViewToggle.tsx';
+import {
+  buildFormatBanlistPageModel,
+  type FormatBanlistCardEntry,
+  type FormatBanlistSection,
+} from '../format/formatBanlistPageModel.ts';
 import {
   getFormatById,
   normalizeFormatId,
   searchWithFormatPath,
   type FormatId,
 } from '../format/formatCatalog.ts';
-import { resolveFormatBanStatus } from '../format/formatBanStatus.ts';
 import { writeFormatPreference } from '../format/formatPreference.ts';
 import { readLocalStorageString, writeLocalStorageString } from '../shared/safeLocalStorage.ts';
-import type { YugiohCard } from '../shared/schema/card.ts';
 
 const FORMAT_DETAIL_VIEW_STORAGE_KEY = 'otcp:view:format-detail';
-
-const BAN_GROUP_ORDER: readonly BanDisplayStatus[] = ['Forbidden', 'Limited', 'Semi-Limited'];
 
 function readFormatDetailViewMode(): FormatBanlistViewMode {
   const raw = readLocalStorageString(FORMAT_DETAIL_VIEW_STORAGE_KEY);
@@ -47,122 +48,99 @@ function FormatDetailMessage({ title, children }: { title: string; children: str
   );
 }
 
-function BanGroupHeading({ status, count }: { status: BanDisplayStatus; count: number }) {
-  const { label } = banMarkerForStatus(status);
+function FormatBanGridTile({
+  entry,
+  formatId,
+}: {
+  entry: FormatBanlistCardEntry;
+  formatId: FormatId;
+}) {
+  const { card, banStatus, changeBadge } = entry;
   return (
-    <div className="flex items-center gap-2 px-1 py-2">
-      <YgoCardIcon
-        src={resolveYgoBanStatusIconPath(status, 'row')}
-        label={label}
-        tier="row"
-        iconOnly
-      />
-      <span className="text-sm font-medium text-heading">{formatCardCount(count)}</span>
-    </div>
+    <li>
+      <Link
+        to={buildSearchCardDetailPath(card.id, { formatParam: formatId })}
+        aria-label={card.name}
+        className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+      >
+        <div className="relative w-full overflow-hidden">
+          <img
+            src={card.images.small}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="aspect-[59/86] w-full object-cover"
+          />
+          {banStatus ? <BanThumbMarker status={banStatus} /> : null}
+          {changeBadge ? <BanlistChangeBadgeMarker badge={changeBadge} /> : null}
+        </div>
+      </Link>
+    </li>
   );
 }
 
-function FormatBanGridGroup({
-  status,
-  cards,
+function FormatBanGridSection({
+  section,
   formatId,
 }: {
-  status: BanDisplayStatus;
-  cards: readonly YugiohCard[];
+  section: FormatBanlistSection;
   formatId: FormatId;
 }) {
-  if (cards.length === 0) return null;
-
-  return (
-    <section aria-labelledby={`ban-group-${status}`} className="flex flex-col gap-2">
-      <h2 id={`ban-group-${status}`}>
-        <BanGroupHeading status={status} count={cards.length} />
-      </h2>
-      <ul className={CATALOG_GRID_CLASS}>
-        {cards.map((card) => {
-          const banStatus = resolveFormatBanStatus(card, formatId);
-          return (
-            <li key={card.id}>
-              <Link
-                to={buildSearchCardDetailPath(card.id, { formatParam: formatId })}
-                aria-label={card.name}
-                className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-              >
-                <div className="relative w-full overflow-hidden">
-                  <img
-                    src={card.images.small}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-[59/86] w-full object-cover"
-                  />
-                  {banStatus ? <BanThumbMarker status={banStatus} /> : null}
-                </div>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
-function FormatBanListGroup({
-  status,
-  cards,
-  formatId,
-}: {
-  status: BanDisplayStatus;
-  cards: readonly YugiohCard[];
-  formatId: FormatId;
-}) {
-  if (cards.length === 0) return null;
+  if (section.cards.length === 0) return null;
 
   return (
     <section
-      aria-labelledby={`ban-list-group-${status}`}
-      className="overflow-hidden rounded-md border border-border bg-surface"
+      aria-labelledby={`ban-section-${section.id}`}
+      className="flex flex-col gap-3 overflow-x-hidden rounded-md border border-border bg-surface p-3"
     >
-      <div className="border-b border-border px-3">
-        <BanGroupHeading status={status} count={cards.length} />
+      <div className="flex items-baseline justify-between gap-2 px-1">
+        <h2 id={`ban-section-${section.id}`} className="text-base font-semibold text-heading">
+          {section.heading}
+        </h2>
+        <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
       </div>
-      <ul className="divide-y divide-border">
-        {cards.map((card) => (
-          <CardListRow
-            key={card.id}
-            card={card}
-            searchQuery=""
-            formatParam={formatId}
-            detailPath={buildSearchCardDetailPath(card.id, { formatParam: formatId })}
-          />
+      <ul className={CATALOG_GRID_CLASS}>
+        {section.cards.map((entry) => (
+          <FormatBanGridTile key={entry.card.id} entry={entry} formatId={formatId} />
         ))}
       </ul>
     </section>
   );
 }
 
-function groupCardsByBanStatus(
-  cards: readonly YugiohCard[],
-  formatId: FormatId,
-): Record<BanDisplayStatus, YugiohCard[]> {
-  const groups: Record<BanDisplayStatus, YugiohCard[]> = {
-    Forbidden: [],
-    Limited: [],
-    'Semi-Limited': [],
-  };
+function FormatBanListSection({
+  section,
+  formatId,
+}: {
+  section: FormatBanlistSection;
+  formatId: FormatId;
+}) {
+  if (section.cards.length === 0) return null;
 
-  for (const card of cards) {
-    const status = resolveFormatBanStatus(card, formatId);
-    if (status) {
-      groups[status].push(card);
-    }
-  }
-
-  for (const status of BAN_GROUP_ORDER) {
-    groups[status].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
-  }
-
-  return groups;
+  return (
+    <section
+      aria-labelledby={`ban-list-section-${section.id}`}
+      className="overflow-hidden rounded-md border border-border bg-surface"
+    >
+      <div className="flex items-baseline justify-between gap-2 border-b border-border px-3 py-2">
+        <h2 id={`ban-list-section-${section.id}`} className="text-base font-semibold text-heading">
+          {section.heading}
+        </h2>
+        <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
+      </div>
+      <ul className="divide-y divide-border">
+        {section.cards.map((entry) => (
+          <CardListRow
+            key={entry.card.id}
+            card={entry.card}
+            searchQuery=""
+            formatParam={formatId}
+            detailPath={buildSearchCardDetailPath(entry.card.id, { formatParam: formatId })}
+          />
+        ))}
+      </ul>
+    </section>
+  );
 }
 
 export function FormatDetailPage() {
@@ -180,10 +158,12 @@ export function FormatDetailPage() {
     }
   }, [formatId]);
 
-  const banGroups = useMemo(() => {
-    if (!formatId || catalogState.status !== 'ready') return null;
-    return groupCardsByBanStatus(catalogState.cards, formatId);
-  }, [catalogState, formatId]);
+  const pageModel = useMemo(() => {
+    if (!format || catalogState.status !== 'ready') return null;
+    return buildFormatBanlistPageModel(format, catalogState.cards);
+  }, [catalogState, format]);
+
+  const detailFacts = useMemo(() => (format ? buildFormatDetailFacts(format) : null), [format]);
 
   const setViewMode = useCallback((mode: FormatBanlistViewMode) => {
     writeFormatDetailViewMode(mode);
@@ -193,7 +173,7 @@ export function FormatDetailPage() {
   if (!formatId || !format) {
     return (
       <FormatDetailMessage title="Unknown format">
-        Pick Advanced or Traditional from the Formats list.
+        Pick a format from the Formats list.
       </FormatDetailMessage>
     );
   }
@@ -206,7 +186,7 @@ export function FormatDetailPage() {
     );
   }
 
-  if (catalogState.status !== 'ready' || !banGroups) {
+  if (catalogState.status !== 'ready' || !pageModel) {
     return (
       <FormatDetailMessage title={`${format.name} unavailable`}>
         The catalog could not be loaded right now.
@@ -215,51 +195,38 @@ export function FormatDetailPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+    <div className="flex min-w-0 flex-col gap-6 overflow-x-hidden">
+      <div className="flex flex-col gap-3">
         <Link
           to="/formats"
           className="w-fit text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
         >
           ← All formats
         </Link>
-        <h1 className="text-2xl font-semibold text-heading">{format.name}</h1>
-        <p className="text-sm text-text-2">{format.deckRulesSummary}</p>
-      </div>
-
-      <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-medium text-heading">Banlist · {format.banlistHeading}</h2>
-          <div className="flex flex-wrap items-center gap-2">
+          <h1 className="min-w-0 flex-1 text-2xl font-semibold text-heading">{format.name}</h1>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Link
               to={searchWithFormatPath(formatId)}
+              onClick={() => writeFormatPreference(formatId)}
               className="inline-flex min-h-[var(--touch-min)] items-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
             >
-              Search in {format.name}
+              Card pool
             </Link>
             <FormatBanlistViewToggle value={viewMode} onChange={setViewMode} />
           </div>
         </div>
+        {detailFacts ? <FormatDetailFactsBlock facts={detailFacts} /> : null}
+      </div>
 
-        <div className="flex flex-col gap-6">
-          {BAN_GROUP_ORDER.map((status) =>
-            viewMode === 'list' ? (
-              <FormatBanListGroup
-                key={status}
-                status={status}
-                cards={banGroups[status]}
-                formatId={formatId}
-              />
-            ) : (
-              <FormatBanGridGroup
-                key={status}
-                status={status}
-                cards={banGroups[status]}
-                formatId={formatId}
-              />
-            ),
-          )}
-        </div>
+      <div className="flex min-w-0 flex-col gap-4">
+        {pageModel.sections.map((section) =>
+          viewMode === 'list' ? (
+            <FormatBanListSection key={section.id} section={section} formatId={formatId} />
+          ) : (
+            <FormatBanGridSection key={section.id} section={section} formatId={formatId} />
+          ),
+        )}
       </div>
     </div>
   );

@@ -21,23 +21,20 @@ type FormatFilterGroupProps = {
 type FormatOption = {
   id: FormatId | null;
   name: string;
-  sortDate?: string;
 };
 
 function FormatOptionRow({
   name,
-  sortDate,
   selected,
   count,
   onSelect,
 }: {
   name: string;
-  sortDate?: string;
   selected: boolean;
   count?: number;
   onSelect: () => void;
 }) {
-  const ariaLabel = formatCatalogOptionAriaLabel(name, sortDate);
+  const ariaLabel = formatCatalogOptionAriaLabel(name);
   return (
     <button
       type="button"
@@ -45,9 +42,7 @@ function FormatOptionRow({
       aria-checked={selected}
       aria-label={ariaLabel}
       onClick={onSelect}
-      className={`flex min-h-8 w-full items-center gap-2 rounded-sm text-left text-sm text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong ${
-        selected ? 'font-medium text-heading' : ''
-      }`}
+      className="flex min-h-8 w-full items-center gap-2 rounded-sm text-left text-sm text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
     >
       <span
         aria-hidden="true"
@@ -57,11 +52,7 @@ function FormatOptionRow({
       >
         {selected ? <span className="size-1.5 rounded-full bg-on-accent" /> : null}
       </span>
-      <FormatCatalogNameLabel
-        name={name}
-        sortDate={sortDate}
-        nameClassName={selected ? 'font-medium text-heading' : undefined}
-      />
+      <FormatCatalogNameLabel name={name} />
       {count != null ? (
         <span className="ml-auto shrink-0 tabular-nums text-text-2">{count.toLocaleString()}</span>
       ) : null}
@@ -82,7 +73,6 @@ export function FormatFilterGroup({
     const formats = listFormatsNewestFirst().map((format) => ({
       id: format.id,
       name: format.name,
-      sortDate: format.sortDate,
     }));
     return [none, ...formats];
   }, []);
@@ -121,7 +111,6 @@ export function FormatFilterGroup({
                   <li key={option.id ?? 'none'}>
                     <FormatOptionRow
                       name={option.name}
-                      sortDate={option.sortDate}
                       selected={selected}
                       count={option.id ? poolCountsByFormatId?.[option.id] : undefined}
                       onSelect={() => onChange(option.id)}
