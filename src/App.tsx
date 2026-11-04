@@ -4,6 +4,7 @@ import { AppShell } from './components/AppShell';
 import { AuthProvider } from './shared/auth';
 import { AccountPage } from './pages/AccountPage';
 import { CollectionPage } from './pages/CollectionPage';
+import { DeckEditorPage } from './pages/DeckEditorPage';
 import { DecksPage } from './pages/DecksPage';
 import { FormatsPage } from './pages/FormatsPage';
 import { FormatDetailPage } from './pages/FormatDetailPage';
@@ -26,6 +27,7 @@ export function App() {
               <Route path="formats" element={<FormatsPage />} />
               <Route path="formats/:formatId" element={<FormatDetailPage />} />
               <Route path="decks" element={<DecksPage />} />
+              <Route path="decks/edit/:draftId" element={<DeckEditorPage />} />
               <Route path="collection" element={<CollectionPage />} />
               <Route path="lists" element={<ListsPage />} />
               <Route path="about" element={<AboutPage />} />

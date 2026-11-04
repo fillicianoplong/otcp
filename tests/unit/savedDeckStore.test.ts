@@ -26,6 +26,7 @@ import {
 const sampleDraft: GuestDeckDraft = {
   id: 'draft-1',
   name: 'Test deck',
+  formatId: 'advanced',
   main: [12345678],
   extra: [],
   side: [],

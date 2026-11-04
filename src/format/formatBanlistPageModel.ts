@@ -10,21 +10,25 @@ import {
 import type { BanlistSnapshotCard } from './banlistSnapshotSchema.ts';
 import type { FormatDefinition } from './formatCatalog.ts';
 import { resolveFormatBanStatus } from './formatBanStatus.ts';
+import {
+  buildGenesysPlaceholderCard,
+  isGenesysPlaceholderCardId,
+} from './genesysPlaceholderCard.ts';
+import { listKonamiGenesysPointEntries, normalizeGenesysCardName } from './genesysKonamiPoints.ts';
 
-export type BanlistSectionId = 'forbidden' | 'limited' | 'semi-limited' | 'no-longer-restricted';
-
-export type BanlistSectionHeading =
-  'Forbidden' | 'Limited' | 'Semi-Limited' | 'No Longer Restricted';
+export type BanlistSectionId =
+  'forbidden' | 'limited' | 'semi-limited' | 'no-longer-restricted' | `genesys-points-${number}`;
 
 export type FormatBanlistCardEntry = {
   readonly card: YugiohCard;
   readonly banStatus: BanDisplayStatus | null;
   readonly changeBadge: BanlistChangeBadge | null;
+  readonly genesysPoints?: number;
 };
 
 export type FormatBanlistSection = {
   readonly id: BanlistSectionId;
-  readonly heading: BanlistSectionHeading;
+  readonly heading: string;
   readonly cards: readonly FormatBanlistCardEntry[];
 };
 
@@ -35,7 +39,7 @@ export type FormatBanlistPageModel = {
 
 const RESTRICTED_SECTIONS: readonly {
   id: BanlistSectionId;
-  heading: BanDisplayStatus;
+  heading: string;
   status: BanlistSnapshotCard['status'];
 }[] = [
   { id: 'forbidden', heading: 'Forbidden', status: 'forbidden' },
@@ -45,6 +49,17 @@ const RESTRICTED_SECTIONS: readonly {
 
 function catalogById(cards: readonly YugiohCard[]): ReadonlyMap<number, YugiohCard> {
   return new Map(cards.map((card) => [card.id, card]));
+}
+
+function catalogByNormalizedName(cards: readonly YugiohCard[]): ReadonlyMap<string, YugiohCard> {
+  const byName = new Map<string, YugiohCard>();
+  for (const card of cards) {
+    const key = normalizeGenesysCardName(card.name);
+    if (!byName.has(key)) {
+      byName.set(key, card);
+    }
+  }
+  return byName;
 }
 
 function sortByName(entries: FormatBanlistCardEntry[]): FormatBanlistCardEntry[] {
@@ -112,6 +127,40 @@ function buildSnapshotSections(
   };
 }
 
+function buildGenesysPointSections(
+  _format: FormatDefinition,
+  catalogCards: readonly YugiohCard[],
+): FormatBanlistPageModel {
+  const byName = catalogByNormalizedName(catalogCards);
+  const grouped = new Map<number, FormatBanlistCardEntry[]>();
+
+  for (const row of listKonamiGenesysPointEntries()) {
+    const key = normalizeGenesysCardName(row.name);
+    const catalogCard = byName.get(key);
+    const card = catalogCard ?? buildGenesysPlaceholderCard(row.name, row.points);
+    const bucket = grouped.get(row.points) ?? [];
+    bucket.push({
+      card,
+      banStatus: null,
+      changeBadge: null,
+      genesysPoints: row.points,
+    });
+    grouped.set(row.points, bucket);
+  }
+
+  const pointValues = [...grouped.keys()].sort((left, right) => right - left);
+  const sections: FormatBanlistSection[] = pointValues.map((points) => ({
+    id: `genesys-points-${points}`,
+    heading: `${points} points`,
+    cards: sortByName(grouped.get(points) ?? []),
+  }));
+
+  return {
+    effectiveDate: null,
+    sections,
+  };
+}
+
 function buildTcgCurrentSections(
   format: FormatDefinition,
   catalogCards: readonly YugiohCard[],
@@ -132,7 +181,7 @@ function buildTcgCurrentSections(
   const sections: FormatBanlistSection[] = RESTRICTED_SECTIONS.map((section) => ({
     id: section.id,
     heading: section.heading,
-    cards: sortByName(grouped[section.heading]),
+    cards: sortByName(grouped[section.heading as BanDisplayStatus]),
   }));
 
   return {
@@ -145,8 +194,13 @@ export function buildFormatBanlistPageModel(
   format: FormatDefinition,
   catalogCards: readonly YugiohCard[],
 ): FormatBanlistPageModel {
+  if (format.banlistSource === 'genesys-points') {
+    return buildGenesysPointSections(format, catalogCards);
+  }
   if (format.banlistSource === 'curated-snapshot') {
     return buildSnapshotSections(format, catalogCards);
   }
   return buildTcgCurrentSections(format, catalogCards);
 }
+
+export { isGenesysPlaceholderCardId };

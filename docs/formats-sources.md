@@ -59,3 +59,15 @@ The 132-row snapshot matches the March 2010 Forbidden / Limited / Semi-Limited t
 ## Release-date pool gaps
 
 When a card has printings but none resolve to a `tcgDate` in the published set index, `isCardInFormatPool` excludes it from GOAT / HAT / Tengu / Edison. Those cards are not flagged in banlist JSON; they are pool-only gaps.
+
+## Genesys
+
+| Field | Value |
+|---|---|
+| Rules and point list source | [Konami Yu-Gi-Oh! GENESYS](https://www.yugioh-card.com/en/genesys/) |
+| Stored Konami reference | `src/format/data/genesys-konami-points.json` (750 rows retrieved 2026-11-04) |
+| Ingest field | YGOPRODeck `misc_info.genesys_points` mapped to `genesysPoints` at pipeline refresh |
+| Spot-check | `pipeline/genesysPointsDiff.ts` logs diffs vs the stored Konami list; Konami values are never auto-applied (OD-11) |
+| Default deck cap | 100, user-settable in the deck editor (OD-12) |
+
+Point values in published card JSON follow YGOPRODeck until a maintainer updates data after reviewing Konami diff output.

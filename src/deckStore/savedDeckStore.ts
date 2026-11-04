@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-import { type FormatId } from '../format/formatCatalog.ts';
+import { type FormatId, isKnownFormatId } from '../format/formatCatalog.ts';
 import { readFormatPreference, resolveFormatPreference } from '../format/formatPreference.ts';
 import { readLocalStorageString, writeLocalStorageString } from '../shared/safeLocalStorage.ts';
 import { getSupabaseClient } from '../shared/supabase/client.ts';
@@ -24,6 +24,7 @@ const savedDeckRowSchema = z.object({
   main: cardIdArraySchema,
   extra: cardIdArraySchema,
   side: cardIdArraySchema,
+  genesys_cap: z.number().int().min(0).nullable().optional(),
   updated_at: z.string(),
 });
 
@@ -60,17 +61,18 @@ function parseCardIdArray(raw: unknown): number[] | null {
 
 function rowToSavedDeck(row: SavedDeckRow): SavedDeck | null {
   const formatId = row.format_id;
-  if (formatId !== 'advanced' && formatId !== 'traditional') {
+  if (!isKnownFormatId(formatId)) {
     return null;
   }
 
   return {
     id: row.id,
     name: row.name,
-    formatId,
+    formatId: formatId as FormatId,
     main: row.main,
     extra: row.extra,
     side: row.side,
+    ...(row.genesys_cap != null ? { genesysCap: row.genesys_cap } : {}),
     updatedAt: row.updated_at,
   };
 }
@@ -356,6 +358,7 @@ export function applyOpenSavedDeck(deck: SavedDeck): void {
       main: deck.main,
       extra: deck.extra,
       side: deck.side,
+      ...(deck.genesysCap != null ? { genesysCap: deck.genesysCap } : {}),
       updatedAt: deck.updatedAt,
     }),
   );
@@ -376,12 +379,11 @@ export function readOpenSavedDeck(): SavedDeck | null {
     const main = parseCardIdArray(record.main);
     const extra = parseCardIdArray(record.extra);
     const side = parseCardIdArray(record.side);
-    const formatId = record.formatId;
     if (
       typeof record.deckId !== 'string' ||
       typeof record.name !== 'string' ||
       typeof record.updatedAt !== 'string' ||
-      (formatId !== 'advanced' && formatId !== 'traditional') ||
+      !isKnownFormatId(String(record.formatId)) ||
       !main ||
       !extra ||
       !side
@@ -389,13 +391,16 @@ export function readOpenSavedDeck(): SavedDeck | null {
       return null;
     }
 
+    const genesysCapRaw = record.genesysCap;
+
     return {
       id: record.deckId,
       name: record.name,
-      formatId,
+      formatId: record.formatId as FormatId,
       main,
       extra,
       side,
+      ...(typeof genesysCapRaw === 'number' ? { genesysCap: genesysCapRaw } : {}),
       updatedAt: record.updatedAt,
     };
   } catch {
