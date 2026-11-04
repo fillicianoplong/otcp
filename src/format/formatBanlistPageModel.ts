@@ -7,6 +7,7 @@ import {
   isBanlistSnapshotFormatId,
   snapshotCardToBanStatus,
 } from './banlistSnapshots.ts';
+import { resolveBanlistDisplayCard } from './banlistDisplayCard.ts';
 import type { BanlistSnapshotCard } from './banlistSnapshotSchema.ts';
 import type { FormatDefinition } from './formatCatalog.ts';
 import { resolveFormatBanStatus } from './formatBanStatus.ts';
@@ -17,8 +18,21 @@ import {
 import { listKonamiGenesysPointEntries, normalizeGenesysCardName } from './genesysKonamiPoints.ts';
 import { isCardInFormatPool } from './formatPool.ts';
 
+<<<<<<< HEAD
 export type BanlistSectionId =
   'forbidden' | 'limited' | 'semi-limited' | 'no-longer-restricted' | `genesys-points-${number}`;
+=======
+export type BanlistSectionId = 'forbidden' | 'limited' | 'semi-limited' | 'no-longer-restricted';
+
+export type BanlistSectionHeading =
+  | 'Forbidden'
+  | 'Limited'
+  | 'Semi-Limited'
+  | 'No Longer Restricted'
+  | 'New to Forbidden'
+  | 'New to Limited'
+  | 'New to Semi-Limited';
+>>>>>>> 7bb700c2 (Add TCG banlists history pages and dated snapshots)
 
 export type FormatBanlistCardEntry = {
   readonly card: YugiohCard;
@@ -41,6 +55,13 @@ export type FormatBanlistPageModel = {
     readonly heading: string;
     readonly cards: readonly FormatBanlistCardEntry[];
   };
+};
+
+export type TcgBanlistDetailPageModel = {
+  readonly effectiveDate: string;
+  readonly listName: string;
+  readonly changeSections: readonly FormatBanlistSection[];
+  readonly fullSections: readonly FormatBanlistSection[];
 };
 
 const RESTRICTED_SECTIONS: readonly {
@@ -74,32 +95,25 @@ function sortByName(entries: FormatBanlistCardEntry[]): FormatBanlistCardEntry[]
   );
 }
 
-function buildSnapshotSections(
-  format: FormatDefinition,
+function buildSectionsFromSnapshotRows(
+  snapshotCards: readonly BanlistSnapshotCard[],
+  previousCards: readonly BanlistSnapshotCard[] | undefined,
   catalogCards: readonly YugiohCard[],
-): FormatBanlistPageModel {
-  const formatId = format.id;
-  if (!isBanlistSnapshotFormatId(formatId)) {
-    return { effectiveDate: null, sections: [] };
-  }
-
-  const snapshot = getFormatBanlistSnapshot(formatId);
-  const previous = getFormatBanlistPreviousList(formatId);
-  const diff = computeBanlistDiff(snapshot.cards, previous?.cards);
+  options: { includeBadges: boolean },
+): FormatBanlistSection[] {
+  const diff = computeBanlistDiff(snapshotCards, previousCards);
   const byId = catalogById(catalogCards);
-
   const sections: FormatBanlistSection[] = [];
 
   for (const section of RESTRICTED_SECTIONS) {
     const entries: FormatBanlistCardEntry[] = [];
-    for (const row of snapshot.cards) {
+    for (const row of snapshotCards) {
       if (row.status !== section.status) continue;
-      const card = byId.get(row.id);
-      if (!card) continue;
+      const card = resolveBanlistDisplayCard(row, byId);
       entries.push({
         card,
         banStatus: snapshotCardToBanStatus(row.status),
-        changeBadge: diff.badgesByCardId.get(row.id) ?? null,
+        changeBadge: options.includeBadges ? (diff.badgesByCardId.get(row.id) ?? null) : null,
       });
     }
     sections.push({
@@ -109,11 +123,10 @@ function buildSnapshotSections(
     });
   }
 
-  if (previous?.cards && diff.noLongerRestricted.length > 0) {
+  if (previousCards && diff.noLongerRestricted.length > 0) {
     const removedEntries: FormatBanlistCardEntry[] = [];
     for (const row of diff.noLongerRestricted) {
-      const card = byId.get(row.id);
-      if (!card) continue;
+      const card = resolveBanlistDisplayCard(row, byId);
       removedEntries.push({
         card,
         banStatus: null,
@@ -127,12 +140,31 @@ function buildSnapshotSections(
     });
   }
 
+  return sections;
+}
+
+function buildSnapshotSections(
+  format: FormatDefinition,
+  catalogCards: readonly YugiohCard[],
+): FormatBanlistPageModel {
+  const formatId = format.id;
+  if (!isBanlistSnapshotFormatId(formatId)) {
+    return { effectiveDate: null, sections: [] };
+  }
+
+  const snapshot = getFormatBanlistSnapshot(formatId);
+  const previous = getFormatBanlistPreviousList(formatId);
+  const sections = buildSectionsFromSnapshotRows(snapshot.cards, previous?.cards, catalogCards, {
+    includeBadges: true,
+  });
+
   return {
     effectiveDate: snapshot.effectiveDate,
     sections,
   };
 }
 
+<<<<<<< HEAD
 function buildGenesysPointSections(
   _format: FormatDefinition,
   catalogCards: readonly YugiohCard[],
@@ -184,6 +216,53 @@ function buildSpeedDuelPoolPreview(
   return {
     heading: 'Speed Duel pool',
     cards: sortByName(entries),
+=======
+export function buildTcgBanlistDetailPageModel(
+  snapshot: {
+    effectiveDate: string;
+    listName: string;
+    cards: readonly BanlistSnapshotCard[];
+  },
+  previousCards: readonly BanlistSnapshotCard[] | undefined,
+  catalogCards: readonly YugiohCard[],
+): TcgBanlistDetailPageModel {
+  const withBadges = buildSectionsFromSnapshotRows(snapshot.cards, previousCards, catalogCards, {
+    includeBadges: true,
+  });
+  const fullOnly = buildSectionsFromSnapshotRows(snapshot.cards, previousCards, catalogCards, {
+    includeBadges: false,
+  }).filter((section) => section.id !== 'no-longer-restricted');
+
+  const changeHeadingById: Record<
+    Exclude<BanlistSectionId, 'no-longer-restricted'>,
+    BanlistSectionHeading
+  > = {
+    forbidden: 'New to Forbidden',
+    limited: 'New to Limited',
+    'semi-limited': 'New to Semi-Limited',
+  };
+
+  const changeSections: FormatBanlistSection[] = [];
+  for (const section of withBadges) {
+    if (section.id === 'no-longer-restricted') {
+      if (section.cards.length > 0) changeSections.push(section);
+      continue;
+    }
+    const changedCards = section.cards.filter((entry) => entry.changeBadge !== null);
+    if (changedCards.length === 0) continue;
+    changeSections.push({
+      id: section.id,
+      heading: changeHeadingById[section.id],
+      cards: changedCards,
+    });
+  }
+
+  return {
+    effectiveDate: snapshot.effectiveDate,
+    listName: snapshot.listName,
+    changeSections,
+    fullSections: fullOnly,
+>>>>>>> 7bb700c2 (Add TCG banlists history pages and dated snapshots)
   };
 }
 
