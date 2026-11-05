@@ -1,7 +1,10 @@
 {
-  "schemaVersion": "1.0.0",
-  "datasetFile": "data/datasets/sample-dev.json",
-  "sha256": "e57a4713e2c66b112855bd0ee47cac10e8900b7500d171196d89b8cce03fe469",
-  "publishedAt": "2026-10-28T12:00:00.000Z",
-  "cardCount": 26
+  "schemaVersion": "2.0.0",
+  "searchIndexFile": "data/datasets/search-2026-11-05T09-24-23Z.json",
+  "searchIndexSha256": "82b2a7b53d92ef0ca431e62374b1073cff7e7c081d735008c3251982771fe693",
+  "detailsPrefix": "data/datasets/details-2026-11-05T09-24-23Z/",
+  "detailsBucketSize": 500,
+  "detailBucketCount": 30,
+  "publishedAt": "2026-11-05T09:24:23.443Z",
+  "cardCount": 14548
 }
