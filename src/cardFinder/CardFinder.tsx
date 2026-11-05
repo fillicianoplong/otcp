@@ -14,7 +14,7 @@ import {
 import { countActiveFacetSelections, filterStateToChips } from '../catalog/filterUrlState.ts';
 import type { DeckAddTarget } from '../deckEditor/deckPlacement.ts';
 import { writeDraggedCardId } from '../deckEditor/deckPlacement.ts';
-import type { FormatId } from '../format/formatCatalog.ts';
+import { formatDisplayName, type FormatId } from '../format/formatCatalog.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { EditorCardRow } from './EditorCardRow.tsx';
@@ -34,6 +34,12 @@ const ADD_TARGET_OPTIONS: readonly { value: DeckAddTarget; label: string }[] = [
   { value: 'side', label: 'Side' },
 ];
 
+/** A deck stays on a format. The chip returns the choice to this baseline. */
+const CLEARED_DECK_FORMAT_ID: FormatId = 'advanced';
+
+const formatChipClassName =
+  'inline-flex min-h-8 max-w-full items-center gap-1 rounded-full border border-border bg-surface-2 px-3 text-sm text-text hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
+
 export function CardFinder({
   formatId,
   setIndex,
@@ -50,6 +56,7 @@ export function CardFinder({
   onCardDragStart,
   filtersInSheet,
   onFiltersVisibilityChange,
+  onFormatChange,
   autoFocusSearch = false,
 }: {
   formatId: FormatId;
@@ -67,11 +74,13 @@ export function CardFinder({
   onCardDragStart?: (cardId: number) => void;
   filtersInSheet: boolean;
   onFiltersVisibilityChange?: (open: boolean) => void;
+  onFormatChange: (formatId: FormatId) => void;
   autoFocusSearch?: boolean;
 }) {
   const { state: catalogState } = useCardCatalog();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
+  const [phoneDraftFormatId, setPhoneDraftFormatId] = useState<FormatId>(formatId);
   const [visibleLimit, setVisibleLimit] = useState(RESULT_PAGE_SIZE);
 
   const catalogDerived = useMemo(() => {
@@ -101,10 +110,10 @@ export function CardFinder({
     return queryCatalog(catalogDerived, {
       filterState: phoneDraft,
       query: trimmedQuery,
-      formatParam: formatId,
+      formatParam: phoneDraftFormatId,
       setIndex,
     });
-  }, [catalogDerived, filtersInSheet, formatId, phoneDraft, setIndex, trimmedQuery]);
+  }, [catalogDerived, filtersInSheet, phoneDraft, phoneDraftFormatId, setIndex, trimmedQuery]);
 
   const orderedCards = useMemo(() => {
     if (!catalogDerived || !queryResult) return [];
@@ -129,7 +138,12 @@ export function CardFinder({
     onFiltersVisibilityChange?.(open);
     if (open && filtersInSheet) {
       setPhoneDraft(filterState);
+      setPhoneDraftFormatId(formatId);
     }
+  };
+
+  const clearFormat = () => {
+    if (formatId !== CLEARED_DECK_FORMAT_ID) onFormatChange(CLEARED_DECK_FORMAT_ID);
   };
 
   let body: ReactNode;
@@ -224,7 +238,16 @@ export function CardFinder({
             </button>
           ) : null}
         </div>
-        <FilterChips chips={chips} onChange={commitFilters} />
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={clearFormat} className={formatChipClassName}>
+            <span className="truncate">{formatDisplayName(formatId)}</span>
+            <span aria-hidden="true" className="text-text-2">
+              ×
+            </span>
+            <span className="sr-only">Remove {formatDisplayName(formatId)} format</span>
+          </button>
+          <FilterChips chips={chips} onChange={commitFilters} />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -269,6 +292,10 @@ export function CardFinder({
             onChange={commitFilters}
             setIndex={setIndex}
             activeFormatId={formatId}
+            onFormatChange={(nextFormatId) => {
+              if (nextFormatId) onFormatChange(nextFormatId);
+            }}
+            formatAllowEmpty={false}
           />
         </div>
       ) : null}
@@ -285,14 +312,22 @@ export function CardFinder({
           }
           onApply={() => {
             onFilterStateChange(phoneDraft);
+            if (phoneDraftFormatId !== formatId) onFormatChange(phoneDraftFormatId);
             setFiltersVisible(false);
           }}
-          onReset={() => setPhoneDraft(emptyFilterState())}
+          onReset={() => {
+            setPhoneDraft(emptyFilterState());
+            setPhoneDraftFormatId(formatId);
+          }}
           resultCount={phoneDraftResult?.matchCount ?? 0}
           draftGroupCounts={phoneDraftResult?.facetGroupCounts ?? []}
           catalogFieldIds={catalogFieldIds}
           setIndex={setIndex}
-          draftFormatId={formatId}
+          draftFormatId={phoneDraftFormatId}
+          onDraftFormatChange={(nextFormatId) => {
+            if (nextFormatId) setPhoneDraftFormatId(nextFormatId);
+          }}
+          formatAllowEmpty={false}
         />
       ) : null}
     </div>

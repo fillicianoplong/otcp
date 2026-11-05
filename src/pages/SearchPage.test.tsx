@@ -170,7 +170,9 @@ describe('Search format chip', () => {
     const router = renderSearchFlowWithRouter(['/search'], 0);
 
     const chip = await screen.findByRole('button', { name: /Remove Yugi-Kaiba format/ });
-    const combobox = await screen.findByRole('combobox', { name: 'Format' });
+    const sidebar = screen.getByRole('complementary', { name: 'Filter sidebar' });
+    const combobox = within(sidebar).getByRole('combobox', { name: 'Format' });
+    expect(screen.getAllByRole('combobox', { name: 'Format' })).toEqual([combobox]);
     expect((combobox as HTMLInputElement).value).toBe('Yugi-Kaiba');
     expect(screen.queryByRole('button', { name: 'Clear format' })).toBeNull();
 

@@ -202,6 +202,8 @@ type FacetFilterPanelProps = {
   setIndex?: SetIndex | null;
   activeFormatId?: FormatId | null;
   onFormatChange?: (formatId: FormatId | null) => void;
+  /** Search can return to every card. A deck always keeps a format. */
+  formatAllowEmpty?: boolean;
 };
 
 export function FacetFilterPanel({
@@ -213,6 +215,7 @@ export function FacetFilterPanel({
   setIndex,
   activeFormatId = null,
   onFormatChange,
+  formatAllowEmpty = true,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
   const countsByField = useMemo(() => {
@@ -302,7 +305,11 @@ export function FacetFilterPanel({
             onToggleCollapse={() => toggleField(FORMAT_FILTER_SECTION_ID)}
             className="relative overflow-visible"
           >
-            <FormatFilterGroup value={activeFormatId} onChange={onFormatChange} />
+            <FormatFilterGroup
+              value={activeFormatId}
+              allowEmpty={formatAllowEmpty}
+              onChange={onFormatChange}
+            />
           </CollapsibleFilterSection>
         ) : null}
         {visibleDefinitions.map((def) => {
@@ -722,6 +729,7 @@ type PhoneFiltersSheetProps = {
   setIndex?: SetIndex | null;
   draftFormatId?: FormatId | null;
   onDraftFormatChange?: (formatId: FormatId | null) => void;
+  formatAllowEmpty?: boolean;
 };
 
 export function PhoneFiltersSheet({
@@ -737,6 +745,7 @@ export function PhoneFiltersSheet({
   setIndex,
   draftFormatId = null,
   onDraftFormatChange,
+  formatAllowEmpty = true,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -794,6 +803,7 @@ export function PhoneFiltersSheet({
           setIndex={setIndex}
           activeFormatId={draftFormatId}
           onFormatChange={onDraftFormatChange}
+          formatAllowEmpty={formatAllowEmpty}
         />
       </div>
       <footer className="border-t border-border p-4">

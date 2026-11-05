@@ -241,35 +241,40 @@ describe('DeckEditorPage', () => {
     expect(getGuestDeckDraft(draft.id)?.side).toEqual([cardId('Polymerization')]);
   });
 
-  it('picks a format from a short combobox and clears it from the chip', async () => {
+  it('changes format from Filters and clears the chip back to Advanced', async () => {
     mockViewport(true);
     const draft = createGuestDeckDraft({ name: 'Locals', formatId: 'yugi-kaiba' });
     const user = userEvent.setup();
     renderEditor(draft.id);
 
     expect(screen.queryByText(/Extra Deck monsters/)).toBeNull();
-    const field = screen.getByTestId('deck-format-field');
-    expect(field.className).not.toContain('p-4');
-    expect(field.querySelector('.w-56')).toBeTruthy();
+    expect(screen.queryByTestId('deck-format-field')).toBeNull();
     expect(document.getElementById('deck-format-select')).toBeNull();
+    expect(screen.queryByRole('combobox', { name: 'Format' })).toBeNull();
+    expect(screen.getByRole('searchbox', { name: 'Search cards' })).toBeTruthy();
+    expect(screen.getByRole('radiogroup', { name: 'Add to' })).toBeTruthy();
+    expect(screen.getByText('Main 0 / Extra 0 / Side 0')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Filters' }).textContent).toBe('Filters');
 
-    const combobox = screen.getByRole('combobox', { name: 'Format' });
-    expect((combobox as HTMLInputElement).value).toBe('Yugi-Kaiba');
-    expect(screen.queryByRole('button', { name: 'Clear format' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Show formats' })).toBeTruthy();
-
+    const filtersButton = screen.getByRole('button', { name: 'Filters' });
     const chip = screen.getByRole('button', { name: /Remove Yugi-Kaiba format/ });
+    expect(filtersButton.parentElement?.contains(chip)).toBe(false);
+    expect(filtersButton.parentElement?.parentElement?.contains(chip)).toBe(true);
     expect(chip.className).toContain('rounded-full');
     await user.click(within(chip).getByText('×'));
 
     expect(getGuestDeckDraft(draft.id)?.formatId).toBe('advanced');
-    expect((screen.getByRole('combobox', { name: 'Format' }) as HTMLInputElement).value).toBe(
-      'Advanced',
-    );
     expect(screen.queryByRole('button', { name: /Remove Yugi-Kaiba format/ })).toBeNull();
     expect(screen.getByRole('button', { name: /Remove Advanced format/ })).toBeTruthy();
 
-    await user.click(screen.getByRole('combobox', { name: 'Format' }));
+    await user.click(screen.getByRole('button', { name: 'Filters' }));
+    const combobox = screen.getByRole('combobox', { name: 'Format' });
+    expect((combobox as HTMLInputElement).value).toBe('Advanced');
+    expect(screen.queryByRole('button', { name: 'Clear format' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Show formats' })).toBeTruthy();
+
+    await user.click(combobox);
+    expect(screen.queryByRole('option', { name: 'All formats' })).toBeNull();
     await user.keyboard('edison');
     await user.keyboard('{Enter}');
 
@@ -292,5 +297,35 @@ describe('DeckEditorPage', () => {
     );
     expect(getGuestDeckDraft(genesys.id)?.formatId).toBe('advanced');
     expect(getGuestDeckDraft(genesys.id)?.genesysCap).toBeUndefined();
+  });
+
+  it('applies a format chosen in the phone Filters sheet', async () => {
+    mockViewport(false);
+    const draft = createGuestDeckDraft({ name: 'Phone deck', formatId: 'yugi-kaiba' });
+    const user = userEvent.setup();
+    renderEditor(draft.id);
+
+    expect(screen.queryByRole('combobox', { name: 'Format' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Remove Yugi-Kaiba format/ })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Add cards' }));
+    const library = screen.getByRole('dialog', { name: 'Add cards' });
+    expect(within(library).queryByRole('combobox', { name: 'Format' })).toBeNull();
+    expect(within(library).getByRole('button', { name: /Remove Yugi-Kaiba format/ })).toBeTruthy();
+
+    await user.click(within(library).getByRole('button', { name: 'Filters' }));
+    const filters = screen.getByRole('dialog', { name: 'Filters' });
+    const combobox = within(filters).getByRole('combobox', { name: 'Format' });
+    expect((combobox as HTMLInputElement).value).toBe('Yugi-Kaiba');
+    await user.click(combobox);
+    expect(within(filters).queryByRole('option', { name: 'All formats' })).toBeNull();
+    await user.keyboard('edison');
+    await user.keyboard('{Enter}');
+    expect(getGuestDeckDraft(draft.id)?.formatId).toBe('yugi-kaiba');
+
+    await user.click(within(filters).getByRole('button', { name: /^See \d/ }));
+    expect(getGuestDeckDraft(draft.id)?.formatId).toBe('edison');
+    expect(within(library).getByRole('button', { name: /Remove Edison format/ })).toBeTruthy();
+    expect(screen.queryByRole('dialog', { name: 'Filters' })).toBeNull();
   });
 });
