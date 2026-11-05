@@ -25,7 +25,7 @@ test.describe('smoke', () => {
     const response = await page.goto('/otcp/');
     expect(response?.status()).toBe(200);
     await expect(page).toHaveURL(/\/otcp\/search$/);
-    await expect(page).toHaveTitle('OTCP');
+    await expect(page).toHaveTitle('Search - OTCP');
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeAttached();
     await expect(page.getByRole('main')).toBeVisible();
     await expect(page.getByRole('heading', { level: 1, name: 'Search' })).toBeVisible();
