@@ -2,6 +2,7 @@ import type { BanDisplayStatus } from '../catalog/formatBanContext.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { isBanlistSnapshotFormatId, resolveSnapshotBanStatus } from './banlistSnapshots.ts';
 import { getFormatById, normalizeFormatId } from './formatCatalog.ts';
+import { resolveTcgDatedBanStatus } from './tcgBanlistLookup.ts';
 
 type TcgBanField = 'banTcg';
 
@@ -47,6 +48,8 @@ export function resolveFormatBanStatus(
 
   if (format.banlistSource === 'curated-snapshot' && isBanlistSnapshotFormatId(formatId)) {
     raw = resolveSnapshotBanStatus(formatId, card.id, card.passcode);
+  } else if (format.banlistSource === 'tcg-dated-list' && format.banlistEffectiveDate) {
+    raw = resolveTcgDatedBanStatus(format.banlistEffectiveDate, card.id);
   } else if (formatId === 'speed-duel') {
     const field = speedDuelBanField();
     raw = card.banlistInfo?.[field] ?? card.banlistInfo?.banTcg ?? null;

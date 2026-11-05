@@ -8,7 +8,7 @@ import {
   snapshotCardToBanStatus,
 } from './banlistSnapshots.ts';
 import { resolveBanlistDisplayCard } from './banlistDisplayCard.ts';
-import type { BanlistSnapshotCard } from './banlistSnapshotSchema.ts';
+import type { BanlistSnapshotCard, TcgBanlistSnapshot } from './banlistSnapshotSchema.ts';
 import type { FormatDefinition } from './formatCatalog.ts';
 import { resolveFormatBanStatus } from './formatBanStatus.ts';
 import {
@@ -293,6 +293,21 @@ function buildTcgCurrentSections(
   };
 }
 
+export function buildTcgDatedFormatBanlistPageModel(
+  format: FormatDefinition,
+  snapshot: TcgBanlistSnapshot,
+  previousCards: readonly BanlistSnapshotCard[] | undefined,
+  catalogCards: readonly YugiohCard[],
+): FormatBanlistPageModel {
+  const sections = buildSectionsFromSnapshotRows(snapshot.cards, previousCards, catalogCards, {
+    includeBadges: true,
+  });
+  return {
+    effectiveDate: snapshot.effectiveDate ?? format.banlistEffectiveDate ?? null,
+    sections,
+  };
+}
+
 export function buildFormatBanlistPageModel(
   format: FormatDefinition,
   catalogCards: readonly YugiohCard[],
@@ -302,6 +317,9 @@ export function buildFormatBanlistPageModel(
   }
   if (format.banlistSource === 'curated-snapshot') {
     return buildSnapshotSections(format, catalogCards);
+  }
+  if (format.banlistSource === 'tcg-dated-list') {
+    return { effectiveDate: format.banlistEffectiveDate ?? null, sections: [] };
   }
   const model = buildTcgCurrentSections(format, catalogCards);
   if (format.id === 'speed-duel' && !banlistSectionsHaveCards(model.sections)) {
