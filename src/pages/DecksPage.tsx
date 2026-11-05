@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 
+import { useCardCatalog } from '../catalog/useCardCatalog.ts';
+import { DeckListCard } from '../deckList/DeckListCard.tsx';
 import {
   applyOpenSavedDeck,
   createGuestDeckDraft,
@@ -19,91 +21,20 @@ import {
   saveGuestDraftToAccount,
   shouldOfferGuestDraftImport,
   updateGuestDeckDraft,
+  updateSavedDeck,
+  type DeckCover,
   type GuestDeckDraft,
   type SavedDeck,
 } from '../deckStore';
-import { formatDisplayName } from '../format/formatCatalog.ts';
 import { useAuth } from '../shared/auth';
+import type { YugiohCard } from '../shared/schema/card.ts';
 import { getSupabaseClient } from '../shared/supabase/client.ts';
 
 const newDeckButtonClassName =
   'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
-const deckCardClassName =
-  'flex min-h-[8.5rem] flex-col justify-between rounded-md border border-border bg-surface p-4';
-
 const deckSecondaryActionClassName =
   'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
-
-const deckCardActionsClassName = 'mt-4 flex flex-wrap gap-2';
-
-function formatDeckUpdatedLabel(updatedAt: string): string {
-  const updatedMs = Date.parse(updatedAt);
-  if (Number.isNaN(updatedMs)) {
-    return 'Updated unknown';
-  }
-
-  const diffMs = updatedMs - Date.now();
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
-
-  if (Math.abs(diffDays) >= 1) {
-    return `Updated ${rtf.format(diffDays, 'day')}`;
-  }
-
-  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
-  if (Math.abs(diffHours) >= 1) {
-    return `Updated ${rtf.format(diffHours, 'hour')}`;
-  }
-
-  const diffMinutes = Math.round(diffMs / (1000 * 60));
-  if (Math.abs(diffMinutes) >= 1) {
-    return `Updated ${rtf.format(diffMinutes, 'minute')}`;
-  }
-
-  return 'Updated just now';
-}
-
-function guestDeckSummaryLine(draft: GuestDeckDraft): string {
-  const main = draft.main.length;
-  const extra = draft.extra.length;
-  const side = draft.side.length;
-  const skill = draft.skillId ? '  Skill set' : '';
-  return `Main ${main}   Extra ${extra}   Side ${side}${skill}   ${formatDisplayName(draft.formatId)}   ${formatDeckUpdatedLabel(draft.updatedAt)}   Local draft`;
-}
-
-function savedDeckSummaryLine(deck: SavedDeck): string {
-  const main = deck.main.length;
-  const extra = deck.extra.length;
-  const side = deck.side.length;
-  return `Main ${main}   Extra ${extra}   Side ${side}   ${formatDisplayName(deck.formatId)}   ${formatDeckUpdatedLabel(deck.updatedAt)}`;
-}
-
-type DeckSignInGatedActionProps = {
-  label: string;
-  accountPath: string | null;
-};
-
-function DeckSignInGatedAction({ label, accountPath }: DeckSignInGatedActionProps) {
-  if (accountPath) {
-    return (
-      <Link to={accountPath} className={deckSecondaryActionClassName}>
-        {label}
-      </Link>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      className={deckSecondaryActionClassName}
-      disabled
-      title="Saving decks to your account is not available yet."
-    >
-      {label}
-    </button>
-  );
-}
 
 type GuestDraftImportDialogProps = {
   open: boolean;
@@ -185,133 +116,9 @@ function GuestDraftImportDialog({
   );
 }
 
-type GuestDeckCardProps = {
-  draft: GuestDeckDraft;
-  highlighted: boolean;
-  onRename: (id: string) => void;
-  onRemove: (id: string) => void;
-  onSave: (id: string) => void;
-  signedIn: boolean;
-  saveBusy: boolean;
-};
-
-function GuestDeckCard({
-  draft,
-  highlighted,
-  onRename,
-  onRemove,
-  onSave,
-  signedIn,
-  saveBusy,
-}: GuestDeckCardProps) {
-  const saveAccountPath = deckSaveRequiresAccountPath(signedIn, draft.id);
-  const shareAccountPath = deckShareRequiresAccountPath(signedIn, draft.id);
-
-  return (
-    <article
-      className={`${deckCardClassName}${highlighted ? ' ring-2 ring-border-strong' : ''}`}
-      aria-labelledby={`deck-name-${draft.id}`}
-    >
-      <div className="space-y-1">
-        <h2 id={`deck-name-${draft.id}`} className="text-lg font-semibold text-heading">
-          {draft.name}
-        </h2>
-        <p className="text-sm text-text">{guestDeckSummaryLine(draft)}</p>
-      </div>
-      <div className={deckCardActionsClassName}>
-        <Link to={`/decks/edit/${draft.id}`} className={deckSecondaryActionClassName}>
-          Open
-        </Link>
-        {signedIn ? (
-          <button
-            type="button"
-            className={deckSecondaryActionClassName}
-            disabled={saveBusy}
-            onClick={() => onSave(draft.id)}
-          >
-            Save
-          </button>
-        ) : (
-          <DeckSignInGatedAction label="Save" accountPath={saveAccountPath} />
-        )}
-        <DeckSignInGatedAction label="Share" accountPath={shareAccountPath} />
-        <Link to={`/decks/edit/${draft.id}`} className={deckSecondaryActionClassName}>
-          Open
-        </Link>
-        <button
-          type="button"
-          className={deckSecondaryActionClassName}
-          onClick={() => onRename(draft.id)}
-        >
-          Rename
-        </button>
-        <button
-          type="button"
-          className={deckSecondaryActionClassName}
-          onClick={() => onRemove(draft.id)}
-        >
-          Remove
-        </button>
-      </div>
-    </article>
-  );
-}
-
-type SavedDeckCardProps = {
-  deck: SavedDeck;
-  onOpen: (id: string) => void;
-  onRename: (id: string) => void;
-  onRemove: (id: string) => void;
-  openBusy: boolean;
-};
-
-function SavedDeckCard({ deck, onOpen, onRename, onRemove, openBusy }: SavedDeckCardProps) {
-  return (
-    <article className={deckCardClassName} aria-labelledby={`saved-deck-name-${deck.id}`}>
-      <div className="space-y-1">
-        <h2 id={`saved-deck-name-${deck.id}`} className="text-lg font-semibold text-heading">
-          {deck.name}
-        </h2>
-        <p className="text-sm text-text">{savedDeckSummaryLine(deck)}</p>
-      </div>
-      <div className={deckCardActionsClassName}>
-        <button
-          type="button"
-          className={deckSecondaryActionClassName}
-          disabled={openBusy}
-          onClick={() => onOpen(deck.id)}
-        >
-          Open
-        </button>
-        <button
-          type="button"
-          className={deckSecondaryActionClassName}
-          disabled
-          title="Share links are not available yet."
-        >
-          Share
-        </button>
-        <button
-          type="button"
-          className={deckSecondaryActionClassName}
-          onClick={() => onRename(deck.id)}
-        >
-          Rename
-        </button>
-        <button
-          type="button"
-          className={deckSecondaryActionClassName}
-          onClick={() => onRemove(deck.id)}
-        >
-          Remove
-        </button>
-      </div>
-    </article>
-  );
-}
-
 export function DecksPage() {
   const { session, loading } = useAuth();
+  const { state: catalogState } = useCardCatalog();
   const signedIn = Boolean(session);
   const userId = session?.user?.id ?? null;
   const [searchParams] = useSearchParams();
@@ -330,6 +137,12 @@ export function DecksPage() {
   const savedDecks =
     signedIn && userId && savedDecksCache?.userId === userId ? savedDecksCache.decks : [];
   const savedLoading = signedIn && userId !== null && savedDecksCache?.userId !== userId;
+  const cardsById = useMemo(() => {
+    if (catalogState.status !== 'ready') {
+      return new Map<number, YugiohCard>();
+    }
+    return new Map(catalogState.cards.map((card) => [card.id, card]));
+  }, [catalogState]);
 
   const refreshDrafts = useCallback(() => {
     setDrafts(listGuestDeckDrafts());
@@ -403,6 +216,20 @@ export function DecksPage() {
     }
     removeGuestDeckDraft(id);
     refreshDrafts();
+  };
+
+  const handleGuestChooseCover = (id: string, cover: DeckCover) => {
+    updateGuestDeckDraft(id, { cover });
+    refreshDrafts();
+  };
+
+  const handleSavedChooseCover = async (id: string, cover: DeckCover) => {
+    const result = await updateSavedDeck(id, { cover }, getSupabaseClient());
+    if (!result.ok) {
+      setStatusMessage(result.message);
+      return;
+    }
+    await refreshSavedDecks();
   };
 
   const handleGuestSave = async (id: string) => {
@@ -556,17 +383,22 @@ export function DecksPage() {
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {savedDecks.map((deck) => (
                 <li key={deck.id}>
-                  <SavedDeckCard
-                    deck={deck}
+                  <DeckListCard
+                    deck={{ ...deck, localDraft: false }}
+                    cardsById={cardsById}
                     openBusy={openBusyId === deck.id}
-                    onOpen={(id) => {
-                      void handleSavedOpen(id);
+                    shareDisabledTitle="Share links are not available yet."
+                    onOpen={() => {
+                      void handleSavedOpen(deck.id);
                     }}
-                    onRename={(id) => {
-                      void handleSavedRename(id);
+                    onRename={() => {
+                      void handleSavedRename(deck.id);
                     }}
-                    onRemove={(id) => {
-                      void handleSavedRemove(id);
+                    onRemove={() => {
+                      void handleSavedRemove(deck.id);
+                    }}
+                    onChooseCover={(cover) => {
+                      void handleSavedChooseCover(deck.id, cover);
                     }}
                   />
                 </li>
@@ -584,16 +416,25 @@ export function DecksPage() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {drafts.map((draft) => (
               <li key={draft.id}>
-                <GuestDeckCard
-                  draft={draft}
+                <DeckListCard
+                  deck={{ ...draft, localDraft: true }}
+                  cardsById={cardsById}
                   highlighted={highlightedDraftId === draft.id}
-                  signedIn={signedIn}
+                  openHref={`/decks/edit/${draft.id}`}
                   saveBusy={saveBusyId === draft.id}
-                  onRename={handleGuestRename}
-                  onRemove={handleGuestRemove}
-                  onSave={(id) => {
-                    void handleGuestSave(id);
-                  }}
+                  saveAccountPath={signedIn ? null : deckSaveRequiresAccountPath(false, draft.id)}
+                  shareAccountPath={deckShareRequiresAccountPath(signedIn, draft.id)}
+                  shareDisabledTitle="Saving decks to your account is not available yet."
+                  onSave={
+                    signedIn
+                      ? () => {
+                          void handleGuestSave(draft.id);
+                        }
+                      : undefined
+                  }
+                  onRename={() => handleGuestRename(draft.id)}
+                  onRemove={() => handleGuestRemove(draft.id)}
+                  onChooseCover={(cover) => handleGuestChooseCover(draft.id, cover)}
                 />
               </li>
             ))}

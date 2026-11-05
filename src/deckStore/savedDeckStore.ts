@@ -5,6 +5,7 @@ import { type FormatId, isKnownFormatId } from '../format/formatCatalog.ts';
 import { readFormatPreference, resolveFormatPreference } from '../format/formatPreference.ts';
 import { readLocalStorageString, writeLocalStorageString } from '../shared/safeLocalStorage.ts';
 import { getSupabaseClient } from '../shared/supabase/client.ts';
+import { readDeckCover, writeDeckCover, parseDeckCover } from './deckCoverStore.ts';
 import { removeGuestDeckDraft } from './guestDeckDraftStore.ts';
 import type { DeckStoreResult } from './outcomes.ts';
 import type { GuestDeckDraft, SavedDeck, SavedDeckInput, SavedDeckUpdate } from './types.ts';
@@ -77,6 +78,14 @@ function rowToSavedDeck(row: SavedDeckRow): SavedDeck | null {
   };
 }
 
+function attachStoredCover(deck: SavedDeck): SavedDeck {
+  const cover = readDeckCover(deck.id);
+  if (!cover) {
+    return deck;
+  }
+  return { ...deck, cover };
+}
+
 function defaultFormatIdForNewDeck(): FormatId {
   const resolved = resolveFormatPreference({
     urlParam: null,
@@ -135,7 +144,7 @@ export async function listSavedDecks(
       }
       const deck = rowToSavedDeck(parsed.data);
       if (deck) {
-        decks.push(deck);
+        decks.push(attachStoredCover(deck));
       }
     }
 
@@ -178,7 +187,7 @@ export async function loadSavedDeck(
       return storeError('Saved deck data is invalid.', false);
     }
 
-    return { ok: true, deck };
+    return { ok: true, deck: attachStoredCover(deck) };
   } catch {
     return storeError('Could not load deck.');
   }
@@ -211,7 +220,12 @@ export async function saveGuestDraftToAccount(
       return storeError(error?.message || 'Could not save deck.');
     }
 
-    return { ok: true, id: data.id as string };
+    const savedId = data.id as string;
+    if (draft.cover) {
+      writeDeckCover(savedId, draft.cover);
+    }
+
+    return { ok: true, id: savedId };
   } catch {
     return storeError('Could not save deck.');
   }
@@ -255,9 +269,8 @@ export async function updateSavedDeck(
   update: SavedDeckUpdate,
   clientOverride?: SupabaseClient | null,
 ): Promise<DeckStoreResult> {
-  const client = resolveClient(clientOverride);
-  if (!client) {
-    return unauthorized();
+  if (update.cover !== undefined) {
+    writeDeckCover(deckId, update.cover);
   }
 
   const patch: Record<string, unknown> = {};
@@ -279,6 +292,11 @@ export async function updateSavedDeck(
 
   if (Object.keys(patch).length === 0) {
     return { ok: true };
+  }
+
+  const client = resolveClient(clientOverride);
+  if (!client) {
+    return unauthorized();
   }
 
   try {
@@ -340,6 +358,7 @@ export async function deleteSavedDeck(
       return notFound();
     }
 
+    writeDeckCover(deckId, null);
     return { ok: true };
   } catch {
     return storeError('Could not remove deck.');
@@ -359,6 +378,7 @@ export function applyOpenSavedDeck(deck: SavedDeck): void {
       extra: deck.extra,
       side: deck.side,
       ...(deck.genesysCap != null ? { genesysCap: deck.genesysCap } : {}),
+      ...(deck.cover ? { cover: deck.cover } : {}),
       updatedAt: deck.updatedAt,
     }),
   );
@@ -392,6 +412,7 @@ export function readOpenSavedDeck(): SavedDeck | null {
     }
 
     const genesysCapRaw = record.genesysCap;
+    const cover = parseDeckCover(record.cover);
 
     return {
       id: record.deckId,
@@ -401,6 +422,7 @@ export function readOpenSavedDeck(): SavedDeck | null {
       extra,
       side,
       ...(typeof genesysCapRaw === 'number' ? { genesysCap: genesysCapRaw } : {}),
+      ...(cover ? { cover } : {}),
       updatedAt: record.updatedAt,
     };
   } catch {

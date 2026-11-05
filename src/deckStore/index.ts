@@ -36,6 +36,7 @@ export {
   updateSavedDeck,
 } from './savedDeckStore.ts';
 export type {
+  DeckCover,
   GuestDeckDraft,
   GuestDeckDraftInput,
   GuestDeckDraftUpdate,
