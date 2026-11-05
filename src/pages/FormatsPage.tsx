@@ -79,6 +79,9 @@ export function FormatsPage() {
               <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
                 List date
               </th>
+              <th scope="col" className="py-2 pr-3 pl-1 font-medium whitespace-nowrap">
+                Pool through
+              </th>
               <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
                 Forbidden
               </th>
@@ -87,9 +90,6 @@ export function FormatsPage() {
               </th>
               <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
                 Semi-Limited
-              </th>
-              <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
-                Pool through
               </th>
             </tr>
           </thead>
@@ -114,8 +114,11 @@ export function FormatsPage() {
                       {format.name}
                     </Link>
                   </td>
-                  <td className="px-3 py-2 tabular-nums text-text whitespace-nowrap">
+                  <td className="px-3 py-2 pr-1 tabular-nums text-text whitespace-nowrap">
                     {listDate || '—'}
+                  </td>
+                  <td className="py-2 pr-3 pl-1 tabular-nums text-text-2 whitespace-nowrap">
+                    {poolThrough || '—'}
                   </td>
                   <td className="hidden px-3 py-2 text-xs lg:table-cell">
                     {stats ? (
@@ -137,9 +140,6 @@ export function FormatsPage() {
                     ) : (
                       '—'
                     )}
-                  </td>
-                  <td className="px-3 py-2 tabular-nums text-text-2 whitespace-nowrap">
-                    {poolThrough || '—'}
                   </td>
                 </tr>
               );
