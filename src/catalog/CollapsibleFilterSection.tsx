@@ -15,9 +15,11 @@ export function CollapsibleFilterSection({
   children: ReactNode;
   className?: string;
 }) {
+  const extraClassName = className?.trim() ?? '';
+  const clipsOverflow = !/(?:^|\s)overflow-/.test(extraClassName);
   return (
     <section
-      className={`overflow-hidden rounded-lg border border-border bg-surface${className ? ` ${className}` : ''}`}
+      className={`${clipsOverflow ? 'overflow-hidden ' : ''}rounded-lg border border-border bg-surface${extraClassName ? ` ${extraClassName}` : ''}`}
     >
       <button
         type="button"

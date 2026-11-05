@@ -1,13 +1,9 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 
-import {
-  FACET_LONG_GROUP_OPTION_THRESHOLD,
-  FACET_OPTION_LIST_SCROLL_CAP_PX,
-  facetOptionListShowsSearch,
-} from '../catalog/facetOptionListLayout.ts';
-import { formatOptionMatchesQuery } from './formatFilterSearch.ts';
-import { FormatCatalogNameLabel, formatCatalogOptionAriaLabel } from './FormatCatalogNameLabel.tsx';
 import { listFormatsNewestFirst, type FormatId } from './formatCatalog.ts';
+import { formatOptionMatchesQuery } from './formatFilterSearch.ts';
+
+const ALL_FORMATS_LABEL = 'All formats';
 
 type FormatFilterGroupProps = {
   value: FormatId | null;
@@ -19,166 +15,279 @@ type FormatOption = {
   name: string;
 };
 
-function formatTriggerLabel(
-  value: FormatId | null,
-  formats: ReadonlyArray<{ id: FormatId; name: string }>,
-): string {
-  if (!value) return 'None';
-  return formats.find((format) => format.id === value)?.name ?? value;
+function filterFormatOptions(options: readonly FormatOption[], query: string): FormatOption[] {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return [...options];
+  return options.filter((option) => formatOptionMatchesQuery(option, normalized));
 }
 
-function FormatOptionRow({
-  name,
-  selected,
-  onSelect,
-}: {
-  name: string;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="option"
-      aria-selected={selected}
-      aria-label={formatCatalogOptionAriaLabel(name)}
-      onClick={onSelect}
-      className="flex min-h-9 w-full items-center gap-2 px-3 text-left text-sm font-normal text-text hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
-    >
-      <span
-        aria-hidden="true"
-        className={`inline-flex size-4 shrink-0 items-center justify-center rounded-full border ${
-          selected ? 'border-border-strong bg-heading' : 'border-border bg-surface'
-        }`}
-      >
-        {selected ? <span className="size-1.5 rounded-full bg-on-accent" /> : null}
-      </span>
-      <FormatCatalogNameLabel name={name} />
-    </button>
-  );
+function isPrintableKey(event: KeyboardEvent<HTMLElement>): boolean {
+  return event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
+}
+
+function optionClassName(selected: boolean, active: boolean): string {
+  const base =
+    'flex min-h-8 w-full min-w-0 cursor-pointer items-center px-3 text-left text-sm font-normal';
+  if (active) {
+    return `${base} bg-surface-2 text-heading ring-1 ring-inset ring-border-strong`;
+  }
+  if (selected) return `${base} bg-surface-2 text-heading`;
+  return `${base} text-text hover:bg-surface-2`;
 }
 
 export function FormatFilterGroup({ value, onChange }: FormatFilterGroupProps) {
-  const listId = useId();
+  const rawId = useId().replace(/:/g, '');
+  const inputId = `${rawId}-format`;
+  const listId = `${rawId}-list`;
+  const labelId = `${rawId}-label`;
   const rootRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
+
   const formats = useMemo(() => listFormatsNewestFirst(), []);
-  const triggerLabel = formatTriggerLabel(value, formats);
-
-  const options: FormatOption[] = useMemo(() => {
-    const none: FormatOption = { id: null, name: 'None' };
-    return [none, ...formats.map((format) => ({ id: format.id, name: format.name }))];
-  }, [formats]);
-
-  const showSearch = facetOptionListShowsSearch(
-    options.length >= FACET_LONG_GROUP_OPTION_THRESHOLD,
+  const options = useMemo<FormatOption[]>(
+    () => [
+      { id: null, name: ALL_FORMATS_LABEL },
+      ...formats.map((format) => ({ id: format.id, name: format.name })),
+    ],
+    [formats],
   );
+  const filtered = useMemo(
+    () => filterFormatOptions(options, open ? query : ''),
+    [open, options, query],
+  );
+  const selectedIndex = options.findIndex((option) => option.id === value);
+  const triggerLabel =
+    value == null
+      ? ALL_FORMATS_LABEL
+      : (formats.find((format) => format.id === value)?.name ?? value);
+  const activeIndexClamped =
+    filtered.length === 0 ? -1 : Math.min(Math.max(activeIndex, 0), filtered.length - 1);
+  const activeOption = activeIndexClamped >= 0 ? filtered[activeIndexClamped] : undefined;
+  const activeOptionId = activeOption ? `${rawId}-opt-${activeOption.id ?? 'all'}` : undefined;
 
-  const filteredOptions = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) return options;
-    return options.filter((option) => formatOptionMatchesQuery(option, normalized));
-  }, [options, query]);
-
-  const closeDropdown = useCallback(() => {
+  const closeList = () => {
     setOpen(false);
     setQuery('');
-  }, []);
+  };
+
+  const openList = (nextActive: number) => {
+    setOpen(true);
+    setQuery('');
+    setActiveIndex(nextActive);
+  };
+
+  const selectOption = (option: FormatOption) => {
+    onChange(option.id);
+    closeList();
+    inputRef.current?.focus();
+  };
 
   useEffect(() => {
     if (!open) return undefined;
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        closeDropdown();
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeDropdown();
+      if (!rootRef.current?.contains(event.target as Node)) closeList();
     };
     document.addEventListener('pointerdown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open, closeDropdown]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const frame = requestAnimationFrame(() => {
-      searchInputRef.current?.focus();
-    });
-    return () => cancelAnimationFrame(frame);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [open]);
 
+  useEffect(() => {
+    if (!open || !activeOptionId) return;
+    const node = document.getElementById(activeOptionId);
+    if (!node || typeof node.scrollIntoView !== 'function') return;
+    node.scrollIntoView({ block: 'nearest' });
+  }, [activeOptionId, open]);
+
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Escape') {
+      if (!open) return;
+      event.preventDefault();
+      event.stopPropagation();
+      closeList();
+      inputRef.current?.focus();
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (!open) {
+        const start = selectedIndex >= 0 ? selectedIndex : 0;
+        openList(Math.min(start + 1, options.length - 1));
+        return;
+      }
+      setActiveIndex((current) => {
+        if (filtered.length === 0) return -1;
+        const base = current < 0 ? -1 : Math.min(current, filtered.length - 1);
+        return Math.min(base + 1, filtered.length - 1);
+      });
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!open) {
+        const start = selectedIndex >= 0 ? selectedIndex : 0;
+        openList(Math.max(start - 1, 0));
+        return;
+      }
+      setActiveIndex((current) => {
+        if (filtered.length === 0) return -1;
+        const base = current < 0 ? 0 : Math.min(current, filtered.length - 1);
+        return Math.max(base - 1, 0);
+      });
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      if (!open) openList(0);
+      else setActiveIndex(0);
+      return;
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      if (!open) openList(Math.max(options.length - 1, 0));
+      else setActiveIndex(Math.max(filtered.length - 1, 0));
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (!open) {
+        openList(selectedIndex >= 0 ? selectedIndex : 0);
+        return;
+      }
+      if (activeOption) selectOption(activeOption);
+      return;
+    }
+
+    if (event.key === 'Backspace' && !open && value) {
+      event.preventDefault();
+      onChange(null);
+      return;
+    }
+
+    if (!open && isPrintableKey(event)) {
+      event.preventDefault();
+      setOpen(true);
+      setQuery(event.key);
+      setActiveIndex(0);
+    }
+  };
+
   return (
-    <div ref={rootRef} className="relative">
-      <span id={`${listId}-label`} className="sr-only">
+    <div
+      ref={rootRef}
+      className="relative min-w-0 w-full max-w-full"
+      onKeyDown={onKeyDown}
+      onBlur={(event) => {
+        const next = event.relatedTarget;
+        if (next instanceof Node && rootRef.current?.contains(next)) return;
+        if (open) closeList();
+      }}
+    >
+      <label id={labelId} htmlFor={inputId} className="sr-only">
         Format
-      </span>
-      <button
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-labelledby={`${listId}-label`}
-        onClick={() => {
-          if (open) closeDropdown();
-          else setOpen(true);
-        }}
-        className="flex min-h-[var(--touch-min)] w-full items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 text-left text-sm font-normal text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-      >
-        <span className="min-w-0 truncate">{triggerLabel}</span>
-        <span aria-hidden="true" className="shrink-0 text-text-2">
-          {open ? '▴' : '▾'}
-        </span>
-      </button>
-      {open ? (
-        <div className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-border bg-surface shadow-lg">
-          {showSearch ? (
-            <div className="border-b border-border px-2 py-2">
-              <label className="sr-only" htmlFor="format-filter-search">
-                Search formats
-              </label>
-              <input
-                ref={searchInputRef}
-                id="format-filter-search"
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search formats…"
-                className="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-              />
-            </div>
-          ) : null}
-          <ul
-            role="listbox"
-            aria-labelledby={`${listId}-label`}
-            className="max-h-[min(16rem,var(--format-filter-max,16rem))] overflow-y-auto py-1"
-            style={{ maxHeight: `${FACET_OPTION_LIST_SCROLL_CAP_PX}px` }}
+      </label>
+      <div className="flex min-h-[var(--touch-min)] min-w-0 max-w-full items-center rounded-md border border-border bg-surface hover:border-border-strong focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-strong">
+        <input
+          ref={inputRef}
+          id={inputId}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={open ? listId : undefined}
+          aria-activedescendant={open ? activeOptionId : undefined}
+          aria-labelledby={labelId}
+          type="text"
+          value={open ? query : triggerLabel}
+          placeholder={open ? 'Search formats' : ALL_FORMATS_LABEL}
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setActiveIndex(0);
+          }}
+          onPointerDown={() => {
+            if (!open) openList(selectedIndex >= 0 ? selectedIndex : 0);
+          }}
+          className={`min-w-0 flex-1 bg-transparent px-3 text-sm font-normal text-heading outline-none placeholder:font-normal placeholder:text-text-2 ${
+            open ? '' : 'cursor-default caret-transparent'
+          }`}
+        />
+        {value ? (
+          <button
+            type="button"
+            aria-label="Clear format"
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={() => {
+              onChange(null);
+              closeList();
+              inputRef.current?.focus();
+            }}
+            className="inline-flex size-8 shrink-0 items-center justify-center text-text-2 hover:text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
           >
-            {filteredOptions.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-text-2">No formats match.</li>
-            ) : (
-              filteredOptions.map((option) => {
-                const selected = value === option.id;
-                return (
-                  <li key={option.id ?? 'none'} role="none">
-                    <FormatOptionRow
-                      name={option.name}
-                      selected={selected}
-                      onSelect={() => {
-                        onChange(option.id);
-                        closeDropdown();
-                      }}
-                    />
-                  </li>
-                );
-              })
-            )}
-          </ul>
-        </div>
+            <span aria-hidden="true">×</span>
+          </button>
+        ) : null}
+        <button
+          type="button"
+          aria-label={open ? 'Hide formats' : 'Show formats'}
+          aria-expanded={open}
+          aria-controls={listId}
+          onPointerDown={(event) => event.preventDefault()}
+          onClick={() => {
+            if (open) {
+              closeList();
+              inputRef.current?.focus();
+              return;
+            }
+            openList(selectedIndex >= 0 ? selectedIndex : 0);
+            inputRef.current?.focus();
+          }}
+          className="inline-flex size-8 shrink-0 items-center justify-center text-text-2 hover:text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+        >
+          <span aria-hidden="true">{open ? '▴' : '▾'}</span>
+        </button>
+      </div>
+      {open ? (
+        <ul
+          id={listId}
+          role="listbox"
+          aria-labelledby={labelId}
+          className="absolute top-full right-0 left-0 z-20 mt-1 max-h-60 w-full max-w-full overflow-x-hidden overflow-y-auto overscroll-contain rounded-md border border-border bg-surface py-1 shadow-lg"
+        >
+          {filtered.length === 0 ? (
+            <li className="px-3 py-2 text-sm font-normal text-text-2">No formats match.</li>
+          ) : (
+            filtered.map((option, index) => {
+              const selected = option.id === value;
+              const active = index === activeIndexClamped;
+              const optionId = `${rawId}-opt-${option.id ?? 'all'}`;
+              return (
+                <li key={option.id ?? 'all'} role="none">
+                  <div
+                    id={optionId}
+                    role="option"
+                    aria-selected={selected}
+                    onPointerEnter={() => setActiveIndex(index)}
+                    onPointerDown={(event) => {
+                      event.preventDefault();
+                      selectOption(option);
+                    }}
+                    className={optionClassName(selected, active)}
+                  >
+                    <span className="min-w-0 truncate font-normal">{option.name}</span>
+                  </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
       ) : null}
     </div>
   );
