@@ -56,6 +56,21 @@ body {
   background-color: var(--scrollbar-thumb-active);
 }
 
+/* Full-row Formats links: other cells are hit targets, nested controls stay on top. */
+.formats-data-row:has([data-formats-row-link]:focus-visible) {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: -2px;
+}
+
+.formats-data-row
+  :is(a, button, input, select, textarea, [role='button']):not([data-formats-row-link]):not(
+    [data-formats-row-hit]
+  ) {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
