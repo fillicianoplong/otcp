@@ -252,6 +252,8 @@ export function FacetFilterPanel({
     return orderFacetDefinitionsForPanel(ordered);
   }, [activeFormatId, catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
 
+  const showLegalityFilter = visibleDefinitions.some((def) => def.id === 'banStatus');
+
   return (
     <div className={className}>
       <h2 className="mb-3 text-base font-semibold text-heading">Filters</h2>
@@ -259,12 +261,9 @@ export function FacetFilterPanel({
         {onFormatChange ? (
           <FormatFilterGroup value={activeFormatId} onChange={onFormatChange} />
         ) : null}
-        {onAllArtworksChange ? (
-          <AllArtworksFilterGroup enabled={allArtworks} onChange={onAllArtworksChange} />
-        ) : null}
-        {visibleDefinitions.map((def) => {
+        {visibleDefinitions.flatMap((def) => {
           const collapsed = collapsedFields[def.id] ?? false;
-          return (
+          const field = (
             <FacetFieldCard
               key={def.id}
               definition={def}
@@ -277,7 +276,21 @@ export function FacetFilterPanel({
               setIndex={setIndex}
             />
           );
+          if (def.id === 'banStatus' && onAllArtworksChange) {
+            return [
+              field,
+              <AllArtworksFilterGroup
+                key="artworks-filter"
+                enabled={allArtworks}
+                onChange={onAllArtworksChange}
+              />,
+            ];
+          }
+          return [field];
         })}
+        {onAllArtworksChange && !showLegalityFilter ? (
+          <AllArtworksFilterGroup enabled={allArtworks} onChange={onAllArtworksChange} />
+        ) : null}
       </div>
     </div>
   );
