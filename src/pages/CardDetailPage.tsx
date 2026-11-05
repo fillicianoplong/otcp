@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 
-import { YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
+import { cardDetailImageSrc, YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
 import { resolveArtIds, resolveSelectedArtId } from '../catalog/cardArt.ts';
 import {
   findCatalogCardByRouteId,
@@ -61,20 +61,11 @@ import type { CardPrices } from '../shared/schema/core.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
-function CardDetailArt({
-  card,
-  selectedArtId,
-  onSelectArtId,
-}: {
-  card: YugiohCard;
-  selectedArtId: number;
-  onSelectArtId: (imageId: number) => void;
-}) {
+function CardDetailArt({ card, selectedArtId }: { card: YugiohCard; selectedArtId: number }) {
   const artId = resolveSelectedArtId(card, selectedArtId);
-  const [viewerSrc, setViewerSrc] = useState(() => card.images.large);
+  const [viewerSrc, setViewerSrc] = useState(() => cardDetailImageSrc(card, artId));
   const [viewerOpen, setViewerOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const artIds = resolveArtIds(card);
 
   const openViewer = () => setViewerOpen(true);
   const closeViewer = () => setViewerOpen(false);
@@ -89,7 +80,7 @@ function CardDetailArt({
         aria-label={`View larger artwork for ${card.name}`}
       >
         <div
-          className={`relative mx-auto ${YGO_CARD_ART_ASPECT_CLASS} w-full max-w-[min(100%,420px)] overflow-hidden rounded-md border border-border bg-surface-2 md:mx-0 md:h-[min(calc(100vh-7rem),820px)] md:w-auto md:max-w-none md:[aspect-ratio:59/86]`}
+          className={`relative w-full overflow-hidden rounded-md border border-border bg-surface-2 ${YGO_CARD_ART_ASPECT_CLASS}`}
         >
           <CatalogArtImage
             card={card}
@@ -102,27 +93,6 @@ function CardDetailArt({
           />
         </div>
       </button>
-      {artIds.length > 1 ? (
-        <ul
-          className="flex max-w-full list-none flex-wrap gap-1.5 p-0 pt-2"
-          aria-label="Artwork variants"
-        >
-          {artIds.map((imageId) => {
-            const selected = imageId === artId;
-            return (
-              <li key={imageId}>
-                <CatalogArtThumbnail
-                  card={card}
-                  imageId={imageId}
-                  selected={selected}
-                  onSelect={() => onSelectArtId(imageId)}
-                  ariaLabel={`Show artwork ${imageId} for ${card.name}`}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
       {viewerOpen ? (
         <CardImageZoomViewer
           src={viewerSrc}
@@ -132,6 +102,44 @@ function CardDetailArt({
         />
       ) : null}
     </>
+  );
+}
+
+function CardDetailArtworks({
+  card,
+  selectedArtId,
+  onSelectArtId,
+}: {
+  card: YugiohCard;
+  selectedArtId: number;
+  onSelectArtId: (imageId: number) => void;
+}) {
+  const artId = resolveSelectedArtId(card, selectedArtId);
+  const artIds = resolveArtIds(card);
+  if (artIds.length < 2) return null;
+
+  return (
+    <section className="flex min-w-0 flex-col gap-2" aria-labelledby="card-artworks-heading">
+      <h2 id="card-artworks-heading" className="text-base font-semibold text-heading">
+        Artworks
+      </h2>
+      <ul
+        className="m-0 flex max-w-full list-none flex-wrap gap-2 p-0"
+        aria-label="Artwork variants"
+      >
+        {artIds.map((imageId) => (
+          <li key={imageId}>
+            <CatalogArtThumbnail
+              card={card}
+              imageId={imageId}
+              selected={imageId === artId}
+              onSelect={() => onSelectArtId(imageId)}
+              ariaLabel={`Show artwork ${imageId} for ${card.name}`}
+            />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -576,20 +584,20 @@ function CardDetailReadyView({
   const descriptionBlocks = buildCardDetailDescriptionBlocks(card);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
-        <div className="w-full shrink-0 md:sticky md:top-4 md:w-[min(100%,calc((100vh-7rem)*59/86))] md:max-w-[520px] md:self-start">
+      {/* Width fits the viewport height, leaves a gutter, and still yields to the info column. */}
+      <div className="flex w-full min-w-0 flex-col gap-6 md:flex-row md:items-start md:gap-12">
+        <div className="w-full min-w-0 md:sticky md:top-4 md:w-[min(42rem,calc((100dvh-10rem)*421/614),calc(100%-25rem))] md:shrink-0">
           <CardDetailArt
             key={`${card.id}-${selectedArtId}`}
             card={card}
             selectedArtId={selectedArtId}
-            onSelectArtId={selectArtId}
           />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <header className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold text-heading">{card.name}</h1>
+            <h1 className="min-w-0 text-2xl font-semibold text-heading">{card.name}</h1>
             <CardDetailBanStatus card={card} formatParam={formatParam} />
           </header>
           <CardDetailInfoChips card={card} />
@@ -613,6 +621,11 @@ function CardDetailReadyView({
               </p>
             </section>
           ) : null}
+          <CardDetailArtworks
+            card={card}
+            selectedArtId={selectedArtId}
+            onSelectArtId={selectArtId}
+          />
           <div className="flex flex-col gap-3">
             <CardDetailMarketPrices
               cardName={card.name}
