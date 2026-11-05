@@ -227,16 +227,16 @@ export function CardFinder({
         <FilterChips chips={chips} onChange={commitFilters} />
       </div>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="text-sm text-text" id="card-finder-add-target">
           Add to
         </span>
         <div
-          className="flex flex-wrap gap-2"
+          className="inline-flex max-w-full overflow-hidden rounded-md border border-border"
           role="radiogroup"
           aria-labelledby="card-finder-add-target"
         >
-          {ADD_TARGET_OPTIONS.map((option) => {
+          {ADD_TARGET_OPTIONS.map((option, index) => {
             const selected = addTarget === option.value;
             return (
               <button
@@ -244,10 +244,12 @@ export function CardFinder({
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                className={`inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border px-3 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong ${
+                className={`inline-flex min-h-8 items-center justify-center px-2.5 text-sm focus-visible:z-[1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong ${
+                  index > 0 ? '-ml-px border-l' : ''
+                } ${
                   selected
-                    ? 'border-border-strong bg-accent text-on-accent'
-                    : 'border-border bg-surface text-heading hover:border-border-strong'
+                    ? 'relative z-[1] border-border-strong bg-accent text-on-accent'
+                    : 'border-border bg-surface text-heading hover:bg-surface-2'
                 }`}
                 onClick={() => onAddTargetChange(option.value)}
               >
@@ -256,9 +258,6 @@ export function CardFinder({
             );
           })}
         </div>
-        <p className="text-xs text-text-2">
-          Auto puts Extra Deck monsters in Extra and other cards in Main. Side needs Side or a drop.
-        </p>
       </div>
 
       {filtersOpen && !filtersInSheet && catalogDerived ? (
