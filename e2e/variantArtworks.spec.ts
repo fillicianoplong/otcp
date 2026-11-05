@@ -1,11 +1,25 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 import { ensureGridTileCount, searchPathWithAllArtOff } from './helpers/searchAllArt.ts';
 
+async function clickAllArtworksFilter(page: Page): Promise<void> {
+  await page
+    .getByRole('group', { name: 'Artwork display' })
+    .getByRole('button', { name: 'All artworks', exact: true })
+    .click();
+}
+
+async function clickOnePerCardFilter(page: Page): Promise<void> {
+  await page
+    .getByRole('group', { name: 'Artwork display' })
+    .getByRole('button', { name: 'One per card', exact: true })
+    .click();
+}
+
 test.describe('variant artworks', () => {
-  test('All artworks switch and art query on detail', async ({ page }) => {
+  test('All artworks filter and art path on detail', async ({ page }) => {
     await page.goto(searchPathWithAllArtOff('Dark Magician'));
-    await page.getByRole('switch', { name: /^All artworks/ }).click();
+    await clickAllArtworksFilter(page);
     await expect(page.getByText('5 artworks')).toBeVisible({ timeout: 15_000 });
 
     await ensureGridTileCount(page, 5);
@@ -16,11 +30,11 @@ test.describe('variant artworks', () => {
     ).toBeVisible();
     await expect(page.getByRole('link', { name: /^Dark Magician/ })).toHaveCount(5);
 
-    await page.getByRole('switch', { name: /^All artworks/ }).click();
+    await clickOnePerCardFilter(page);
     await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toHaveCount(1);
     await expect(page.getByText('1 card')).toBeVisible();
 
-    await page.getByRole('switch', { name: /^All artworks/ }).click();
+    await clickAllArtworksFilter(page);
     await expect(page.getByText('5 artworks')).toBeVisible();
     await ensureGridTileCount(page, 5);
     await page.getByRole('link', { name: 'Dark Magician, artwork 2 of 5', exact: true }).click();
