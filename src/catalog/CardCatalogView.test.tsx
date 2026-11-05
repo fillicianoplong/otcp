@@ -82,6 +82,10 @@ describe('CardCatalogView grid tiles', () => {
     const image = () => within(link).getByRole('presentation');
     fireEvent.error(image());
     await waitFor(() => {
+      expect(image().getAttribute('src')).toContain('images.ygoprodeck.com');
+    });
+    fireEvent.error(image());
+    await waitFor(() => {
       expect(image().getAttribute('src')).toContain('/otcp/card-images/small/89631139.jpg');
     });
     fireEvent.error(image());

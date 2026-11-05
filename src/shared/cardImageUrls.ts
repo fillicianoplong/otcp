@@ -53,3 +53,12 @@ export function publicBaseUrlFromPublishedImageUrl(url: string): string {
   if (match?.[1]) return match[1];
   return R2_CARD_IMAGES_PUBLIC_BASE_URL;
 }
+
+/** YGOPRODeck CDN (fallback when hosted WebP for an image id is missing). */
+export function ygoprodeckSmallImageUrl(imageId: number): string {
+  return `https://images.ygoprodeck.com/images/cards_small/${imageId}.jpg`;
+}
+
+export function ygoprodeckLargeImageUrl(imageId: number): string {
+  return `https://images.ygoprodeck.com/images/cards/${imageId}.jpg`;
+}
