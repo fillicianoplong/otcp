@@ -1,5 +1,5 @@
 import { FORMAT_TCG_BANLIST_DATES, tcgBanlistDetailPath } from './tcgBanlistManifest.ts';
-import type { FormatDefinition, FormatId } from './formatCatalog.ts';
+import type { FormatDefinition } from './formatCatalog.ts';
 import {
   getFormatBanlistSnapshot,
   isBanlistSnapshotFormatId,
@@ -87,8 +87,11 @@ function mergeSourceLinks(
   return merged;
 }
 
-function historyPathForFormat(formatId: FormatId): string | undefined {
-  const dated = FORMAT_TCG_BANLIST_DATES[formatId as keyof typeof FORMAT_TCG_BANLIST_DATES];
+function historyPathForFormat(format: FormatDefinition): string | undefined {
+  if (format.banlistSource === 'tcg-dated-list' && format.banlistEffectiveDate) {
+    return tcgBanlistDetailPath(format.banlistEffectiveDate);
+  }
+  const dated = FORMAT_TCG_BANLIST_DATES[format.id as keyof typeof FORMAT_TCG_BANLIST_DATES];
   return dated ? tcgBanlistDetailPath(dated) : undefined;
 }
 
@@ -97,10 +100,20 @@ function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
     return null;
   }
 
+  if (format.banlistSource === 'tcg-dated-list') {
+    const effectiveDate = format.banlistEffectiveDate ?? format.sortDate;
+    if (!effectiveDate) return null;
+    return {
+      effectiveDate,
+      listName: format.banlistHeading,
+      historyPath: tcgBanlistDetailPath(effectiveDate),
+    };
+  }
+
   const effectiveDate = format.sortDate;
   if (!effectiveDate) return null;
 
-  const historyPath = historyPathForFormat(format.id);
+  const historyPath = historyPathForFormat(format);
 
   if (format.banlistSource === 'curated-snapshot' && isBanlistSnapshotFormatId(format.id)) {
     const snapshot = getFormatBanlistSnapshot(format.id);
@@ -123,13 +136,21 @@ function buildCardPool(format: FormatDefinition): FormatDetailCardPool | null {
     return null;
   }
   if (format.poolRule !== 'tcg-earliest-on-or-before') return null;
-  if (!format.poolThroughSet || !format.poolCutoffDate) return null;
+  if (!format.poolCutoffDate) return null;
 
   const notIncluded = poolNotIncludedFromExclusionNote(format.poolExclusionNote);
 
+  if (format.poolThroughSet) {
+    return {
+      cardsReleasedBy: format.poolCutoffDate,
+      latestSet: format.poolThroughSet,
+      notIncluded,
+    };
+  }
+
   return {
     cardsReleasedBy: format.poolCutoffDate,
-    latestSet: format.poolThroughSet,
+    latestSet: 'All TCG sets through the list window',
     notIncluded,
   };
 }

@@ -12,9 +12,9 @@ import {
 import { formatCatalogSortDatePrefix } from '../../src/format/formatSortDateLabel.ts';
 
 describe('formatCatalog', () => {
-  it('lists Advanced, Traditional, Speed Duel, Genesys, and curated historical formats', () => {
-    expect(listFormats()).toHaveLength(8);
-    expect(FORMAT_CATALOG.map((f) => f.id)).toEqual([
+  it('lists core rulesets plus generated meta formats', () => {
+    expect(listFormats().length).toBeGreaterThanOrEqual(101);
+    expect(FORMAT_CATALOG.slice(0, 8).map((f) => f.id)).toEqual([
       'advanced',
       'traditional',
       'speed-duel',
@@ -24,20 +24,14 @@ describe('formatCatalog', () => {
       'edison',
       'goat',
     ]);
+    expect(getFormatById('hypernova')?.banlistSource).toBe('tcg-dated-list');
   });
 
-  it('sorts formats with Speed Duel and Genesys after Advanced and Traditional', () => {
+  it('sorts formats with Speed Duel and Genesys after Advanced and Traditional, then newest list dates', () => {
     const ids = listFormatsNewestFirst().map((f) => f.id);
-    expect(ids).toEqual([
-      'advanced',
-      'traditional',
-      'speed-duel',
-      'genesys',
-      'hat',
-      'tengu',
-      'edison',
-      'goat',
-    ]);
+    expect(ids.slice(0, 4)).toEqual(['advanced', 'traditional', 'speed-duel', 'genesys']);
+    expect(ids.indexOf('hypernova')).toBeGreaterThan(3);
+    expect(ids.indexOf('goat')).toBeGreaterThan(ids.indexOf('hypernova'));
   });
 
   it('resolves format ids case-insensitively', () => {
@@ -73,6 +67,7 @@ describe('formatCatalog', () => {
   it('treats only catalog ids as known format params', () => {
     expect(isKnownFormatId('advanced')).toBe(true);
     expect(isKnownFormatId('hat')).toBe(true);
+    expect(isKnownFormatId('hypernova')).toBe(true);
     expect(isKnownFormatId('tcg')).toBe(false);
     expect(isKnownFormatId('')).toBe(false);
   });
