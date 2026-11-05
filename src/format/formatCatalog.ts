@@ -1,5 +1,7 @@
 import generatedMetaJson from './data/playableFormats.generated.json' with { type: 'json' };
 
+import { FORMAT_TCG_BANLIST_DATES, isKnownTcgBanlistDate } from './tcgBanlistManifest.ts';
+
 /** ISO 8601 calendar date (YYYY-MM-DD) for newest-first sort and UI labels. */
 export type FormatSortDate = string;
 
@@ -315,4 +317,35 @@ export function formatBanlistEffectiveDate(format: FormatDefinition): string | n
 
 export function isCoreFormatId(formatId: string): boolean {
   return CORE_FORMAT_CATALOG.some((format) => format.id === formatId);
+}
+
+/** Picks the playable format row for a TCG list effective date (legacy `/banlists/:date` URLs). */
+export function resolveFormatIdForBanlistDate(
+  effectiveDate: string | null | undefined,
+): FormatId | null {
+  const date = effectiveDate?.trim();
+  if (!date || !isKnownTcgBanlistDate(date)) return null;
+
+  for (const [formatId, listDate] of Object.entries(FORMAT_TCG_BANLIST_DATES)) {
+    if (listDate === date) return formatId;
+  }
+
+  const metaMatches = FORMAT_CATALOG.filter(
+    (format) => format.banlistSource === 'tcg-dated-list' && format.banlistEffectiveDate === date,
+  );
+  if (metaMatches.length > 0) {
+    const ordered = listFormatsNewestFirst();
+    const preferred = ordered.find((format) => metaMatches.some((match) => match.id === format.id));
+    return preferred?.id ?? metaMatches[0]?.id ?? null;
+  }
+
+  if (getFormatById('advanced')?.sortDate === date) return 'advanced';
+
+  return null;
+}
+
+/** Canonical format detail URL for a banlist date, or `/formats` when unknown. */
+export function formatDetailPathForBanlistDate(effectiveDate: string | null | undefined): string {
+  const formatId = resolveFormatIdForBanlistDate(effectiveDate);
+  return formatId ? formatDetailPath(formatId) : '/formats';
 }
