@@ -60,10 +60,6 @@ export function getPreviousTcgBanlistEffectiveDate(effectiveDate: string): strin
   return chronological[index - 1]?.effectiveDate;
 }
 
-export function tcgBanlistDetailPath(effectiveDate: string): string {
-  return `/banlists/${effectiveDate}`;
-}
-
 export function isKnownTcgBanlistDate(param: string | null | undefined): boolean {
   if (!param) return false;
   return manifestByDate.has(param.trim());
