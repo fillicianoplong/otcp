@@ -19,7 +19,12 @@ import { listKonamiGenesysPointEntries, normalizeGenesysCardName } from './genes
 import { isCardInFormatPool } from './formatPool.ts';
 
 export type BanlistSectionId =
-  'forbidden' | 'limited' | 'semi-limited' | 'no-longer-restricted' | `genesys-points-${number}`;
+  | 'forbidden'
+  | 'limited'
+  | 'semi-limited'
+  | 'no-longer-restricted'
+  | 'speed-duel-pool'
+  | `genesys-points-${number}`;
 
 export type BanlistSectionHeading =
   | 'Forbidden'
@@ -177,7 +182,10 @@ export function buildTcgBanlistDetailPageModel(
   }).filter((section) => section.id !== 'no-longer-restricted');
 
   const changeHeadingById: Record<
-    Exclude<BanlistSectionId, 'no-longer-restricted' | `genesys-points-${number}`>,
+    Exclude<
+      BanlistSectionId,
+      'no-longer-restricted' | 'speed-duel-pool' | `genesys-points-${number}`
+    >,
     BanlistSectionHeading
   > = {
     forbidden: 'New to Forbidden',

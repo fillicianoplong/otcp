@@ -31,6 +31,7 @@ import {
 } from './catalogTableColumns.ts';
 import { DEFAULT_CATALOG_TABLE_SORT, type CatalogTableSortState } from './catalogTableSort.ts';
 import { buildSearchCardDetailPath } from './searchCardLinks.ts';
+import { cardDetailLinkStateFromSearch } from './searchNavigation.ts';
 import { resolveCardBanForFormat } from './formatBanContext.ts';
 import { formatCatalogResultCount } from './formatCardCount.ts';
 import { useCardCatalog } from './useCardCatalog.ts';
@@ -85,7 +86,7 @@ function CardTile({
     <li>
       <Link
         to={detailPath}
-        state={{ fromSearch: true }}
+        state={cardDetailLinkStateFromSearch()}
         onClick={onBeforeNavigate}
         aria-label={catalogGridTileAriaLabel(card, imageId)}
         className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
