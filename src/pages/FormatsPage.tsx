@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import {
@@ -6,6 +7,7 @@ import {
   listFormatsNewestFirst,
   searchWithFormatPath,
   type FormatDefinition,
+  type FormatId,
 } from '../format/formatCatalog.ts';
 import { writeFormatPreference } from '../format/formatPreference.ts';
 import {
@@ -53,6 +55,54 @@ function BanlistCountCell({ total, delta }: { total: number; delta: number }) {
     <span className="whitespace-nowrap tabular-nums text-text">
       {total} <span className={banlistDeltaToneClass(delta)}>({formatSignedDelta(delta)})</span>
     </span>
+  );
+}
+
+const formatsDataRowClassName = 'formats-data-row group/row cursor-pointer hover:bg-surface-2/60';
+
+const formatsRowCellContentClassName = 'relative z-[1] pointer-events-none';
+
+function FormatRowCell({
+  formatId,
+  className,
+  children,
+  primary = false,
+}: {
+  formatId: FormatId;
+  className?: string;
+  children: ReactNode;
+  primary?: boolean;
+}) {
+  const rememberFormat = () => writeFormatPreference(formatId);
+
+  if (primary) {
+    return (
+      <td className={`relative ${className ?? ''}`}>
+        <Link
+          to={formatDetailPath(formatId)}
+          data-formats-row-link=""
+          onClick={rememberFormat}
+          className="font-semibold text-heading underline-offset-2 group-hover/row:underline focus-visible:outline-none"
+        >
+          <span aria-hidden="true" className="absolute inset-0 z-0" />
+          <span className="relative z-[1]">{children}</span>
+        </Link>
+      </td>
+    );
+  }
+
+  return (
+    <td className={`relative ${className ?? ''}`}>
+      <Link
+        to={formatDetailPath(formatId)}
+        data-formats-row-hit=""
+        tabIndex={-1}
+        aria-hidden="true"
+        onClick={rememberFormat}
+        className="absolute inset-0 z-0"
+      />
+      <span className={formatsRowCellContentClassName}>{children}</span>
+    </td>
   );
 }
 
@@ -104,43 +154,52 @@ export function FormatsPage() {
                   : '');
 
               return (
-                <tr key={format.id} className="hover:bg-surface-2/60">
-                  <td className="px-3 py-2">
-                    <Link
-                      to={formatDetailPath(format.id)}
-                      onClick={() => writeFormatPreference(format.id)}
-                      className="font-semibold text-heading underline-offset-2 hover:underline"
-                    >
-                      {format.name}
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2 pr-1 tabular-nums text-text whitespace-nowrap">
+                <tr key={format.id} className={formatsDataRowClassName}>
+                  <FormatRowCell formatId={format.id} primary className="px-3 py-2">
+                    {format.name}
+                  </FormatRowCell>
+                  <FormatRowCell
+                    formatId={format.id}
+                    className="px-3 py-2 pr-1 tabular-nums text-text whitespace-nowrap"
+                  >
                     {listDate || '—'}
-                  </td>
-                  <td className="py-2 pr-3 pl-1 tabular-nums text-text-2 whitespace-nowrap">
+                  </FormatRowCell>
+                  <FormatRowCell
+                    formatId={format.id}
+                    className="py-2 pr-3 pl-1 tabular-nums text-text-2 whitespace-nowrap"
+                  >
                     {poolThrough || '—'}
-                  </td>
-                  <td className="hidden px-3 py-2 text-xs lg:table-cell">
+                  </FormatRowCell>
+                  <FormatRowCell
+                    formatId={format.id}
+                    className="hidden px-3 py-2 text-xs lg:table-cell"
+                  >
                     {stats ? (
                       <BanlistCountCell total={stats.forbidden} delta={stats.deltaForbidden} />
                     ) : (
                       '—'
                     )}
-                  </td>
-                  <td className="hidden px-3 py-2 text-xs lg:table-cell">
+                  </FormatRowCell>
+                  <FormatRowCell
+                    formatId={format.id}
+                    className="hidden px-3 py-2 text-xs lg:table-cell"
+                  >
                     {stats ? (
                       <BanlistCountCell total={stats.limited} delta={stats.deltaLimited} />
                     ) : (
                       '—'
                     )}
-                  </td>
-                  <td className="hidden px-3 py-2 text-xs lg:table-cell">
+                  </FormatRowCell>
+                  <FormatRowCell
+                    formatId={format.id}
+                    className="hidden px-3 py-2 text-xs lg:table-cell"
+                  >
                     {stats ? (
                       <BanlistCountCell total={stats.semiLimited} delta={stats.deltaSemiLimited} />
                     ) : (
                       '—'
                     )}
-                  </td>
+                  </FormatRowCell>
                 </tr>
               );
             })}
