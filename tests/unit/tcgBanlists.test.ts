@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { computeBanlistDiff } from '../../src/format/banlistDiff.ts';
 import { buildTcgBanlistDetailPageModel } from '../../src/format/formatBanlistPageModel.ts';
 import {
+  banlistDeltaToneClass,
   getPreviousTcgBanlistEffectiveDate,
   getTcgBanlistManifest,
   isTcgBanlistInForce,
@@ -14,6 +15,12 @@ import {
 } from '../../src/format/tcgBanlists.ts';
 
 describe('TCG banlist manifest', () => {
+  it('colors signed deltas for the formats table', () => {
+    expect(banlistDeltaToneClass(3)).toContain('emerald');
+    expect(banlistDeltaToneClass(-2)).toContain('red');
+    expect(banlistDeltaToneClass(0)).toContain('text-text-3');
+  });
+
   it('lists every Advanced TCG list from 2002-05-07 newest first', () => {
     const manifest = getTcgBanlistManifest();
     expect(manifest.lists.length).toBeGreaterThanOrEqual(80);
