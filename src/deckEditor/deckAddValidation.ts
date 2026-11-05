@@ -1,4 +1,5 @@
 import type { YugiohCard } from '../shared/schema/card.ts';
+import type { SetIndex } from '../shared/schema/setIndex.ts';
 import {
   canAddCardToGenesysDeck,
   genesysRefusalReasonForCard,
@@ -29,6 +30,7 @@ export function validateDeckAdd(
   main: readonly number[],
   extra: readonly number[],
   side: readonly number[],
+  setIndex?: SetIndex | null,
 ): DeckAddValidationResult {
   if (isGenesysFormat(formatId)) {
     const refusal = genesysRefusalReasonForCard(card);
@@ -40,7 +42,7 @@ export function validateDeckAdd(
     }
   }
 
-  if (!isCardInFormatPool(card, formatId)) {
+  if (!isCardInFormatPool(card, formatId, setIndex)) {
     return { ok: false, reason: 'outside-pool' };
   }
 
