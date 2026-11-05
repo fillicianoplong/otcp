@@ -27,7 +27,9 @@ function filterPanelSectionTitles(container: HTMLElement): string[] {
   expect(stack).toBeTruthy();
   const sections = stack!.querySelectorAll(':scope > section');
   return Array.from(sections).map((section) => {
-    const heading = within(section as HTMLElement).getByRole('button', { expanded: true });
+    const panel = within(section as HTMLElement);
+    if (panel.queryByLabelText('Format')) return 'Format';
+    const heading = panel.getByRole('button', { expanded: true });
     return heading.textContent!.replace(/\s*[▸▾]\s*$/u, '').trim();
   });
 }

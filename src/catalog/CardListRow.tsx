@@ -3,6 +3,8 @@ import { Link } from 'react-router';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { BanThumbMarker } from './BanThumbMarker.tsx';
 import { buildSearchCardDetailPath } from './searchCardLinks.ts';
+import type { CardDetailLinkState } from './searchNavigation.ts';
+import { cardDetailLinkStateFromSearch } from './searchNavigation.ts';
 import { CatalogArtImage } from './CatalogArtImage.tsx';
 import { catalogGridTileAriaLabel } from './catalogArtTileLabel.ts';
 import {
@@ -93,6 +95,7 @@ export function CardListRow({
   formatParam,
   onBeforeNavigate,
   detailPath: detailPathOverride,
+  linkState,
 }: {
   card: YugiohCard;
   imageId?: number;
@@ -100,6 +103,7 @@ export function CardListRow({
   formatParam: string | null | undefined;
   onBeforeNavigate?: () => void;
   detailPath?: string;
+  linkState?: CardDetailLinkState;
 }) {
   const typeLine = buildListRowTypeLine(card);
   const levelLine = buildListRowLevelLine(card);
@@ -114,7 +118,7 @@ export function CardListRow({
     <li>
       <Link
         to={detailPath}
-        state={{ fromSearch: true }}
+        state={linkState ?? cardDetailLinkStateFromSearch()}
         onClick={onBeforeNavigate}
         aria-label={tileLabel}
         className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3 rounded-md border border-border bg-surface px-2 py-2 transition-colors hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong md:grid-cols-[2.25rem_minmax(10rem,1.6fr)_minmax(9rem,1.2fr)_5.75rem_minmax(8.5rem,1fr)_2.25rem] md:items-center"
