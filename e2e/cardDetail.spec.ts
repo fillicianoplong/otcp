@@ -118,7 +118,7 @@ test.describe('Card detail prices', () => {
 
     await page.getByRole('link', { name: 'Search for cards with Archetype Dark Magician' }).click();
     await expect(page).toHaveURL(/\/otcp\/search\?.*f=/);
-    await expect(page.getByText('5 artworks')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('5 cards')).toBeVisible({ timeout: 15_000 });
     await expect(
       page
         .getByRole('list', { name: 'Active filters' })

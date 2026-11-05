@@ -4,6 +4,7 @@ import {
   catalogSmallImageUrl,
   resolveSelectedArtId,
 } from '../catalog/cardArt.ts';
+import { ygoprodeckLargeImageUrl, ygoprodeckSmallImageUrl } from '../shared/cardImageUrls.ts';
 
 /** Typical YGOPRODeck / R2 card JPEG dimensions (large WebP keeps this aspect). */
 export const YGO_CARD_ART_WIDTH = 421;
@@ -27,11 +28,21 @@ export function cardDetailImageFallback(
   selectedArtId?: number,
 ): string | undefined {
   const artId = resolveSelectedArtId(card, selectedArtId);
-  const small = catalogSmallImageUrl(card, artId);
-  if (currentSrc !== small && small.length > 0) {
-    return small;
+  const hostedSmall = catalogSmallImageUrl(card, artId);
+  const hostedLarge = catalogLargeImageUrl(card, artId);
+  const ygoproSmall = ygoprodeckSmallImageUrl(artId);
+  const ygoproLarge = ygoprodeckLargeImageUrl(artId);
+
+  if (currentSrc === hostedLarge && hostedSmall !== hostedLarge) {
+    return hostedSmall;
   }
-  if (currentSrc !== card.images.small && card.images.small.length > 0) {
+  if (currentSrc === hostedSmall && currentSrc !== ygoproSmall) {
+    return ygoproSmall;
+  }
+  if (currentSrc === ygoproSmall && currentSrc !== ygoproLarge) {
+    return ygoproLarge;
+  }
+  if (artId === card.id && currentSrc !== card.images.small && card.images.small.length > 0) {
     return card.images.small;
   }
   return undefined;
