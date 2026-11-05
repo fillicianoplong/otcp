@@ -3,13 +3,13 @@ import { Link } from 'react-router';
 import {
   formatBanlistEffectiveDate,
   formatDetailPath,
-  isCoreFormatId,
   listFormatsNewestFirst,
   searchWithFormatPath,
   type FormatDefinition,
 } from '../format/formatCatalog.ts';
 import { writeFormatPreference } from '../format/formatPreference.ts';
 import {
+  banlistDeltaToneClass,
   formatSignedDelta,
   getPreviousTcgBanlistEffectiveDate,
   getTcgBanlistManifestEntry,
@@ -17,7 +17,16 @@ import {
   tcgBanlistTotalsDelta,
 } from '../format/tcgBanlists.ts';
 
-function banlistCountsForFormat(format: FormatDefinition): string | null {
+type BanlistRowStats = {
+  readonly forbidden: number;
+  readonly limited: number;
+  readonly semiLimited: number;
+  readonly deltaForbidden: number;
+  readonly deltaLimited: number;
+  readonly deltaSemiLimited: number;
+};
+
+function banlistStatsForFormat(format: FormatDefinition): BanlistRowStats | null {
   const effectiveDate = formatBanlistEffectiveDate(format);
   if (!effectiveDate) return null;
   const entry = getTcgBanlistManifestEntry(effectiveDate);
@@ -29,7 +38,22 @@ function banlistCountsForFormat(format: FormatDefinition): string | null {
     totals,
     previousEntry ? tcgBanlistStatusTotals(previousEntry) : undefined,
   );
-  return `F ${totals.forbidden} (${formatSignedDelta(delta.forbidden)})  L ${totals.limited} (${formatSignedDelta(delta.limited)})  S ${totals['semi-limited']} (${formatSignedDelta(delta['semi-limited'])})`;
+  return {
+    forbidden: totals.forbidden,
+    limited: totals.limited,
+    semiLimited: totals['semi-limited'],
+    deltaForbidden: delta.forbidden,
+    deltaLimited: delta.limited,
+    deltaSemiLimited: delta['semi-limited'],
+  };
+}
+
+function BanlistCountCell({ total, delta }: { total: number; delta: number }) {
+  return (
+    <span className="whitespace-nowrap tabular-nums text-text">
+      {total} <span className={banlistDeltaToneClass(delta)}>({formatSignedDelta(delta)})</span>
+    </span>
+  );
 }
 
 export function FormatsPage() {
@@ -55,18 +79,24 @@ export function FormatsPage() {
               <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
                 List date
               </th>
-              <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
-                Banlist (F / L / S)
-              </th>
-              <th scope="col" className="px-3 py-2 font-medium">
+              <th scope="col" className="py-2 pr-3 pl-1 font-medium whitespace-nowrap">
                 Pool through
+              </th>
+              <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
+                Forbidden
+              </th>
+              <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
+                Limited
+              </th>
+              <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
+                Semi-Limited
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border bg-surface">
             {formats.map((format) => {
               const listDate = formatBanlistEffectiveDate(format) ?? format.sortDate ?? '';
-              const counts = banlistCountsForFormat(format);
+              const stats = banlistStatsForFormat(format);
               const poolThrough =
                 format.poolCutoffDate ??
                 (format.poolRule === 'full-tcg' || format.poolRule === 'speed-duel-ygoprodeck'
@@ -83,15 +113,34 @@ export function FormatsPage() {
                     >
                       {format.name}
                     </Link>
-                    {!isCoreFormatId(format.id) ? (
-                      <span className="ml-2 text-xs text-text-3">Meta</span>
-                    ) : null}
                   </td>
-                  <td className="px-3 py-2 tabular-nums text-text">{listDate || '—'}</td>
-                  <td className="hidden px-3 py-2 text-xs text-text-2 lg:table-cell">
-                    {counts ?? '—'}
+                  <td className="px-3 py-2 pr-1 tabular-nums text-text whitespace-nowrap">
+                    {listDate || '—'}
                   </td>
-                  <td className="px-3 py-2 tabular-nums text-text-2">{poolThrough || '—'}</td>
+                  <td className="py-2 pr-3 pl-1 tabular-nums text-text-2 whitespace-nowrap">
+                    {poolThrough || '—'}
+                  </td>
+                  <td className="hidden px-3 py-2 text-xs lg:table-cell">
+                    {stats ? (
+                      <BanlistCountCell total={stats.forbidden} delta={stats.deltaForbidden} />
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td className="hidden px-3 py-2 text-xs lg:table-cell">
+                    {stats ? (
+                      <BanlistCountCell total={stats.limited} delta={stats.deltaLimited} />
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td className="hidden px-3 py-2 text-xs lg:table-cell">
+                    {stats ? (
+                      <BanlistCountCell total={stats.semiLimited} delta={stats.deltaSemiLimited} />
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                 </tr>
               );
             })}
