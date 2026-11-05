@@ -3,6 +3,11 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'reac
 
 import { YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
 import { resolveArtIds, resolveSelectedArtId } from '../catalog/cardArt.ts';
+import {
+  findCatalogCardByRouteId,
+  resolveCardDetailRouteUnknownId,
+  type ResolvedCardDetailRoute,
+} from '../catalog/cardDetailRoute.ts';
 import { queueYgoproArtIdLookup } from '../catalog/ygoproArtIds.ts';
 import { CatalogArtImage, CatalogArtThumbnail } from '../catalog/CatalogArtImage.tsx';
 import {
@@ -398,9 +403,10 @@ function BackToSearchControl({
 export function CardDetailPage() {
   const { id: idParam } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { state } = useCardCatalog();
 
-  const cardId = Number.parseInt(idParam ?? '', 10);
+  const routeId = Number.parseInt(idParam ?? '', 10);
   const searchQuery = searchParams.get('q');
   const resolvedFormat = useMemo(
     () =>
@@ -411,6 +417,20 @@ export function CardDetailPage() {
     [searchParams],
   );
   const formatParam = resolvedFormat.formatId;
+
+  useEffect(() => {
+    const raw = searchParams.get('art');
+    if (raw == null || raw.length === 0) return;
+    const artId = Number.parseInt(raw, 10);
+    if (!Number.isFinite(artId)) return;
+    const params = new URLSearchParams(searchParams);
+    params.delete('art');
+    const search = params.toString();
+    navigate(
+      { pathname: `/search/card/${artId}`, search: search ? `?${search}` : '' },
+      { replace: true },
+    );
+  }, [navigate, searchParams]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -432,7 +452,7 @@ export function CardDetailPage() {
     );
   }
 
-  if (!Number.isFinite(cardId)) {
+  if (!Number.isFinite(routeId)) {
     return (
       <DetailMessage title="Invalid card link">
         This URL does not include a valid card passcode.
@@ -442,9 +462,9 @@ export function CardDetailPage() {
 
   return (
     <CardDetailReadyView
-      key={cardId}
+      key={routeId}
       state={state}
-      cardId={cardId}
+      routeId={routeId}
       searchQuery={searchQuery}
       formatParam={formatParam}
     />
@@ -453,24 +473,50 @@ export function CardDetailPage() {
 
 function CardDetailReadyView({
   state,
-  cardId,
+  routeId,
   searchQuery,
   formatParam,
 }: {
   state: Extract<CatalogState, { status: 'ready' }>;
-  cardId: number;
+  routeId: number;
   searchQuery: string | null;
   formatParam: string | null;
 }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const searchCard = getCatalogDerived(state.cards).cardById.get(cardId);
+  const derived = useMemo(() => getCatalogDerived(state.cards), [state.cards]);
+  const syncResolved = useMemo(
+    () => findCatalogCardByRouteId(derived, routeId),
+    [derived, routeId],
+  );
+  const [asyncResolved, setAsyncResolved] = useState<ResolvedCardDetailRoute | null>(null);
+  const [asyncFinished, setAsyncFinished] = useState(false);
+
+  const resolved = syncResolved ?? asyncResolved;
+
+  useEffect(() => {
+    if (syncResolved) return;
+    let cancelled = false;
+    void resolveCardDetailRouteUnknownId(derived, routeId).then((next) => {
+      if (!cancelled) {
+        setAsyncResolved(next ?? null);
+        setAsyncFinished(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [derived, routeId, syncResolved]);
+
+  const searchCard = resolved?.card ?? null;
+  const selectedArtId = resolved?.selectedArtId ?? routeId;
   const [detailCard, setDetailCard] = useState<YugiohCard | null>(null);
   const [detailLoading, setDetailLoading] = useState(Boolean(state.detailSource));
 
   useEffect(() => {
     if (searchCard) queueYgoproArtIdLookup(searchCard.id);
-  }, [searchCard]);
+    queueYgoproArtIdLookup(routeId);
+  }, [routeId, searchCard]);
 
   useEffect(() => {
     if (!searchCard || !state.detailSource) return;
@@ -490,6 +536,14 @@ function CardDetailReadyView({
     };
   }, [searchCard, state.detailSource]);
 
+  if (!resolved && !syncResolved && !asyncFinished) {
+    return (
+      <DetailMessage title="Loading card…">
+        Looking up this artwork in the published catalog.
+      </DetailMessage>
+    );
+  }
+
   if (!searchCard) {
     return (
       <div className="flex flex-col gap-4">
@@ -503,25 +557,14 @@ function CardDetailReadyView({
 
   const card = state.detailSource ? (detailCard ?? searchCard) : searchCard;
 
-  const requestedArtRaw = searchParams.get('art');
-  const requestedArtId =
-    requestedArtRaw != null && requestedArtRaw.length > 0
-      ? Number.parseInt(requestedArtRaw, 10)
-      : undefined;
-  const selectedArtId = resolveSelectedArtId(card, requestedArtId);
-
   const selectArtId = (imageId: number) => {
     const params = new URLSearchParams(searchParams);
-    if (imageId === card.id || imageId === resolveArtIds(card)[0]) {
-      params.delete('art');
-    } else {
-      params.set('art', String(imageId));
-    }
+    params.delete('art');
     const search = params.toString();
-    navigate(
-      { pathname: `/search/card/${card.id}`, search: search ? `?${search}` : '' },
-      { replace: true },
-    );
+    navigate({
+      pathname: `/search/card/${imageId}`,
+      search: search ? `?${search}` : '',
+    });
   };
 
   if (state.detailSource && detailLoading && !detailCard) {

@@ -15,6 +15,7 @@ const sampleCards = sampleDataset.cards as YugiohCard[];
 
 const SEARCH_FILTER_SECTION_LABELS = [
   'Format',
+  'Artworks',
   ...SEARCH_FACET_FIELD_ORDER.map((fieldId) => {
     const def = facetDefinitionById(fieldId);
     if (!def) throw new Error(`missing facet ${fieldId}`);
@@ -29,6 +30,7 @@ function filterPanelSectionTitles(container: HTMLElement): string[] {
   return Array.from(sections).map((section) => {
     const panel = within(section as HTMLElement);
     if (panel.queryByLabelText('Format')) return 'Format';
+    if (panel.queryByText('Artworks')) return 'Artworks';
     const heading = panel.getByRole('button', { expanded: true });
     return heading.textContent!.replace(/\s*[▸▾]\s*$/u, '').trim();
   });
@@ -52,6 +54,8 @@ describe('FacetFilterPanel filter group order', () => {
         onChange={() => {}}
         activeFormatId="advanced"
         onFormatChange={() => {}}
+        allArtworks
+        onAllArtworksChange={() => {}}
       />,
     );
 
@@ -60,6 +64,7 @@ describe('FacetFilterPanel filter group order', () => {
     const expectedVisible = SEARCH_FILTER_SECTION_LABELS.filter((label) => visible.has(label));
     expect(titles).toEqual(expectedVisible);
     expect(titles.indexOf('Legality')).toBeGreaterThan(titles.indexOf('Format'));
+    expect(titles.indexOf('Artworks')).toBeGreaterThan(titles.indexOf('Format'));
   });
 
   it('hides Legality when no format is selected', () => {
@@ -75,6 +80,8 @@ describe('FacetFilterPanel filter group order', () => {
         onChange={() => {}}
         activeFormatId={null}
         onFormatChange={() => {}}
+        allArtworks
+        onAllArtworksChange={() => {}}
       />,
     );
 
