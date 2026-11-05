@@ -24,7 +24,7 @@ test.describe('variant artworks', () => {
     await expect(page.getByText('5 artworks')).toBeVisible();
     await ensureGridTileCount(page, 5);
     await page.getByRole('link', { name: 'Dark Magician, artwork 2 of 5', exact: true }).click();
-    await expect(page).toHaveURL(/art=46986421/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/search\/card\/46986421(?:\?|$)/, { timeout: 15_000 });
     await expect(page.getByRole('heading', { name: 'Dark Magician', level: 1 })).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Show artwork 46986421 for Dark Magician', exact: true }),

@@ -5,6 +5,8 @@ import { buildFilterEngine, emptyFilterState, type FilterEngine } from './filter
 export type CatalogDerived = {
   readonly cards: readonly YugiohCard[];
   readonly cardById: ReadonlyMap<number, YugiohCard>;
+  /** Maps alternate artwork passcodes to the catalog card id that owns them. */
+  readonly cardIdByArtId: ReadonlyMap<number, number>;
   readonly filterEngine: FilterEngine;
   readonly searchIndex: SearchIndex;
   /** Name order for the full catalog (matches FilterEngine row order). */
@@ -20,14 +22,22 @@ export function getCatalogDerived(cards: readonly YugiohCard[]): CatalogDerived 
   const filterEngine = buildFilterEngine(cards);
   const searchIndex = buildSearchIndex(cards);
   const cardById = new Map<number, YugiohCard>();
+  const cardIdByArtId = new Map<number, number>();
   for (const card of cards) {
     cardById.set(card.id, card);
+    cardIdByArtId.set(card.id, card.id);
+    for (const artId of card.artIds ?? []) {
+      if (Number.isFinite(artId)) {
+        cardIdByArtId.set(artId, card.id);
+      }
+    }
   }
   const allIdsByName = filterEngine.apply(emptyFilterState()).ids;
 
   const derived: CatalogDerived = {
     cards,
     cardById,
+    cardIdByArtId,
     filterEngine,
     searchIndex,
     allIdsByName,

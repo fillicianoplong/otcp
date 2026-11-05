@@ -5,6 +5,7 @@ export function buildSearchCardDetailPath(
   cardId: number,
   options?: { searchQuery?: string; formatParam?: string | null; artId?: number },
 ): string {
+  const pathId = options?.artId != null && Number.isFinite(options.artId) ? options.artId : cardId;
   const params = new URLSearchParams();
   const query = options?.searchQuery?.trim();
   if (query && query.length > 0) {
@@ -14,11 +15,8 @@ export function buildSearchCardDetailPath(
   if (formatId) {
     params.set(FORMAT_QUERY_KEY, formatId);
   }
-  if (options?.artId != null && options.artId !== cardId) {
-    params.set('art', String(options.artId));
-  }
   const search = params.toString();
-  return `/search/card/${cardId}${search ? `?${search}` : ''}`;
+  return `/search/card/${pathId}${search ? `?${search}` : ''}`;
 }
 
 export function buildSearchPathWithFormat(
