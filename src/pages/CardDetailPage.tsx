@@ -83,7 +83,7 @@ function CardDetailArt({
         aria-label={`View larger artwork for ${card.name}`}
       >
         <div
-          className={`relative mx-auto ${YGO_CARD_ART_ASPECT_CLASS} w-full max-w-[min(100%,360px)] overflow-hidden rounded-md border border-border bg-surface-2 sm:max-w-[380px] md:max-w-none`}
+          className={`relative mx-auto ${YGO_CARD_ART_ASPECT_CLASS} w-full max-w-[min(100%,420px)] overflow-hidden rounded-md border border-border bg-surface-2 md:mx-0 md:h-[min(calc(100vh-7rem),820px)] md:w-auto md:max-w-none md:[aspect-ratio:59/86]`}
         >
           <CatalogArtImage
             card={card}
@@ -531,7 +531,7 @@ function CardDetailReadyView({
     <div className="flex flex-col gap-6">
       <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
-        <div className="w-full shrink-0 md:sticky md:top-4 md:w-[min(100%,380px)] md:max-w-[380px] md:self-start">
+        <div className="w-full shrink-0 md:sticky md:top-4 md:w-[min(100%,calc((100vh-7rem)*59/86))] md:max-w-[520px] md:self-start">
           <CardDetailArt
             key={`${card.id}-${selectedArtId}`}
             card={card}
