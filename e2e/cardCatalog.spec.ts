@@ -1,15 +1,19 @@
 import { expect, test } from '@playwright/test';
 
+import { scrollUntilVisible } from './helpers/searchAllArt.ts';
+
 test.describe('CardCatalog on Search', () => {
   test('home shows cards from the sample dataset', async ({ page }) => {
     await page.goto('/otcp/');
     await expect(page).toHaveURL(/\/otcp\/search$/);
 
-    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
-      timeout: 15_000,
-    });
-    await expect(page.getByRole('link', { name: 'Blue-Eyes White Dragon' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Monster Reborn' })).toBeVisible();
+    const darkMagician = page.getByRole('link', { name: 'Dark Magician', exact: true });
+    const blueEyes = page.getByRole('link', { name: 'Blue-Eyes White Dragon' });
+    const monsterReborn = page.getByRole('link', { name: 'Monster Reborn' });
+    await scrollUntilVisible(page, monsterReborn);
+    await expect(darkMagician).toBeVisible();
+    await expect(blueEyes).toBeVisible();
+    await expect(monsterReborn).toBeVisible();
   });
 
   test('shows an error state with retry when the dataset fails', async ({ page }) => {

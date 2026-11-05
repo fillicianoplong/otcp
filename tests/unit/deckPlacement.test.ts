@@ -5,6 +5,7 @@ import {
   deckCopyCount,
   groupZoneCardIds,
   isExtraDeckMonster,
+  moveCardBetweenZones,
   removeOneCardFromZone,
   removeOneLibraryCopy,
   type DeckCardLists,
@@ -191,5 +192,27 @@ describe('deck copy edits', () => {
     const fromLibrary = removeOneLibraryCopy(stardust, 'auto', lists);
     expect(fromLibrary?.lists.extra).toEqual([]);
     expect(fromLibrary?.lists.main).toEqual(lists.main);
+  });
+
+  it('moves one copy when the destination allows it and leaves the deck alone when it does not', () => {
+    const lists: DeckCardLists = {
+      main: [blueEyes.id, blueEyes.id],
+      extra: [],
+      side: [],
+      skillId: null,
+    };
+    const moved = moveCardBetweenZones(blueEyes, 'main', 'side', 'advanced', lists);
+    expect(moved.ok).toBe(true);
+    if (!moved.ok) return;
+    expect(moved.lists.main).toEqual([blueEyes.id]);
+    expect(moved.lists.side).toEqual([blueEyes.id]);
+
+    const refused = moveCardBetweenZones(stardust, 'extra', 'main', 'advanced', {
+      ...emptyLists(),
+      extra: [stardust.id],
+    });
+    expect(refused.ok).toBe(false);
+    if (refused.ok) return;
+    expect(refused.message).toMatch(/Extra Deck monster/);
   });
 });

@@ -29,6 +29,7 @@ import {
 import type { FormatId } from '../format/formatCatalog.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
+import { resultToolbarButtonClass } from '../catalog/resultToolbar.ts';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
 import { queryCatalog } from '../catalog/catalogQueryCache.ts';
 import {
@@ -362,58 +363,45 @@ export function SearchPage() {
         ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <div className="flex flex-wrap items-center gap-3 lg:hidden">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={openPhoneFilters}
-              className="inline-flex min-h-[var(--touch-min)] items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+              className={`${resultToolbarButtonClass} lg:hidden`}
             >
               Filters
               {activeFilterCount > 0 ? (
-                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-surface-2 px-1.5 text-xs font-semibold tabular-nums">
+                <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-surface-2 px-1.5 text-xs font-semibold tabular-nums">
                   {activeFilterCount}
                 </span>
               ) : null}
             </button>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-text-2" aria-live="polite">
-                {formatCatalogResultCount(visibleTileCount)}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                {effectiveViewMode === 'table' ? (
-                  <CatalogTableColumnsMenu
-                    visibility={tableColumnVisibility}
-                    onChange={handleTableColumnVisibilityChange}
-                  />
-                ) : null}
-                <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
-              </div>
-            </div>
-            {chips.length > 0 || activeFormatId ? (
-              <div className="flex flex-wrap items-center gap-2">
-                {activeFormatId ? (
-                  <button
-                    type="button"
-                    onClick={clearActiveFormat}
-                    className="inline-flex min-h-8 max-w-full items-center gap-1 rounded-full border border-border bg-surface-2 px-3 text-sm text-text hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-                  >
-                    <span className="truncate">{formatDisplayName(activeFormatId)}</span>
-                    <span aria-hidden="true" className="text-text-2">
-                      ×
-                    </span>
-                    <span className="sr-only">
-                      Remove {formatDisplayName(activeFormatId)} format
-                    </span>
-                  </button>
-                ) : null}
-                {chips.length > 0 ? (
-                  <FilterChips chips={chips} onChange={commitFilterState} />
-                ) : null}
-              </div>
+            {activeFormatId ? (
+              <button
+                type="button"
+                onClick={clearActiveFormat}
+                className="inline-flex h-8 max-w-full items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 text-sm text-text hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+              >
+                <span className="truncate">{formatDisplayName(activeFormatId)}</span>
+                <span aria-hidden="true" className="text-text-2">
+                  ×
+                </span>
+                <span className="sr-only">Remove {formatDisplayName(activeFormatId)} format</span>
+              </button>
             ) : null}
+            {chips.length > 0 ? <FilterChips chips={chips} onChange={commitFilterState} /> : null}
+            <p className="text-sm text-text-2" aria-live="polite">
+              {formatCatalogResultCount(visibleTileCount)}
+            </p>
+            <div className="ml-auto flex items-center gap-2">
+              {effectiveViewMode === 'table' ? (
+                <CatalogTableColumnsMenu
+                  visibility={tableColumnVisibility}
+                  onChange={handleTableColumnVisibilityChange}
+                />
+              ) : null}
+              <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
+            </div>
           </div>
 
           <CardCatalogView

@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
@@ -12,11 +12,20 @@ import {
   type FilterStateUpdater,
 } from '../catalog/filterEngine.ts';
 import { countActiveFacetSelections, filterStateToChips } from '../catalog/filterUrlState.ts';
-import type { DeckAddTarget } from '../deckEditor/deckPlacement.ts';
+import { DeckArtTile } from '../deckEditor/DeckArtTile.tsx';
+import { DECK_TILE_GAP_PX } from '../deckEditor/deckTileSize.ts';
+import { LIBRARY_GRID_COLUMNS, libraryGridColumnCount } from './libraryGrid.ts';
 import { writeDraggedCardId } from '../deckEditor/deckPlacement.ts';
 import { formatDisplayName, type FormatId } from '../format/formatCatalog.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { resultToolbarButtonClass } from '../catalog/resultToolbar.ts';
+import { CardFinderViewToggle } from './CardFinderViewToggle.tsx';
+import {
+  readCardFinderViewMode,
+  writeCardFinderViewMode,
+  type CardFinderViewMode,
+} from './cardFinderView.ts';
 import { EditorCardRow } from './EditorCardRow.tsx';
 
 const RESULT_PAGE_SIZE = 40;
@@ -27,18 +36,11 @@ const fieldClassName =
 const quietButtonClassName =
   'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
-const ADD_TARGET_OPTIONS: readonly { value: DeckAddTarget; label: string }[] = [
-  { value: 'auto', label: 'Auto' },
-  { value: 'main', label: 'Main' },
-  { value: 'extra', label: 'Extra' },
-  { value: 'side', label: 'Side' },
-];
-
 /** A deck stays on a format. The chip returns the choice to this baseline. */
 const CLEARED_DECK_FORMAT_ID: FormatId = 'advanced';
 
 const formatChipClassName =
-  'inline-flex min-h-8 max-w-full items-center gap-1 rounded-full border border-border bg-surface-2 px-3 text-sm text-text hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
+  'inline-flex h-8 max-w-full items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 text-sm text-text hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
 export function CardFinder({
   formatId,
@@ -47,8 +49,6 @@ export function CardFinder({
   onQueryChange,
   filterState,
   onFilterStateChange,
-  addTarget,
-  onAddTargetChange,
   quantityForCard,
   onAdd,
   onRemove,
@@ -58,6 +58,8 @@ export function CardFinder({
   onFiltersVisibilityChange,
   onFormatChange,
   autoFocusSearch = false,
+  dropActive = false,
+  preferredColumns = LIBRARY_GRID_COLUMNS,
 }: {
   formatId: FormatId;
   setIndex?: SetIndex | null;
@@ -65,8 +67,6 @@ export function CardFinder({
   onQueryChange: (query: string) => void;
   filterState: FilterState;
   onFilterStateChange: (next: FilterState) => void;
-  addTarget: DeckAddTarget;
-  onAddTargetChange: (target: DeckAddTarget) => void;
   quantityForCard: (cardId: number) => number;
   onAdd: (card: YugiohCard) => void;
   onRemove: (card: YugiohCard) => void;
@@ -76,12 +76,17 @@ export function CardFinder({
   onFiltersVisibilityChange?: (open: boolean) => void;
   onFormatChange: (formatId: FormatId) => void;
   autoFocusSearch?: boolean;
+  dropActive?: boolean;
+  preferredColumns?: number;
 }) {
   const { state: catalogState } = useCardCatalog();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
   const [phoneDraftFormatId, setPhoneDraftFormatId] = useState<FormatId>(formatId);
   const [visibleLimit, setVisibleLimit] = useState(RESULT_PAGE_SIZE);
+  const [viewMode, setViewMode] = useState<CardFinderViewMode>(() => readCardFinderViewMode());
+  const [gridColumns, setGridColumns] = useState(preferredColumns);
+  const resultsRef = useRef<HTMLUListElement>(null);
 
   const catalogDerived = useMemo(() => {
     if (catalogState.status !== 'ready') return null;
@@ -126,6 +131,21 @@ export function CardFinder({
   }, [catalogDerived, queryResult, trimmedQuery]);
 
   const visibleCards = orderedCards.slice(0, visibleLimit);
+
+  useLayoutEffect(() => {
+    const el = resultsRef.current;
+    if (!el || viewMode !== 'grid') return undefined;
+    const measure = () => {
+      const next = libraryGridColumnCount(el.clientWidth, preferredColumns);
+      setGridColumns((current) => (current === next ? current : next));
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [preferredColumns, viewMode, visibleCards.length]);
+
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
   const activeFilters = countActiveFacetSelections(filterState);
 
@@ -145,6 +165,13 @@ export function CardFinder({
   const clearFormat = () => {
     if (formatId !== CLEARED_DECK_FORMAT_ID) onFormatChange(CLEARED_DECK_FORMAT_ID);
   };
+
+  const chooseView = (mode: CardFinderViewMode) => {
+    setViewMode(mode);
+    writeCardFinderViewMode(mode);
+  };
+
+  const viewToggle = <CardFinderViewToggle value={viewMode} onChange={chooseView} />;
 
   let body: ReactNode;
   if (catalogState.status === 'loading') {
@@ -166,30 +193,52 @@ export function CardFinder({
   } else {
     body = (
       <div className="flex min-h-0 flex-col gap-2">
-        <p className="text-xs text-text-2">
-          {orderedCards.length > visibleCards.length
-            ? `Showing ${visibleCards.length} of ${orderedCards.length}`
-            : `${orderedCards.length} ${orderedCards.length === 1 ? 'card' : 'cards'}`}
-        </p>
-        <ul className="flex flex-col gap-2" data-testid="card-finder-results">
-          {visibleCards.map((card) => (
-            <EditorCardRow
-              key={card.id}
-              card={card}
-              formatId={formatId}
-              quantity={quantityForCard(card.id)}
-              addLabel={`Add ${card.name}`}
-              removeLabel={`Remove one ${card.name}`}
-              onAdd={() => onAdd(card)}
-              onRemove={() => onRemove(card)}
-              draggable={dragEnabled}
-              testId={`library-card-${card.id}`}
-              onDragStart={(event) => {
-                writeDraggedCardId(event.dataTransfer, card.id);
-                onCardDragStart?.(card.id);
-              }}
-            />
-          ))}
+        <ul
+          ref={resultsRef}
+          className={viewMode === 'grid' ? 'grid w-full min-w-0' : 'flex flex-col gap-2'}
+          style={
+            viewMode === 'grid'
+              ? {
+                  gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))`,
+                  gap: `${DECK_TILE_GAP_PX}px`,
+                }
+              : undefined
+          }
+          data-testid="card-finder-results"
+          data-view={viewMode}
+          data-columns={viewMode === 'grid' ? gridColumns : undefined}
+        >
+          {visibleCards.map((card) =>
+            viewMode === 'grid' ? (
+              <li key={card.id} className="min-w-0">
+                <DeckArtTile
+                  card={card}
+                  formatId={formatId}
+                  payload={{ cardId: card.id, from: 'library' }}
+                  label={`${card.name}. Press Enter to add it.`}
+                  testId={`library-card-${card.id}`}
+                  tileId={`library-${card.id}`}
+                />
+              </li>
+            ) : (
+              <EditorCardRow
+                key={card.id}
+                card={card}
+                formatId={formatId}
+                quantity={quantityForCard(card.id)}
+                addLabel={`Add ${card.name}`}
+                removeLabel={`Remove one ${card.name}`}
+                onAdd={() => onAdd(card)}
+                onRemove={() => onRemove(card)}
+                draggable={dragEnabled}
+                testId={`library-card-${card.id}`}
+                onDragStart={(event) => {
+                  writeDraggedCardId(event.dataTransfer, card.id);
+                  onCardDragStart?.(card.id);
+                }}
+              />
+            ),
+          )}
         </ul>
         {orderedCards.length > visibleCards.length ? (
           <button
@@ -205,7 +254,12 @@ export function CardFinder({
   }
 
   return (
-    <div className="flex min-h-0 flex-col gap-3">
+    <div
+      data-drop="library"
+      className={`flex min-h-0 flex-col gap-3 rounded-md ${
+        dropActive ? 'ring-2 ring-border-strong' : ''
+      }`}
+    >
       <label className="flex flex-col gap-1 text-sm text-text">
         <span>Search cards</span>
         <input
@@ -222,23 +276,12 @@ export function CardFinder({
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className={quietButtonClassName}
+            className={resultToolbarButtonClass}
             aria-expanded={filtersOpen}
             onClick={() => setFiltersVisible(!filtersOpen)}
           >
             {activeFilters > 0 ? `Filters (${activeFilters})` : 'Filters'}
           </button>
-          {activeFilters > 0 ? (
-            <button
-              type="button"
-              className="text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
-              onClick={() => onFilterStateChange(emptyFilterState())}
-            >
-              Clear filters
-            </button>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={clearFormat} className={formatChipClassName}>
             <span className="truncate">{formatDisplayName(formatId)}</span>
             <span aria-hidden="true" className="text-text-2">
@@ -247,40 +290,15 @@ export function CardFinder({
             <span className="sr-only">Remove {formatDisplayName(formatId)} format</span>
           </button>
           <FilterChips chips={chips} onChange={commitFilters} />
+          <div className="ml-auto">{viewToggle}</div>
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="text-sm text-text" id="card-finder-add-target">
-          Add to
-        </span>
-        <div
-          className="inline-flex max-w-full overflow-hidden rounded-md border border-border"
-          role="radiogroup"
-          aria-labelledby="card-finder-add-target"
-        >
-          {ADD_TARGET_OPTIONS.map((option, index) => {
-            const selected = addTarget === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                className={`inline-flex min-h-8 items-center justify-center px-2.5 text-sm focus-visible:z-[1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong ${
-                  index > 0 ? '-ml-px border-l' : ''
-                } ${
-                  selected
-                    ? 'relative z-[1] border-border-strong bg-accent text-on-accent'
-                    : 'border-border bg-surface text-heading hover:bg-surface-2'
-                }`}
-                onClick={() => onAddTargetChange(option.value)}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
+        {orderedCards.length > 0 ? (
+          <p className="text-xs text-text-2">
+            {orderedCards.length > visibleCards.length
+              ? `Showing ${visibleCards.length} of ${orderedCards.length}`
+              : `${orderedCards.length} ${orderedCards.length === 1 ? 'card' : 'cards'}`}
+          </p>
+        ) : null}
       </div>
 
       {filtersOpen && !filtersInSheet && catalogDerived ? (

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { SEARCH_PAGE, searchPath } from './helpers/searchAllArt.ts';
+import { SEARCH_PAGE, scrollUntilVisible, searchPath } from './helpers/searchAllArt.ts';
 import {
   SAMPLE_DARK_MAGICIAN_QUERY_TILE_COUNT_LABEL,
   SAMPLE_SEARCH_TILE_COUNT_LABEL,
@@ -43,17 +43,13 @@ test.describe('Search on Search page', () => {
     await expect(page.getByText(SAMPLE_SEARCH_TILE_COUNT_LABEL)).toBeVisible({ timeout: 15_000 });
     const searchRegion = page.getByRole('region', { name: 'Search' });
 
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await expect(
-      searchRegion.getByRole('link', { name: 'Monster Reborn', exact: true }),
-    ).toBeVisible({
-      timeout: 10_000,
-    });
+    const monsterReborn = searchRegion.getByRole('link', { name: 'Monster Reborn', exact: true });
+    await scrollUntilVisible(page, monsterReborn);
 
     const scrollBefore = await page.evaluate(() => window.scrollY);
     expect(scrollBefore).toBeGreaterThan(0);
 
-    await page.getByRole('link', { name: 'Monster Reborn', exact: true }).click();
+    await monsterReborn.click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\//);
 
     const backControl = page.getByRole('button', { name: '← Back to Search' });
@@ -77,15 +73,11 @@ test.describe('Search on Search page', () => {
     );
     const searchRegion = page.getByRole('region', { name: 'Search' });
 
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await expect(
-      searchRegion.getByRole('link', { name: 'Monster Reborn', exact: true }),
-    ).toBeVisible({
-      timeout: 10_000,
-    });
+    const monsterReborn = searchRegion.getByRole('link', { name: 'Monster Reborn', exact: true });
+    await scrollUntilVisible(page, monsterReborn);
 
     const scrollBefore = await page.evaluate(() => window.scrollY);
-    await page.getByRole('link', { name: 'Monster Reborn', exact: true }).click();
+    await monsterReborn.click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\//);
 
     await page.getByRole('button', { name: '← Back to Search' }).click();

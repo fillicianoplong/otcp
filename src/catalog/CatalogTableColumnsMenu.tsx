@@ -47,7 +47,7 @@ export function CatalogTableColumnsMenu({
         aria-controls={menuId}
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border bg-surface px-3 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+        className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-surface px-2.5 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
       >
         Columns
         <span aria-hidden className="text-text-2">

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { scrollUntilVisible } from './helpers/searchAllArt.ts';
+
 test.describe('document titles', () => {
   test('client navigations set a distinct title per route', async ({ page }) => {
     await page.goto('/otcp/search');
@@ -34,10 +36,9 @@ test.describe('document titles', () => {
 
     await nav.getByRole('link', { name: 'Search', exact: true }).click();
     await expect(page).toHaveTitle('Search - OTCP');
-    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
-      timeout: 15_000,
-    });
-    await page.getByRole('link', { name: 'Dark Magician', exact: true }).click();
+    const darkMagician = page.getByRole('link', { name: 'Dark Magician', exact: true });
+    await scrollUntilVisible(page, darkMagician);
+    await darkMagician.click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
     await expect(page.getByRole('heading', { level: 1, name: 'Dark Magician' })).toBeVisible();
     await expect(page).toHaveTitle('Dark Magician - OTCP');

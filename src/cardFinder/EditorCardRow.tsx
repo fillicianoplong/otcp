@@ -61,7 +61,7 @@ export function EditorCardRow({
         {typeLine ? <p className="truncate text-xs text-text-2">{typeLine}</p> : null}
       </div>
       <div
-        className="flex shrink-0 items-center"
+        className="ml-auto flex shrink-0 items-center"
         role="group"
         aria-label={`Copies of ${card.name}`}
       >
