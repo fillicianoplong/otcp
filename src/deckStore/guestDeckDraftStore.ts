@@ -105,12 +105,33 @@ function readEnvelope(): StorageEnvelope | null {
   return migrated;
 }
 
+const guestDeckDraftListeners = new Set<() => void>();
+
+/** Subscribe to guest-draft creates, updates, removals, and clears. */
+export function subscribeGuestDeckDrafts(listener: () => void): () => void {
+  guestDeckDraftListeners.add(listener);
+  return () => {
+    guestDeckDraftListeners.delete(listener);
+  };
+}
+
+function notifyGuestDeckDraftsChanged(): void {
+  for (const listener of guestDeckDraftListeners) {
+    listener();
+  }
+}
+
 function writeEnvelope(drafts: GuestDeckDraft[]): void {
   const envelope: StorageEnvelope = {
     version: GUEST_DECK_DRAFTS_STORAGE_VERSION,
     drafts,
   };
   writeLocalStorageString(GUEST_DECK_DRAFTS_STORAGE_KEY, JSON.stringify(envelope));
+}
+
+function publishGuestDeckDrafts(drafts: GuestDeckDraft[]): void {
+  writeEnvelope(drafts);
+  notifyGuestDeckDraftsChanged();
 }
 
 function sortDrafts(drafts: GuestDeckDraft[]): GuestDeckDraft[] {
@@ -149,7 +170,7 @@ export function createGuestDeckDraft(input: GuestDeckDraftInput = {}): GuestDeck
 
   const drafts = listGuestDeckDrafts();
   drafts.push(draft);
-  writeEnvelope(drafts);
+  publishGuestDeckDrafts(drafts);
   return draft;
 }
 
@@ -182,7 +203,7 @@ export function updateGuestDeckDraft(
   };
 
   drafts[index] = next;
-  writeEnvelope(drafts);
+  publishGuestDeckDrafts(drafts);
   return next;
 }
 
@@ -193,7 +214,7 @@ export function removeGuestDeckDraft(id: string): boolean {
   if (next.length === drafts.length) {
     return false;
   }
-  writeEnvelope(next);
+  publishGuestDeckDrafts(next);
   return true;
 }
 
@@ -205,4 +226,5 @@ export function clearGuestDeckDraftsStorage(): void {
   } catch {
     // ignore
   }
+  notifyGuestDeckDraftsChanged();
 }
