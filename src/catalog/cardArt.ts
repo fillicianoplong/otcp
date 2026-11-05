@@ -6,6 +6,7 @@ import {
 } from '../shared/cardImageUrls.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { setArtPrintingsForCard } from './setArtPrintings.ts';
+import { readCachedYgoproArtIds } from './ygoproArtIds.ts';
 
 export type CatalogArtTile = {
   card: YugiohCard;
@@ -23,9 +24,11 @@ function curatedArtIdsForCard(cardId: number): number[] {
 export function resolveArtIds(card: Pick<YugiohCard, 'id' | 'artIds'>): number[] {
   const fromCard = card.artIds && card.artIds.length > 0 ? [...card.artIds] : [card.id];
   const curated = curatedArtIdsForCard(card.id);
-  if (curated.length === 0) return fromCard;
+  const fromYgopro = readCachedYgoproArtIds(card.id);
+  const ygoproList = fromYgopro && fromYgopro.length > 0 ? [...fromYgopro] : [];
+  if (curated.length === 0 && ygoproList.length === 0) return fromCard;
 
-  const merged = new Set<number>([...fromCard, ...curated]);
+  const merged = new Set<number>([...fromCard, ...curated, ...ygoproList]);
   const primary = fromCard[0] ?? card.id;
   const rest = [...merged].filter((id) => id !== primary).sort((left, right) => left - right);
   return [primary, ...rest];

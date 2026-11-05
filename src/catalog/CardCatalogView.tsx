@@ -5,6 +5,7 @@ import { getCatalogDerived } from './catalogDerived.ts';
 import { queryCatalog } from './catalogQueryCache.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { expandCardsToArtTiles, catalogResultCount, type CatalogArtTile } from './cardArt.ts';
+import { useArtworkEnrichedCards } from './useArtworkEnrichedCards.ts';
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
 import { CATALOG_GRID_CLASS, CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
@@ -343,9 +344,10 @@ export function CardCatalogView({
   }, [catalogDerived, filterState, formatParam, resolvedViewMode, state, tableSort, trimmedQuery]);
 
   const { visibleCards, matchCount } = queryResult;
+  const enrichedVisibleCards = useArtworkEnrichedCards(visibleCards, allArtworks);
   const visibleTiles = useMemo(
-    () => expandCardsToArtTiles(visibleCards, allArtworks),
-    [allArtworks, visibleCards],
+    () => expandCardsToArtTiles(enrichedVisibleCards, allArtworks),
+    [allArtworks, enrichedVisibleCards],
   );
   const displayCount = catalogResultCount(matchCount, visibleTiles, allArtworks);
 
