@@ -17,7 +17,15 @@ import { writeDraggedCardId } from '../deckEditor/deckPlacement.ts';
 import type { FormatId } from '../format/formatCatalog.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { CardFinderViewToggle } from './CardFinderViewToggle.tsx';
+import {
+  CARD_FINDER_GRID_CLASS,
+  readCardFinderViewMode,
+  writeCardFinderViewMode,
+  type CardFinderViewMode,
+} from './cardFinderView.ts';
 import { EditorCardRow } from './EditorCardRow.tsx';
+import { EditorCardTile } from './EditorCardTile.tsx';
 
 const RESULT_PAGE_SIZE = 40;
 
@@ -73,6 +81,7 @@ export function CardFinder({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
   const [visibleLimit, setVisibleLimit] = useState(RESULT_PAGE_SIZE);
+  const [viewMode, setViewMode] = useState<CardFinderViewMode>(() => readCardFinderViewMode());
 
   const catalogDerived = useMemo(() => {
     if (catalogState.status !== 'ready') return null;
@@ -132,6 +141,13 @@ export function CardFinder({
     }
   };
 
+  const chooseView = (mode: CardFinderViewMode) => {
+    setViewMode(mode);
+    writeCardFinderViewMode(mode);
+  };
+
+  const viewToggle = <CardFinderViewToggle value={viewMode} onChange={chooseView} />;
+
   let body: ReactNode;
   if (catalogState.status === 'loading') {
     body = (
@@ -148,18 +164,31 @@ export function CardFinder({
   } else if (catalogState.status === 'empty') {
     body = <p className="text-sm text-text-2">No cards in the catalog.</p>;
   } else if (orderedCards.length === 0) {
-    body = <p className="text-sm text-text-2">No cards match.</p>;
+    body = (
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm text-text-2">No cards match.</p>
+        {viewToggle}
+      </div>
+    );
   } else {
+    const ResultCard = viewMode === 'grid' ? EditorCardTile : EditorCardRow;
     body = (
       <div className="flex min-h-0 flex-col gap-2">
-        <p className="text-xs text-text-2">
-          {orderedCards.length > visibleCards.length
-            ? `Showing ${visibleCards.length} of ${orderedCards.length}`
-            : `${orderedCards.length} ${orderedCards.length === 1 ? 'card' : 'cards'}`}
-        </p>
-        <ul className="flex flex-col gap-2" data-testid="card-finder-results">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-text-2">
+            {orderedCards.length > visibleCards.length
+              ? `Showing ${visibleCards.length} of ${orderedCards.length}`
+              : `${orderedCards.length} ${orderedCards.length === 1 ? 'card' : 'cards'}`}
+          </p>
+          {viewToggle}
+        </div>
+        <ul
+          className={viewMode === 'grid' ? CARD_FINDER_GRID_CLASS : 'flex flex-col gap-2'}
+          data-testid="card-finder-results"
+          data-view={viewMode}
+        >
           {visibleCards.map((card) => (
-            <EditorCardRow
+            <ResultCard
               key={card.id}
               card={card}
               formatId={formatId}

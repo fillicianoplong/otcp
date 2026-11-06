@@ -1,16 +1,15 @@
 import { expect, test } from '@playwright/test';
 
 import { routeCardDetailCatalogFixture } from './fixtures/cardDetailCatalogRoute.ts';
-import { SEARCH_PAGE } from './helpers/searchAllArt.ts';
+import { SEARCH_PAGE, scrollUntilVisible } from './helpers/searchAllArt.ts';
 
 test.describe('Card detail prices', () => {
   test('opening a sample card shows market prices inside the sets section', async ({ page }) => {
     await page.goto(SEARCH_PAGE);
-    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
-      timeout: 15_000,
-    });
+    const darkMagician = page.getByRole('link', { name: 'Dark Magician', exact: true });
+    await scrollUntilVisible(page, darkMagician);
 
-    await page.getByRole('link', { name: 'Dark Magician', exact: true }).click();
+    await darkMagician.click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
 
     await expect(page.getByRole('heading', { name: 'Dark Magician' })).toBeVisible();
@@ -36,10 +35,9 @@ test.describe('Card detail prices', () => {
 
   test('card artwork zoom viewer opens and closes', async ({ page }) => {
     await page.goto(SEARCH_PAGE);
-    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
-      timeout: 15_000,
-    });
-    await page.getByRole('link', { name: 'Dark Magician', exact: true }).click();
+    const darkMagician = page.getByRole('link', { name: 'Dark Magician', exact: true });
+    await scrollUntilVisible(page, darkMagician);
+    await darkMagician.click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
 
     const trigger = page.getByRole('button', { name: 'View larger artwork for Dark Magician' });
@@ -332,10 +330,9 @@ test.describe('Card detail prices', () => {
 
   test('store links open vendor search pages in a new tab', async ({ page }) => {
     await page.goto(SEARCH_PAGE);
-    await expect(page.getByRole('link', { name: 'Dark Magician', exact: true })).toBeVisible({
-      timeout: 15_000,
-    });
-    await page.getByRole('link', { name: 'Dark Magician', exact: true }).click();
+    const darkMagician = page.getByRole('link', { name: 'Dark Magician', exact: true });
+    await scrollUntilVisible(page, darkMagician);
+    await darkMagician.click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\/46986420/);
 
     const stores = [
