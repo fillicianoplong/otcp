@@ -11,6 +11,7 @@ import sampleDevDataset from '../../public/data/datasets/sample-dev.json';
 import { CardCatalogProvider } from '../catalog/CardCatalogProvider.tsx';
 import { clearCardCatalogCache } from '../catalog/loadCatalog.ts';
 import { clearGuestDeckDraftsStorage, createGuestDeckDraft, getGuestDeckDraft } from '../deckStore';
+import { CARD_FINDER_VIEW_STORAGE_KEY } from '../cardFinder/cardFinderView.ts';
 import { DECK_EDITOR_SPLIT_MIN_PX } from '../deckEditor/deckEditorLayout.ts';
 import { OTCP_DATASET_SCHEMA_VERSION_LEGACY } from '../shared/schema/constants.ts';
 import { DeckEditorPage } from './DeckEditorPage.tsx';
@@ -292,5 +293,63 @@ describe('DeckEditorPage', () => {
     );
     expect(getGuestDeckDraft(genesys.id)?.formatId).toBe('advanced');
     expect(getGuestDeckDraft(genesys.id)?.genesysCap).toBeUndefined();
+  });
+
+  it('toggles the library between list rows and a three-column grid and keeps the choice', async () => {
+    localStorage.removeItem(CARD_FINDER_VIEW_STORAGE_KEY);
+    mockViewport(true);
+    const draft = createGuestDeckDraft({ name: 'Locals', formatId: 'advanced' });
+    const user = userEvent.setup();
+    renderEditor(draft.id);
+
+    const results = await screen.findByTestId('card-finder-results');
+    expect(results.className).toContain('flex-col');
+    expect(results.getAttribute('data-view')).toBe('list');
+    const blueEyes = within(results).getByTestId(
+      `library-card-${cardId('Blue-Eyes White Dragon')}`,
+    );
+    expect(within(blueEyes).getByText('LIGHT, Normal, Dragon')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'List view' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Grid view' }));
+
+    const grid = screen.getByTestId('card-finder-results');
+    expect(grid.className).toContain('min-[340px]:grid-cols-3');
+    expect(grid.className).toContain('grid-cols-2');
+    expect(grid.getAttribute('data-view')).toBe('grid');
+    const tile = within(grid).getByTestId(`library-card-${cardId('Blue-Eyes White Dragon')}`);
+    expect(within(tile).queryByText('LIGHT, Normal, Dragon')).toBeNull();
+    expect(
+      within(tile).getByRole('button', { name: 'Remove one Blue-Eyes White Dragon' }),
+    ).toBeDisabled();
+
+    await user.click(within(tile).getByRole('button', { name: 'Add Blue-Eyes White Dragon' }));
+    expect(
+      within(screen.getByTestId('deck-zone-main')).getByText('Blue-Eyes White Dragon'),
+    ).toBeTruthy();
+    expect(within(tile).getByText('1')).toBeTruthy();
+    expect(
+      within(tile).getByRole('button', { name: 'Remove one Blue-Eyes White Dragon' }),
+    ).toBeEnabled();
+    expect(localStorage.getItem(CARD_FINDER_VIEW_STORAGE_KEY)).toBe('grid');
+
+    cleanup();
+    renderEditor(draft.id);
+    const restored = await screen.findByTestId('card-finder-results');
+    expect(restored.getAttribute('data-view')).toBe('grid');
+    expect(screen.getByRole('button', { name: 'Grid view' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    const restoredUser = userEvent.setup();
+    await restoredUser.click(screen.getByRole('button', { name: 'List view' }));
+    const list = screen.getByTestId('card-finder-results');
+    expect(list.className).toContain('flex-col');
+    expect(within(list).getByText('LIGHT, Normal, Dragon')).toBeTruthy();
+    expect(localStorage.getItem(CARD_FINDER_VIEW_STORAGE_KEY)).toBe('list');
   });
 });
