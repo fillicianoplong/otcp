@@ -39,7 +39,7 @@ function TableRowThumbnail({ card }: { card: YugiohCard }) {
 
   if (missing) {
     return (
-      <div className="flex aspect-[59/86] w-8 shrink-0 items-center justify-center rounded-sm bg-surface-2 text-[9px] text-text-2">
+      <div className="flex aspect-card w-8 shrink-0 items-center justify-center rounded-sm bg-surface-2 text-2xs text-text-2">
         —
       </div>
     );
@@ -52,7 +52,7 @@ function TableRowThumbnail({ card }: { card: YugiohCard }) {
       loading="lazy"
       decoding="async"
       onError={() => setMissing(true)}
-      className="aspect-[59/86] w-8 shrink-0 rounded-sm object-cover bg-surface-2"
+      className="aspect-card w-8 shrink-0 rounded-sm object-cover bg-surface-2"
     />
   );
 }

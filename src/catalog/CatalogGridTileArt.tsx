@@ -5,7 +5,7 @@ import { CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
 
 export function CatalogGridTileNamePlaceholder({ name }: { name: string }) {
   return (
-    <div className="flex aspect-[59/86] w-full flex-col items-center justify-center gap-1 rounded-sm bg-surface-2 px-2 text-center text-xs text-text-2">
+    <div className="flex aspect-card w-full flex-col items-center justify-center gap-1 rounded-sm bg-surface-2 px-2 text-center text-xs text-text-2">
       <span className="font-medium leading-snug text-heading">{name}</span>
     </div>
   );

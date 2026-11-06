@@ -6,10 +6,9 @@ import { YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
 import type { DeckCover } from '../deckStore/types.ts';
 import { ygoprodeckSmallImageUrl } from '../shared/cardImageUrls.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { Button } from '../ui/Button.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { listDeckCoverOptions, type DeckCoverSource } from './deckCover.ts';
-
-const closeButtonClassName =
-  'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
 type DeckCoverDialogProps = {
   open: boolean;
@@ -65,16 +64,16 @@ export function DeckCoverDialog({
       >
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <h2 id={titleId} className="text-lg font-semibold text-heading">
+            <SectionHeader id={titleId} size="section">
               Choose cover
-            </h2>
+            </SectionHeader>
             <p className="text-sm text-text">
               Pick a card from {deck.name}. Each artwork can be the front of this deck in the list.
             </p>
           </div>
-          <button ref={closeRef} type="button" className={closeButtonClassName} onClick={onClose}>
+          <Button ref={closeRef} onClick={onClose}>
             Close
-          </button>
+          </Button>
         </div>
         <ul className="grid grid-cols-3 gap-3 overflow-y-auto sm:grid-cols-4">
           {options.map((option) => {

@@ -1,6 +1,5 @@
-import { Link } from 'react-router';
-
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { ListRow, ListThumb } from '../ui/ListRow.tsx';
 import { BanThumbMarker } from './BanThumbMarker.tsx';
 import { buildSearchCardDetailPath } from './searchCardLinks.ts';
 import type { CardDetailLinkState } from './searchNavigation.ts';
@@ -35,19 +34,19 @@ function ListRowThumbnail({
   const artId = imageId ?? card.id;
 
   return (
-    <div className="relative w-9 shrink-0 overflow-hidden rounded-sm bg-surface-2 md:w-9">
+    <ListThumb>
       <CatalogArtImage
         card={card}
         imageId={artId}
         size="small"
         alt=""
         loading="lazy"
-        imgClassName="aspect-[59/86] w-full object-cover"
+        imgClassName="aspect-card w-full object-cover"
       />
       {formatActive && banStatus ? (
         <BanThumbMarker status={banStatus} className="md:hidden" />
       ) : null}
-    </div>
+    </ListThumb>
   );
 }
 
@@ -115,30 +114,27 @@ export function CardListRow({
   const tileLabel = imageId != null ? catalogGridTileAriaLabel(card, imageId) : card.name;
 
   return (
-    <li>
-      <Link
-        to={detailPath}
-        state={linkState ?? cardDetailLinkStateFromSearch()}
-        onClick={onBeforeNavigate}
-        aria-label={tileLabel}
-        className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3 rounded-md border border-border bg-surface px-2 py-2 transition-colors hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong md:grid-cols-[2.25rem_minmax(10rem,1.6fr)_minmax(9rem,1.2fr)_5.75rem_minmax(8.5rem,1fr)_2.25rem] md:items-center"
-      >
-        <ListRowThumbnail card={card} imageId={imageId} formatParam={formatParam} />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-heading">{card.name}</p>
-          <ListRowCompactIcons card={card} />
-        </div>
-        <span className="max-md:hidden min-w-0 truncate text-left text-xs text-text-2">
-          {typeLine}
-        </span>
-        <span className="max-md:hidden text-left text-xs tabular-nums text-text-2">
-          {levelLine ?? '—'}
-        </span>
-        <span className="max-md:hidden text-left text-xs tabular-nums text-text-2">
-          {statsLine ?? '—'}
-        </span>
-        <ListRowBanCell card={card} formatParam={formatParam} />
-      </Link>
-    </li>
+    <ListRow
+      to={detailPath}
+      state={linkState ?? cardDetailLinkStateFromSearch()}
+      onClick={onBeforeNavigate}
+      label={tileLabel}
+    >
+      <ListRowThumbnail card={card} imageId={imageId} formatParam={formatParam} />
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-heading">{card.name}</p>
+        <ListRowCompactIcons card={card} />
+      </div>
+      <span className="max-md:hidden min-w-0 truncate text-left text-xs text-text-2">
+        {typeLine}
+      </span>
+      <span className="max-md:hidden text-left text-xs tabular-nums text-text-2">
+        {levelLine ?? '—'}
+      </span>
+      <span className="max-md:hidden text-left text-xs tabular-nums text-text-2">
+        {statsLine ?? '—'}
+      </span>
+      <ListRowBanCell card={card} formatParam={formatParam} />
+    </ListRow>
   );
 }

@@ -9,6 +9,8 @@ import {
   type CatalogViewMode,
 } from '../catalog/catalogViewMode.ts';
 import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { PageTitle } from '../ui/PageTitle.tsx';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import {
   BanlistGridSection,
@@ -197,7 +199,7 @@ export function FormatDetailPage() {
     : undefined;
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 overflow-x-hidden">
+    <PageContainer className="flex flex-col gap-6 overflow-x-hidden">
       <div className="flex flex-col gap-3">
         <Link
           to="/formats"
@@ -207,7 +209,7 @@ export function FormatDetailPage() {
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <h1 className="text-2xl font-semibold text-heading">{format.name}</h1>
+            <PageTitle>{format.name}</PageTitle>
             <Link
               to={searchWithFormatPath(formatId)}
               onClick={() => writeFormatPreference(formatId)}
@@ -235,6 +237,6 @@ export function FormatDetailPage() {
           />
         ) : null}
       </div>
-    </div>
+    </PageContainer>
   );
 }

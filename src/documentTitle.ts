@@ -49,6 +49,10 @@ export function documentTitleForRoute(input: {
 
   const [root, ...rest] = segments;
 
+  if (root === 'styleguide' && rest.length === 0) {
+    return formatDocumentTitle('Style guide');
+  }
+
   if (root === 'search' && rest.length === 2 && rest[0] === 'card') {
     return formatDocumentTitle(input.cardName);
   }

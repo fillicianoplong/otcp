@@ -1,4 +1,7 @@
 import notices from '../data/notices.json';
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { PageTitle } from '../ui/PageTitle.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 
 type NoticeDependency = {
   name: string;
@@ -16,9 +19,9 @@ const externalLinkClassName =
 
 export function AboutPage() {
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-heading">About</h1>
+        <PageTitle>About</PageTitle>
         <p className="text-base text-text">
           OTCP is a Yu-Gi-Oh! card reference for searching cards, formats, decks, and collections.
         </p>
@@ -26,9 +29,9 @@ export function AboutPage() {
 
       <section className="space-y-4" aria-labelledby="about-notices-libraries-heading">
         <div className="space-y-2">
-          <h2 id="about-notices-libraries-heading" className="text-lg font-semibold text-heading">
+          <SectionHeader id="about-notices-libraries-heading" size="section">
             Notices
-          </h2>
+          </SectionHeader>
           <p className="text-base text-text">
             Third-party open-source libraries shipped with this app and their licenses.
           </p>
@@ -70,9 +73,9 @@ export function AboutPage() {
       </section>
 
       <section className="space-y-2" aria-labelledby="about-notices-card-data-heading">
-        <h2 id="about-notices-card-data-heading" className="text-lg font-semibold text-heading">
+        <SectionHeader id="about-notices-card-data-heading" size="section">
           Card data and images
-        </h2>
+        </SectionHeader>
         <p className="text-base text-text">
           Card data, market prices, and set information come from{' '}
           <a
@@ -90,7 +93,7 @@ export function AboutPage() {
           project and is not affiliated with or endorsed by Konami or YGOPRODeck.
         </p>
       </section>
-    </div>
+    </PageContainer>
   );
 }
 

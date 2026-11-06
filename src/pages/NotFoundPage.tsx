@@ -1,3 +1,10 @@
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { PageTitle } from '../ui/PageTitle.tsx';
+
 export function NotFoundPage() {
-  return <h1 className="text-2xl font-semibold text-heading">Page not found</h1>;
+  return (
+    <PageContainer width="reading">
+      <PageTitle>Page not found</PageTitle>
+    </PageContainer>
+  );
 }

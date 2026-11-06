@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import { getCatalogDerived } from './catalogDerived.ts';
 import { queryCatalog } from './catalogQueryCache.ts';
@@ -9,8 +9,11 @@ import { useArtworkEnrichedCards } from './useArtworkEnrichedCards.ts';
 import { useCatalogArtIdWarm } from './useCatalogArtIdWarm.ts';
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
 import { filterStateSignature } from './filterUrlState.ts';
-import { CATALOG_GRID_CLASS, CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
-import { CatalogGridTileFrame } from './CatalogGridTileArt.tsx';
+import { CATALOG_GRID_TILE_ART_CLASS } from './catalogGridLayout.ts';
+import { CardGrid } from '../ui/CardGrid.tsx';
+import { CardTile as TileLink, CardTileFrame } from '../ui/CardTile.tsx';
+import { Button } from '../ui/Button.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 import {
   gridHasMore,
   initialGridVisibleCount,
@@ -52,7 +55,7 @@ function CardArt({
   const banStatus = resolveCardBanForFormat(card, formatParam);
 
   return (
-    <CatalogGridTileFrame>
+    <CardTileFrame>
       <CatalogArtImage
         card={card}
         imageId={imageId}
@@ -62,7 +65,7 @@ function CardArt({
         imgClassName={CATALOG_GRID_TILE_ART_CLASS}
       />
       {banStatus ? <BanThumbMarker status={banStatus} /> : null}
-    </CatalogGridTileFrame>
+    </CardTileFrame>
   );
 }
 
@@ -85,17 +88,14 @@ function CardTile({
   });
 
   return (
-    <li>
-      <Link
-        to={detailPath}
-        state={cardDetailLinkStateFromSearch()}
-        onClick={onBeforeNavigate}
-        aria-label={catalogGridTileAriaLabel(card, imageId)}
-        className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-      >
-        <CardArt card={card} imageId={imageId} formatParam={formatParam} />
-      </Link>
-    </li>
+    <TileLink
+      to={detailPath}
+      state={cardDetailLinkStateFromSearch()}
+      onClick={onBeforeNavigate}
+      label={catalogGridTileAriaLabel(card, imageId)}
+    >
+      <CardArt card={card} imageId={imageId} formatParam={formatParam} />
+    </TileLink>
   );
 }
 
@@ -110,7 +110,7 @@ function CatalogMessage({
 }) {
   return (
     <div className="rounded-md border border-border bg-surface px-4 py-6 text-text" role="status">
-      <h2 className="text-base font-semibold text-heading">{title}</h2>
+      <SectionHeader>{title}</SectionHeader>
       <p className="mt-2 text-sm text-text-2">{children}</p>
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
@@ -246,7 +246,7 @@ function CardCatalogGrid({
 
   return (
     <>
-      <ul className={CATALOG_GRID_CLASS}>
+      <CardGrid variant="search">
         {renderedTiles.map((tile) => (
           <CardTile
             key={`${tile.card.id}-${tile.imageId}`}
@@ -256,7 +256,7 @@ function CardCatalogGrid({
             onBeforeNavigate={saveScrollState}
           />
         ))}
-      </ul>
+      </CardGrid>
       {gridHasMore(visibleCount, matchCount) ? (
         <div ref={loadMoreRef} className="h-8" aria-hidden />
       ) : null}
@@ -393,13 +393,9 @@ export function CardCatalogView({
       <CatalogMessage
         title="Could not load cards"
         action={
-          <button
-            type="button"
-            onClick={retry}
-            className="inline-flex min-h-[var(--touch-min)] items-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-          >
+          <Button variant="primary" onClick={retry}>
             Retry
-          </button>
+          </Button>
         }
       >
         {state.message}

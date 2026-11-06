@@ -55,6 +55,10 @@ import type { CatalogState } from '../catalog/loadCatalog.ts';
 import { CardImageZoomViewer } from '../components/CardImageZoomViewer.tsx';
 import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
 import { formatPriceSnapshotDate } from '../prices/formatPrice.ts';
+import { LinkedRow } from '../ui/ListRow.tsx';
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { PageTitle } from '../ui/PageTitle.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { buildStoreSearchUrl, STORE_LINK_LABELS } from '../prices/storeLinks.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import type { CardPrices } from '../shared/schema/core.ts';
@@ -120,9 +124,7 @@ function CardDetailArtworks({
 
   return (
     <section className="flex min-w-0 flex-col gap-2" aria-labelledby="card-artworks-heading">
-      <h2 id="card-artworks-heading" className="text-base font-semibold text-heading">
-        Artworks
-      </h2>
+      <SectionHeader id="card-artworks-heading">Artworks</SectionHeader>
       <ul
         className="m-0 flex max-w-full list-none flex-wrap gap-2 p-0"
         aria-label="Artwork variants"
@@ -209,9 +211,6 @@ function CardDetailInfoChips({ card }: { card: YugiohCard }) {
   );
 }
 
-const cardDetailLinkedRowClassName =
-  'flex min-w-0 items-center justify-between gap-3 px-3 py-1.5 no-underline transition-colors hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong';
-
 function CardDetailMarketPrices({
   cardName,
   prices,
@@ -223,22 +222,18 @@ function CardDetailMarketPrices({
 }) {
   return (
     <section className="flex flex-col gap-2" aria-labelledby="card-market-prices-heading">
-      <h2 id="card-market-prices-heading" className="text-base font-semibold text-heading">
-        Market prices
-      </h2>
+      <SectionHeader id="card-market-prices-heading">Market prices</SectionHeader>
       <div className="overflow-hidden rounded-md border border-border bg-surface text-sm">
         {CARD_DETAIL_MARKET_PRICE_ROWS.map((row, index) => {
           const raw = cardDetailMarketPriceValue(prices, row.key);
           const formatted = cardDetailMarketPriceDisplay(raw, row.currency);
           const href = buildStoreSearchUrl(row.key, cardName);
           return (
-            <a
+            <LinkedRow
               key={row.key}
               href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={STORE_LINK_LABELS[row.key]}
-              className={`${cardDetailLinkedRowClassName}${index > 0 ? ' border-t border-border' : ''}`}
+              label={STORE_LINK_LABELS[row.key]}
+              className={index > 0 ? 'border-t border-border' : undefined}
             >
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate font-medium text-heading">{row.label}</span>
@@ -256,7 +251,7 @@ function CardDetailMarketPrices({
                   ↗
                 </span>
               </span>
-            </a>
+            </LinkedRow>
           );
         })}
       </div>
@@ -287,9 +282,7 @@ function CardDetailSets({
 
   return (
     <section className="flex flex-col gap-2" aria-labelledby="card-sets-heading">
-      <h2 id="card-sets-heading" className="text-base font-semibold text-heading">
-        {cardDetailSetsHeadingCount(totalCount)}
-      </h2>
+      <SectionHeader id="card-sets-heading">{cardDetailSetsHeadingCount(totalCount)}</SectionHeader>
       <div className="overflow-hidden rounded-md border border-border bg-surface text-sm">
         <ul className="m-0 list-none p-0">
           {visibleSets.map((entry, index) => {
@@ -301,10 +294,9 @@ function CardDetailSets({
                 key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}
                 className={index > 0 ? 'border-t border-border' : undefined}
               >
-                <Link
+                <LinkedRow
                   to={buildCardDetailSetSearchHref(entry.setName)}
-                  className={cardDetailLinkedRowClassName}
-                  aria-label={`Search for cards in ${entry.setName}`}
+                  label={`Search for cards in ${entry.setName}`}
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="truncate font-medium text-heading">{entry.setName}</span>
@@ -314,7 +306,7 @@ function CardDetailSets({
                   </span>
                   <span className="flex shrink-0 items-center gap-1.5">
                     {usesThisArt ? (
-                      <span className="rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-2">
+                      <span className="rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 text-2xs font-medium uppercase tracking-wide text-text-2">
                         This art
                       </span>
                     ) : null}
@@ -325,7 +317,7 @@ function CardDetailSets({
                       ↗
                     </span>
                   </span>
-                </Link>
+                </LinkedRow>
               </li>
             );
           })}
@@ -584,7 +576,7 @@ function CardDetailReadyView({
   const descriptionBlocks = buildCardDetailDescriptionBlocks(card);
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <PageContainer className="flex flex-col gap-6">
       <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
       {/* Width fits the viewport height, leaves a gutter, and still yields to the info column. */}
       <div className="flex w-full min-w-0 flex-col gap-6 md:flex-row md:items-start md:gap-12">
@@ -597,15 +589,13 @@ function CardDetailReadyView({
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <header className="flex flex-wrap items-center gap-3">
-            <h1 className="min-w-0 text-2xl font-semibold text-heading">{card.name}</h1>
+            <PageTitle className="min-w-0">{card.name}</PageTitle>
             <CardDetailBanStatus card={card} formatParam={formatParam} />
           </header>
           <CardDetailInfoChips card={card} />
           {descriptionBlocks.pendulumEffect ? (
             <section className="flex flex-col gap-2" aria-labelledby="card-pendulum-heading">
-              <h2 id="card-pendulum-heading" className="text-base font-semibold text-heading">
-                Pendulum Effect
-              </h2>
+              <SectionHeader id="card-pendulum-heading">Pendulum Effect</SectionHeader>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">
                 {descriptionBlocks.pendulumEffect}
               </p>
@@ -613,9 +603,7 @@ function CardDetailReadyView({
           ) : null}
           {descriptionBlocks.description ? (
             <section className="flex flex-col gap-2" aria-labelledby="card-description-heading">
-              <h2 id="card-description-heading" className="text-base font-semibold text-heading">
-                Description
-              </h2>
+              <SectionHeader id="card-description-heading">Description</SectionHeader>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">
                 {descriptionBlocks.description}
               </p>
@@ -641,6 +629,6 @@ function CardDetailReadyView({
           </div>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
