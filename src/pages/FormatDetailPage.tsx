@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 
+import { CatalogSortSelect } from '../catalog/CatalogSortSelect.tsx';
 import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
 import {
   CATALOG_TABLE_TOOLBAR_COLUMNS,
@@ -44,6 +45,15 @@ import {
   type FormatId,
 } from '../format/formatCatalog.ts';
 import { writeFormatPreference } from '../format/formatPreference.ts';
+import {
+  readCatalogTableSortFromParams,
+  writeCatalogTableSortToParams,
+} from '../catalog/catalogSortQuery.ts';
+import {
+  DEFAULT_CATALOG_TABLE_SORT,
+  sortCatalogEntries,
+  type CatalogTableSortState,
+} from '../catalog/catalogTableSort.ts';
 import { readLocalStorageString, writeLocalStorageString } from '../shared/safeLocalStorage.ts';
 
 const FORMAT_DETAIL_VIEW_STORAGE_KEY = 'otcp:view:format-detail';
@@ -66,16 +76,31 @@ function FormatDetailMessage({ title, children }: { title: string; children: str
   );
 }
 
+function sectionsInCatalogOrder(
+  sections: FormatBanlistSection[],
+  sort: CatalogTableSortState,
+  formatId: FormatId,
+): FormatBanlistSection[] {
+  return sections.map((section) => ({
+    ...section,
+    cards: sortCatalogEntries(section.cards, sort, formatId),
+  }));
+}
+
 function FormatBanlistSections({
   sections,
   formatId,
   viewMode,
   columnVisibility,
+  tableSort,
+  onTableSortChange,
 }: {
   sections: FormatBanlistSection[];
   formatId: FormatId;
   viewMode: CatalogViewMode;
   columnVisibility: ReturnType<typeof catalogTableVisibilityFromRecord>;
+  tableSort: CatalogTableSortState;
+  onTableSortChange: (next: CatalogTableSortState) => void;
 }) {
   return (
     <>
@@ -90,6 +115,8 @@ function FormatBanlistSections({
               section={section}
               formatParam={formatId}
               columnVisibility={columnVisibility}
+              tableSort={tableSort}
+              onTableSortChange={onTableSortChange}
             />
           );
         }
@@ -102,6 +129,7 @@ function FormatBanlistSections({
 export function FormatDetailPage() {
   const navigate = useNavigate();
   const { formatId: formatIdParam } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const formatId = normalizeFormatId(formatIdParam);
   const format = formatId ? getFormatById(formatId) : undefined;
   const { state: catalogState } = useCardCatalog();
@@ -115,6 +143,23 @@ export function FormatDetailPage() {
     CATALOG_TABLE_TOOLBAR_COLUMNS,
   );
   const catalogColumnVisibility = catalogTableVisibilityFromRecord(columnVisibility);
+  const tableSort = useMemo(
+    () => readCatalogTableSortFromParams(searchParams) ?? DEFAULT_CATALOG_TABLE_SORT,
+    [searchParams],
+  );
+  const setTableSort = useCallback(
+    (next: CatalogTableSortState) => {
+      setSearchParams(
+        (current) => {
+          const params = new URLSearchParams(current);
+          writeCatalogTableSortToParams(params, next);
+          return params;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
   const [tcgDatedLoad, setTcgDatedLoad] = useState<{
     effectiveDate: string;
     model: FormatBanlistPageModel | 'loading' | 'missing';
@@ -246,7 +291,9 @@ export function FormatDetailPage() {
                   visibility={columnVisibility}
                   onVisibilityChange={setColumnVisibility}
                 />
-              ) : null}
+              ) : (
+                <CatalogSortSelect sort={tableSort} onChange={setTableSort} />
+              )}
               <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
             </>
           }
@@ -258,17 +305,21 @@ export function FormatDetailPage() {
 
       <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden">
         <FormatBanlistSections
-          sections={restrictedSections}
+          sections={sectionsInCatalogOrder(restrictedSections, tableSort, formatId)}
           formatId={formatId}
           viewMode={effectiveViewMode}
           columnVisibility={catalogColumnVisibility}
+          tableSort={tableSort}
+          onTableSortChange={setTableSort}
         />
         {poolAsSection ? (
           <FormatBanlistSections
-            sections={[poolAsSection]}
+            sections={sectionsInCatalogOrder([poolAsSection], tableSort, formatId)}
             formatId={formatId}
             viewMode={effectiveViewMode}
             columnVisibility={catalogColumnVisibility}
+            tableSort={tableSort}
+            onTableSortChange={setTableSort}
           />
         ) : null}
       </div>
