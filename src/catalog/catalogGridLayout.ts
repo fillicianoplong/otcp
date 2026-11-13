@@ -1,0 +1,25 @@
+/**
+ * Search catalog grid column counts.
+ * Phone widths 360, 390, and 430 CSS px are four across, and so is every
+ * width up to the desktop split. Below 360px the grid drops to two so a
+ * very narrow window does not overflow. A desktop window (Tailwind `lg`,
+ * 1024px) uses six in the results column beside the filter sidebar.
+ */
+export const CATALOG_GRID_DESKTOP_MIN_WIDTH_PX = 1024;
+
+export function catalogGridColumnCount(viewportWidthCssPx: number): number {
+  if (viewportWidthCssPx < 360) return 2;
+  if (viewportWidthCssPx >= CATALOG_GRID_DESKTOP_MIN_WIDTH_PX) return 6;
+  return 4;
+}
+
+/** Full card scan in catalog grid tiles (Search + format ban grids). */
+export const CATALOG_GRID_TILE_ART_CLASS = 'block aspect-card w-full object-cover object-left-top';
+
+/** Format detail card grid: four across on a phone, ten from the desktop breakpoint. */
+export const FORMAT_BANLIST_GRID_CLASS =
+  'grid w-full min-w-0 grid-cols-4 items-start gap-tile lg:grid-cols-10';
+
+/** Tailwind classes aligned with {@link catalogGridColumnCount} breakpoints. */
+export const CATALOG_GRID_CLASS =
+  'grid grid-cols-2 min-[360px]:grid-cols-4 items-start gap-catalog sm:gap-catalog-wide lg:grid-cols-6 [&_li_a>div]:leading-none [&_li_a>div>img]:block [&_li_a>div>img]:object-left-top [&_li_a>div>div]:block [&_li_a>div>div]:object-left-top';

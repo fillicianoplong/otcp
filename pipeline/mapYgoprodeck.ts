@@ -1,0 +1,234 @@
+import {
+  OTCP_CARD_SCHEMA_VERSION,
+  OTCP_DATASET_SCHEMA_VERSION_LEGACY,
+  type CardPrices,
+  type CardSet,
+  type DatasetEnvelope,
+  type SetIndex,
+  type YugiohCard,
+} from '../src/shared/schema/index.ts';
+import { YGOPRODECK_CARDINFO_URL } from './constants.ts';
+import { publishedDefaultArtPaths } from './imagePaths.ts';
+import { resolveMonsterLevelRankLink } from '../src/shared/schema/normalizeMonsterLevelRankLink.ts';
+import { isYgoprodeckPlaceholderRow } from './placeholderFilter.ts';
+import type { YgoApiCard, YgoBanlistInfo } from './ygoprodeckTypes.ts';
+
+export type YgoprodeckDropCounts = {
+  unsupported: number;
+  placeholder: number;
+};
+
+const BAN_VALUES = new Set(['Forbidden', 'Limited', 'Semi-Limited']);
+
+const YGO_ATTRIBUTES = new Set(['DARK', 'LIGHT', 'EARTH', 'WATER', 'FIRE', 'WIND', 'DIVINE']);
+
+function isYgoAttribute(value: string): value is NonNullable<YugiohCard['attribute']> {
+  return YGO_ATTRIBUTES.has(value);
+}
+
+function normalizeText(desc: string | undefined): string {
+  return (desc ?? '').replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+}
+
+function parseOptionalPrice(raw: string | undefined): number | undefined {
+  if (raw === undefined || raw === '') return undefined;
+  const value = Number.parseFloat(raw);
+  return Number.isFinite(value) ? value : undefined;
+}
+
+function mapBanField(
+  raw: string | undefined,
+): 'Forbidden' | 'Limited' | 'Semi-Limited' | undefined {
+  if (!raw || !BAN_VALUES.has(raw)) return undefined;
+  return raw as 'Forbidden' | 'Limited' | 'Semi-Limited';
+}
+
+function mapBanlistInfo(info: YgoBanlistInfo | undefined): YugiohCard['banlistInfo'] {
+  if (!info) return undefined;
+  const banTcg = mapBanField(info.ban_tcg);
+  const banOcg = mapBanField(info.ban_ocg);
+  const banGoat = mapBanField(info.ban_goat);
+  const banSpeedDuel = mapBanField(info.ban_speed_duel);
+  if (!banTcg && !banOcg && !banGoat && !banSpeedDuel) return undefined;
+  return {
+    ...(banTcg ? { banTcg } : {}),
+    ...(banOcg ? { banOcg } : {}),
+    ...(banGoat ? { banGoat } : {}),
+    ...(banSpeedDuel ? { banSpeedDuel } : {}),
+  };
+}
+
+function miscFormatsIncludeSpeedDuel(card: YgoApiCard): boolean {
+  const rows = card.misc_info;
+  if (!rows || rows.length === 0) return false;
+  for (const row of rows) {
+    for (const format of row.formats ?? []) {
+      if (format.trim().toLowerCase() === 'speed duel') {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function mapSets(card: YgoApiCard): CardSet[] {
+  return (card.card_sets ?? []).map((set) => {
+    const mapped: CardSet = {
+      setCode: set.set_code,
+      setName: set.set_name,
+      setRarity: set.set_rarity,
+    };
+    if (set.set_rarity_code && set.set_rarity_code.length > 0) {
+      mapped.setRarityCode = set.set_rarity_code;
+    }
+    const setPrice = parseOptionalPrice(set.set_price);
+    if (setPrice !== undefined) mapped.setPrice = setPrice;
+    return mapped;
+  });
+}
+
+function mapPrices(card: YgoApiCard): CardPrices | undefined {
+  const row = card.card_prices?.[0];
+  if (!row) return undefined;
+  const prices: CardPrices = {};
+  const tcg = parseOptionalPrice(row.tcgplayer_price);
+  const cm = parseOptionalPrice(row.cardmarket_price);
+  const ebay = parseOptionalPrice(row.ebay_price);
+  const amazon = parseOptionalPrice(row.amazon_price);
+  const csi = parseOptionalPrice(row.coolstuffinc_price);
+  if (tcg !== undefined) prices.tcgplayer = tcg;
+  if (cm !== undefined) prices.cardmarket = cm;
+  if (ebay !== undefined) prices.ebay = ebay;
+  if (amazon !== undefined) prices.amazon = amazon;
+  if (csi !== undefined) prices.coolstuffinc = csi;
+  return Object.keys(prices).length > 0 ? prices : undefined;
+}
+
+function publishedImages(cardId: number, publicBaseUrl: string): YugiohCard['images'] {
+  return publishedDefaultArtPaths(cardId, publicBaseUrl);
+}
+
+function mapArtIds(card: YgoApiCard): number[] {
+  const ordered: number[] = [];
+  const seen = new Set<number>();
+  for (const image of card.card_images ?? [{ id: card.id }]) {
+    if (seen.has(image.id)) continue;
+    seen.add(image.id);
+    ordered.push(image.id);
+  }
+  if (ordered.length === 0) return [card.id];
+  return ordered;
+}
+
+/** Drop Rush Duel and other rows outside the v1 Yu-Gi-Oh! extension. */
+export function isSupportedYugiohRow(card: YgoApiCard): boolean {
+  const type = card.type ?? '';
+  if (type.includes('Rush')) return false;
+  if (type === 'Spell Card' || type === 'Trap Card' || type === 'Skill Card') return true;
+  return type.includes('Monster');
+}
+
+export function mapYgoprodeckCard(card: YgoApiCard, publicBaseUrl: string): YugiohCard {
+  const mapped: YugiohCard = {
+    schemaVersion: OTCP_CARD_SCHEMA_VERSION,
+    id: card.id,
+    name: card.name,
+    type: card.type ?? '',
+    text: normalizeText(card.desc),
+    images: publishedImages(card.id, publicBaseUrl),
+    sets: mapSets(card),
+  };
+
+  const pendDesc = normalizeText(card.pend_desc);
+  const monsterDesc = normalizeText(card.monster_desc);
+  if (pendDesc.length > 0) mapped.pendDesc = pendDesc;
+  if (monsterDesc.length > 0) mapped.monsterDesc = monsterDesc;
+
+  const prices = mapPrices(card);
+  if (prices) mapped.prices = prices;
+
+  mapped.passcode = card.id;
+
+  if (card.attribute && isYgoAttribute(card.attribute)) mapped.attribute = card.attribute;
+  Object.assign(
+    mapped,
+    resolveMonsterLevelRankLink({
+      type: mapped.type,
+      level: card.level ?? undefined,
+      rank: card.rank ?? undefined,
+      linkval: card.linkval,
+    }),
+  );
+  if (card.linkmarkers && card.linkmarkers.length > 0) mapped.linkMarkers = [...card.linkmarkers];
+  if (typeof card.atk === 'number') mapped.atk = card.atk;
+  if (typeof card.def === 'number') mapped.def = card.def;
+  if (card.race) mapped.race = card.race;
+  if (card.archetype) mapped.archetype = card.archetype;
+  if (typeof card.scale === 'number') mapped.scale = card.scale;
+  if (typeof card.genesys_points === 'number') mapped.genesysPoints = card.genesys_points;
+
+  const banlistInfo = mapBanlistInfo(card.banlist_info);
+  if (banlistInfo) mapped.banlistInfo = banlistInfo;
+
+  if (miscFormatsIncludeSpeedDuel(card)) {
+    mapped.speedDuelLegal = true;
+  }
+
+  const artIds = mapArtIds(card);
+  if (artIds.length > 1 || artIds[0] !== card.id) {
+    mapped.artIds = artIds;
+  }
+
+  return mapped;
+}
+
+export function buildDatasetEnvelope(
+  cards: YugiohCard[],
+  generatedAt: string,
+  setIndex?: SetIndex,
+): DatasetEnvelope {
+  return {
+    schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
+    generatedAt,
+    source: YGOPRODECK_CARDINFO_URL,
+    cards,
+    ...(setIndex && Object.keys(setIndex).length > 0 ? { setIndex } : {}),
+  };
+}
+
+export function mapYgoprodeckResponse(
+  rows: YgoApiCard[],
+  publicBaseUrl: string,
+): {
+  cards: YugiohCard[];
+  dropped: YgoprodeckDropCounts;
+} {
+  const cards: YugiohCard[] = [];
+  const dropped: YgoprodeckDropCounts = { unsupported: 0, placeholder: 0 };
+  for (const row of rows) {
+    if (!isSupportedYugiohRow(row)) {
+      dropped.unsupported += 1;
+      continue;
+    }
+    if (isYgoprodeckPlaceholderRow(row)) {
+      dropped.placeholder += 1;
+      continue;
+    }
+    cards.push(mapYgoprodeckCard(row, publicBaseUrl));
+  }
+  return { cards, dropped };
+}
+
+/** Every YGOPRODeck card_images id plus each card id (legacy default-art object keys). */
+export function collectHostedImageIdsFromRows(rows: readonly YgoApiCard[]): number[] {
+  const ids = new Set<number>();
+  for (const row of rows) {
+    if (!isSupportedYugiohRow(row)) continue;
+    if (isYgoprodeckPlaceholderRow(row)) continue;
+    ids.add(row.id);
+    for (const image of row.card_images ?? []) {
+      ids.add(image.id);
+    }
+  }
+  return [...ids].sort((a, b) => a - b);
+}

@@ -1,0 +1,106 @@
+/**
+ * @vitest-environment jsdom
+ */
+/// <reference types="@testing-library/jest-dom" />
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import validDataset from '../../tests/fixtures/schema/dataset-valid.json';
+import { OTCP_DATASET_SCHEMA_VERSION_LEGACY } from '../shared/schema/constants.ts';
+import { CardCatalogProvider } from './CardCatalogProvider.tsx';
+import { CardCatalogView } from './CardCatalogView.tsx';
+import { clearCardCatalogCache } from './loadCatalog.ts';
+
+function mockCatalogFetch(): void {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('data/current.json')) {
+        return new Response(
+          JSON.stringify({
+            schemaVersion: OTCP_DATASET_SCHEMA_VERSION_LEGACY,
+            datasetFile: 'data/datasets/sample-dev.json',
+            sha256: 'abc',
+            publishedAt: '2026-10-28T12:00:00.000Z',
+            cardCount: 1,
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+      if (url.includes('data/datasets/sample-dev.json')) {
+        return new Response(JSON.stringify(validDataset), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }),
+  );
+}
+
+function renderGrid() {
+  return render(
+    <MemoryRouter>
+      <CardCatalogProvider>
+        <CardCatalogView headingId="search-results" />
+      </CardCatalogProvider>
+    </MemoryRouter>,
+  );
+}
+
+afterEach(() => {
+  cleanup();
+  clearCardCatalogCache();
+  vi.unstubAllGlobals();
+});
+
+describe('CardCatalogView grid tiles', () => {
+  beforeEach(() => {
+    mockCatalogFetch();
+  });
+
+  it('shows art-only tiles with accessible names and no caption', async () => {
+    renderGrid();
+
+    const link = await screen.findByRole('link', { name: 'Blue-Eyes White Dragon' });
+    expect(link.className).not.toMatch(/\bborder-border\b/);
+    expect(link.className).not.toMatch(/\bbg-surface\b/);
+
+    const image = within(link).getByRole('presentation');
+    expect(image.tagName).toBe('IMG');
+    expect(image.getAttribute('loading')).toBe('lazy');
+    expect(image.getAttribute('alt')).toBe('');
+    expect(screen.queryByText('Blue-Eyes White Dragon', { selector: 'p' })).toBeNull();
+
+    const grid = link.closest('ul');
+    expect(grid?.className).toContain('lg:grid-cols-6');
+    expect(grid?.className).toContain('min-[360px]:grid-cols-4');
+    expect(grid?.className).not.toContain('grid-cols-3');
+    expect(grid?.className).not.toContain('grid-cols-5');
+    expect(grid?.className).not.toContain('grid-cols-8');
+    expect(grid?.className).not.toContain('grid-cols-10');
+  });
+
+  it('shows the card name on the no-image fallback', async () => {
+    renderGrid();
+
+    const link = await screen.findByRole('link', { name: 'Blue-Eyes White Dragon' });
+    const image = () => within(link).getByRole('presentation');
+    fireEvent.error(image());
+    await waitFor(() => {
+      expect(image().getAttribute('src')).toContain('images.ygoprodeck.com');
+    });
+    fireEvent.error(image());
+    await waitFor(() => {
+      expect(image().getAttribute('src')).toContain('/otcp/card-images/small/89631139.jpg');
+    });
+    fireEvent.error(image());
+
+    await waitFor(() => {
+      expect(within(link).getByText('Blue-Eyes White Dragon', { selector: 'span' })).toBeTruthy();
+      expect(within(link).queryByRole('presentation')).toBeNull();
+    });
+  });
+});

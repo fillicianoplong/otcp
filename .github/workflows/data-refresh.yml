@@ -1,0 +1,65 @@
+name: Data refresh
+
+on:
+  schedule:
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Fetch, validate, re-host images, publish pointer
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore prior published data from data-refresh
+        run: |
+          if git ls-remote --exit-code --heads origin data-refresh >/dev/null 2>&1; then
+            git fetch origin data-refresh --depth=1
+            git checkout origin/data-refresh -- public/data
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Run DataPipeline
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_PUBLIC_BASE_URL: https://pub-ab4ad1f6449441f2ac7f95e0c9369606.r2.dev
+        run: npm run pipeline:refresh
+
+      - name: Commit and push to data-refresh
+        run: |
+          git config user.name 'Filliciano Plong'
+          git config user.email '62613238+fillicianoplong@users.noreply.github.com'
+          git add public/data
+          if git diff --staged --quiet; then
+            echo 'No catalog changes to publish.'
+            exit 0
+          fi
+          git commit -m 'chore(data): refresh card catalog and images from YGOPRODeck'
+          data_refresh_sha="$(git ls-remote --heads origin data-refresh | cut -f1)"
+          if [ -n "$data_refresh_sha" ]; then
+            git push --force-with-lease="refs/heads/data-refresh:${data_refresh_sha}" origin HEAD:refs/heads/data-refresh
+          else
+            git push origin HEAD:data-refresh
+          fi

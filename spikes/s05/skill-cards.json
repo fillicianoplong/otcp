@@ -1,0 +1,751 @@
+{
+  "fetchedOn": "2026-10-28",
+  "source": "https://db.ygoprodeck.com/api/v7/cardinfo.php?type=Skill%20Card",
+  "count": 124,
+  "cards": [
+    {
+      "id": 300101001,
+      "name": "Ectoplasmic Fortification!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300101002,
+      "name": "Straight to the Grave",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300101003,
+      "name": "Call of the Haunted (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300101004,
+      "name": "Royal Flush",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300101005,
+      "name": "Tomb of the Pharaoh",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300102001,
+      "name": "The World's Greatest Fisherman",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300102002,
+      "name": "Mythic Depths",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300102003,
+      "name": "Catch of the Day",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300102004,
+      "name": "It's My Lucky Day!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300102005,
+      "name": "Viral Infection",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300103001,
+      "name": "Heavy Metal Raiders (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300103002,
+      "name": "Spell Proof Armor",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300103003,
+      "name": "Bandit",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300103004,
+      "name": "Servants of the Fallen King",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300103005,
+      "name": "Double Evolution Pill (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300104001,
+      "name": "Zombie Master (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300104002,
+      "name": "Terror from the Deep!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300104003,
+      "name": "Dino Destruction",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300104004,
+      "name": "Cocoon of Ultra Evolution (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300104005,
+      "name": "Switcheroo",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201001,
+      "name": "Power of Dark",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201002,
+      "name": "Destiny Draw (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201003,
+      "name": "Final Draw",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201004,
+      "name": "Prescience",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201005,
+      "name": "Gravekeeper's Lot",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201006,
+      "name": "Millennium Necklace (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201007,
+      "name": "It's a Toon World!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201008,
+      "name": "Mind Scan (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300201009,
+      "name": "Millennium Eye (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202001,
+      "name": "Peak Performance",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202002,
+      "name": "Beatdown!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202003,
+      "name": "Dragon Caller",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202004,
+      "name": "Grit",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202005,
+      "name": "Last Gamble",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202006,
+      "name": "Pal-O'Mine-zation!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202007,
+      "name": "Aroma Strategy (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202008,
+      "name": "Flight of the Harpies",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300202009,
+      "name": "Tribal Synergy",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300203001,
+      "name": "Dinosaur Kingdom",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300203002,
+      "name": "Nightmare Sonic Blast!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300203003,
+      "name": "Hyper Metamorphosis",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300203004,
+      "name": "Hidden Parasite",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300204001,
+      "name": "Ritual of Black Mastery",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300204002,
+      "name": "Knight of Legend",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300204003,
+      "name": "Thousand-Eyes Spell",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300204004,
+      "name": "Toon Mayhem!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300205001,
+      "name": "Inner Conflict",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300205002,
+      "name": "Into the Darkness Below",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300205003,
+      "name": "Shadow Reborn",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300205004,
+      "name": "Twisted Personality",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302001,
+      "name": "Fusion Party!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302002,
+      "name": "Ritual Ceremony",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302003,
+      "name": "Low Blow",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302004,
+      "name": "Digging for Gold",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302005,
+      "name": "Fury of Thunder",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302006,
+      "name": "Beasts of Phantom",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302007,
+      "name": "Endless Traps",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302008,
+      "name": "Guardians of the Tomb",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302009,
+      "name": "Hieratic Chant",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302010,
+      "name": "I'm Just Gonna Attack!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302011,
+      "name": "It's Jinzo!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302012,
+      "name": "It's No Monster, It's a God!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302013,
+      "name": "Magician's Act",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302014,
+      "name": "Magnetic Attraction",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302015,
+      "name": "No More Mrs. Nice Mai!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302016,
+      "name": "Power of Friendship",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302017,
+      "name": "Rise of the Fallen",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302018,
+      "name": "Spell of Mask",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302019,
+      "name": "The Psychic Duelist",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302020,
+      "name": "Union Combination",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302021,
+      "name": "Power Up!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302022,
+      "name": "Ancient Fusion",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302023,
+      "name": "Armed and Ready!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302024,
+      "name": "Blaze Accelerator Deployment (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302025,
+      "name": "Consumed By Darkness",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302026,
+      "name": "Crystal Transcendence",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302027,
+      "name": "Cyber Blade Fusion",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302028,
+      "name": "Cyberdark Style (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302029,
+      "name": "Energizing Elements",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302030,
+      "name": "Forbidden Cyber Style Technique",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302031,
+      "name": "Here Goes Something!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302032,
+      "name": "I've Got Dino DNA!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302033,
+      "name": "Land of the Ojamas (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302034,
+      "name": "Looking into the Future",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302035,
+      "name": "Machine Angel Ascension",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302036,
+      "name": "Middle Age Mechs (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302037,
+      "name": "Powerful Group of Guys",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302038,
+      "name": "Rainbow Crystal Collection",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302039,
+      "name": "Room for Growth",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302041,
+      "name": "The Right Hero for the Job",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302042,
+      "name": "Volcanic Cannon",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302043,
+      "name": "Behold, Gate Guardian!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302044,
+      "name": "Believe in your Bro",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302045,
+      "name": "Beware the Brothers Paradox!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302046,
+      "name": "Chemistry in Motion",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302047,
+      "name": "Chillin' Outback",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302048,
+      "name": "Elements of Thunder, Water, and Wind",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302049,
+      "name": "HERO World",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302050,
+      "name": "HEROES UNITE - FUSION!!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302051,
+      "name": "Power Bond (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302052,
+      "name": "Small Roid Big City",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302053,
+      "name": "Spell of Mask (Skill Card)",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302054,
+      "name": "The Roids are Alright",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302055,
+      "name": "Under Pressure",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302056,
+      "name": "Ancient Ruler Rises",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302057,
+      "name": "Archfiend's Conscription",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302058,
+      "name": "Archfiend's Promotion",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302059,
+      "name": "Cloudy Skies of Grey",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302060,
+      "name": "Cold-Blooded Tactician",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302061,
+      "name": "Dark Creation",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302062,
+      "name": "Dark Unity",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302063,
+      "name": "Delicious Morsel!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302064,
+      "name": "Dragon Force",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302065,
+      "name": "Fog Warning",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302066,
+      "name": "Forged Steel",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302068,
+      "name": "No One Suspects the Dark Scorpion Gang!",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302069,
+      "name": "Order of the Queen",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302070,
+      "name": "Professor of Alchemy",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302071,
+      "name": "Ruthless Means",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302072,
+      "name": "Setting Sun",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302073,
+      "name": "Unlocking the Power",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302074,
+      "name": "Vampiric Aristocracy",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302075,
+      "name": "Victory of the Shadow Riders",
+      "type": "Skill Card",
+      "frameType": "skill"
+    },
+    {
+      "id": 300302076,
+      "name": "Welcome to the Jungle",
+      "type": "Skill Card",
+      "frameType": "skill"
+    }
+  ]
+}

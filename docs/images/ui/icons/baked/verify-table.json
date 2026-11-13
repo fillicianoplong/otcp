@@ -1,0 +1,703 @@
+{
+  "rendered_y0y1": [
+    {
+      "name": "Sample Dragon Alpha",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Placeholder Tuner Beta",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Demo Spell Gamma",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Mock Trap Delta",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Sample Fusion Epsilon",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Placeholder Synchro Zeta",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Demo Contin. Eta",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Mock Quick Theta",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Sample Link Iota",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Placeholder Ritual Kappa",
+      "y0": 0,
+      "y1": 31,
+      "H": 34,
+      "vis": 32
+    },
+    {
+      "name": "Demo Counter Lambda",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    },
+    {
+      "name": "Mock Equip Mu",
+      "y0": 0,
+      "y1": 33,
+      "H": 34,
+      "vis": 34
+    }
+  ],
+  "dom": [
+    {
+      "name": "Sample Dragon Alpha",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-normal.png",
+          "w": 12,
+          "h": 16,
+          "top": -44.859375,
+          "bottom": -28.859375,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/attr-light.png",
+          "w": 16,
+          "h": 16,
+          "top": -44.859375,
+          "bottom": -28.859375,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/race-dragon.png",
+          "w": 16,
+          "h": 16,
+          "top": -44.859375,
+          "bottom": -28.859375,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/level.png",
+          "w": 16,
+          "h": 16,
+          "top": -44.859375,
+          "bottom": -28.859375,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/atk.png",
+          "w": 16,
+          "h": 16,
+          "top": -44.859375,
+          "bottom": -28.859375,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/def.png",
+          "w": 16,
+          "h": 16,
+          "top": -44.859375,
+          "bottom": -28.859375,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Placeholder Tuner Beta",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-effect.png",
+          "w": 12,
+          "h": 16,
+          "top": 24.140625,
+          "bottom": 40.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/attr-fire.png",
+          "w": 16,
+          "h": 16,
+          "top": 24.140625,
+          "bottom": 40.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/race-zombie.png",
+          "w": 16,
+          "h": 16,
+          "top": 24.140625,
+          "bottom": 40.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/level.png",
+          "w": 16,
+          "h": 16,
+          "top": 24.140625,
+          "bottom": 40.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/atk.png",
+          "w": 16,
+          "h": 16,
+          "top": 24.140625,
+          "bottom": 40.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/def.png",
+          "w": 16,
+          "h": 16,
+          "top": 24.140625,
+          "bottom": 40.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Demo Spell Gamma",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-spell.png",
+          "w": 12,
+          "h": 16,
+          "top": 93.140625,
+          "bottom": 109.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/prop-normal.png",
+          "w": 16,
+          "h": 16,
+          "top": 93.140625,
+          "bottom": 109.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Mock Trap Delta",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-trap.png",
+          "w": 12,
+          "h": 16,
+          "top": 162.140625,
+          "bottom": 178.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/prop-normal.png",
+          "w": 16,
+          "h": 16,
+          "top": 162.140625,
+          "bottom": 178.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Sample Fusion Epsilon",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-fusion.png",
+          "w": 12,
+          "h": 16,
+          "top": 231.140625,
+          "bottom": 247.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/attr-dark.png",
+          "w": 16,
+          "h": 16,
+          "top": 231.140625,
+          "bottom": 247.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/race-dragon.png",
+          "w": 16,
+          "h": 16,
+          "top": 231.140625,
+          "bottom": 247.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/level.png",
+          "w": 16,
+          "h": 16,
+          "top": 231.140625,
+          "bottom": 247.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/atk.png",
+          "w": 16,
+          "h": 16,
+          "top": 231.140625,
+          "bottom": 247.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/def.png",
+          "w": 16,
+          "h": 16,
+          "top": 231.140625,
+          "bottom": 247.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Placeholder Synchro Zeta",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-synchro.png",
+          "w": 12,
+          "h": 16,
+          "top": 300.140625,
+          "bottom": 316.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/attr-wind.png",
+          "w": 16,
+          "h": 16,
+          "top": 300.140625,
+          "bottom": 316.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/race-dragon.png",
+          "w": 16,
+          "h": 16,
+          "top": 300.140625,
+          "bottom": 316.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/level.png",
+          "w": 16,
+          "h": 16,
+          "top": 300.140625,
+          "bottom": 316.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/atk.png",
+          "w": 16,
+          "h": 16,
+          "top": 300.140625,
+          "bottom": 316.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/def.png",
+          "w": 16,
+          "h": 16,
+          "top": 300.140625,
+          "bottom": 316.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Demo Contin. Eta",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-spell.png",
+          "w": 12,
+          "h": 16,
+          "top": 369.140625,
+          "bottom": 385.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/prop-continuous.png",
+          "w": 15,
+          "h": 16,
+          "top": 369.140625,
+          "bottom": 385.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 15,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Mock Quick Theta",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-spell.png",
+          "w": 12,
+          "h": 16,
+          "top": 438.140625,
+          "bottom": 454.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/prop-quick-play.png",
+          "w": 15.5,
+          "h": 16,
+          "top": 438.140625,
+          "bottom": 454.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 15,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Sample Link Iota",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-link.png",
+          "w": 12,
+          "h": 16,
+          "top": 507.140625,
+          "bottom": 523.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/attr-dark.png",
+          "w": 16,
+          "h": 16,
+          "top": 507.140625,
+          "bottom": 523.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/race-cyberse.png",
+          "w": 16,
+          "h": 16,
+          "top": 507.140625,
+          "bottom": 523.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico meta-link-ico",
+          "src": "row-32/link-3-top-bl-br.png",
+          "w": 16,
+          "h": 16,
+          "top": 507.140625,
+          "bottom": 523.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/atk.png",
+          "w": 16,
+          "h": 16,
+          "top": 507.140625,
+          "bottom": 523.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Placeholder Ritual Kappa",
+      "icons": [
+        {
+          "cls": "meta-ico",
+          "src": "row-32/attr-light.png",
+          "w": 16,
+          "h": 16,
+          "top": 576.140625,
+          "bottom": 592.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/race-fairy.png",
+          "w": 16,
+          "h": 16,
+          "top": 576.140625,
+          "bottom": 592.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/level.png",
+          "w": 16,
+          "h": 16,
+          "top": 576.140625,
+          "bottom": 592.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/atk.png",
+          "w": 16,
+          "h": 16,
+          "top": 576.140625,
+          "bottom": 592.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/def.png",
+          "w": 16,
+          "h": 16,
+          "top": 576.140625,
+          "bottom": 592.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Demo Counter Lambda",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-trap.png",
+          "w": 12,
+          "h": 16,
+          "top": 645.140625,
+          "bottom": 661.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/prop-counter.png",
+          "w": 17,
+          "h": 16,
+          "top": 645.140625,
+          "bottom": 661.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 17,
+          "natH": 16
+        }
+      ]
+    },
+    {
+      "name": "Mock Equip Mu",
+      "icons": [
+        {
+          "cls": "meta-ico meta-frame-ico",
+          "src": "row-32/frame-spell.png",
+          "w": 12,
+          "h": 16,
+          "top": 714.140625,
+          "bottom": 730.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 12,
+          "natH": 16
+        },
+        {
+          "cls": "meta-ico",
+          "src": "row-32/prop-equip.png",
+          "w": 16,
+          "h": 16,
+          "top": 714.140625,
+          "bottom": 730.140625,
+          "overflow": "visible",
+          "objectFit": "fill",
+          "natW": 16,
+          "natH": 16
+        }
+      ]
+    }
+  ],
+  "baked_fails": []
+}

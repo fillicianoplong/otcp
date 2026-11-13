@@ -1,0 +1,16 @@
+# Ink token contrast pairs (WCAG 2.2 AA). Format: theme foreground background minimum_ratio
+# Primary text and headings: 4.5:1. Control borders (border-strong on surface): 3:1.
+
+light --color-text --color-bg 4.5
+light --color-text --color-surface 4.5
+light --color-text-2 --color-bg 4.5
+light --color-heading --color-bg 4.5
+light --color-on-accent --color-accent 4.5
+light --color-border-strong --color-surface 3.0
+
+dark --color-text --color-bg 4.5
+dark --color-text --color-surface 4.5
+dark --color-text-2 --color-bg 4.5
+dark --color-heading --color-bg 4.5
+dark --color-on-accent --color-accent 4.5
+dark --color-border-strong --color-surface 3.0

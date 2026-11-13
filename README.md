@@ -1,0 +1,58 @@
+# OTCP (Open TCG Project)
+
+Fast web card lookup for trading card game players — search, formats, banlists, deck builder, Lists, and collection. Yu-Gi-Oh! first. Hosted under `/otcp/` on GitHub Pages.
+
+**Status:** The app shell, card data, and search are live at [https://fillicianoplong.github.io/otcp/](https://fillicianoplong.github.io/otcp/). CI is set up.
+
+**Search** loads the full YGOPRODeck catalog (about 14.5k cards) with name and passcode search, infinite scroll in batches, and a card detail page. Detail shows snapshot prices from TCGplayer, CoolStuffInc, and Cardmarket, plus store links that open in a new tab. Card art uses same-origin small images served from the site.
+
+**Card data:** [`.github/workflows/data-refresh.yml`](.github/workflows/data-refresh.yml) runs weekly and on manual dispatch. It fetches the catalog, validates it through the DataPipeline, re-hosts small images on GitHub Pages, uploads full-size art to Cloudflare R2 as WebP, and publishes to the **`data-refresh`** branch. The [Pages deploy workflow](.github/workflows/pages.yml) overlays that published data (and small card images) onto each production build. For local dev, `public/data/current.json` points at the small sample dataset in `public/data/datasets/sample-dev.json`.
+
+**R2 large images:** Full-size card art is stored in the `otcp-card-images` bucket and served from the public R2 base URL configured in the data-refresh workflow (`R2_PUBLIC_BASE_URL`). The scheduled refresh step needs repository secrets `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY` (Object Read & Write on that bucket). Forks and pull request CI omit those secrets, so the pipeline skips the upload and still publishes the catalog with R2 URLs in `images.large`.
+
+## Getting started
+
+Requires **Node 22** (see `.nvmrc` and `package.json` `engines`).
+
+| Script | Purpose |
+|---|---|
+| `npm start` | Dev server (same as `npm run dev`) |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright smoke tests (Chromium) |
+| `npm run check` | Typecheck, lint, format check, unit tests, and license scan |
+| `npm run notices:generate` | Regenerate `src/data/notices.json` from dependencies |
+
+Pushes to **`main`** deploy the app to GitHub Pages via [`.github/workflows/pages.yml`](.github/workflows/pages.yml). The workflow runs a post-deploy smoke check against the published URL.
+
+The GitHub Pages source must be set to GitHub Actions in repository settings by the repository owner before the deploy workflow can publish. A pull request cannot change that setting.
+
+## Issues and pull requests
+
+Every pull request links an issue with `Closes #N` and is one commit. Issue titles are short plain descriptions. Spikes are `Spike S-NN: …`. Docs are `Docs: …`. Each issue has one priority label and one type label.
+
+## Tests and CI
+
+CI runs these checks on pull requests and on pushes to `main`.
+
+- `npm ci` installs dependencies from the lockfile.
+- `npm run typecheck` typechecks the TypeScript.
+- `npm run lint` runs ESLint.
+- `npm run format:check` checks formatting with Prettier.
+- `npm run test` runs the Vitest unit tests.
+- `npm run test:e2e` runs the Chromium Playwright smoke test and the visual layout screenshots.
+
+### Visual baselines
+
+Screenshot checks live in `e2e/visual.spec.ts`. They cover the viewport of Search, card details, Formats, the deck editor, and `/styleguide`, plus the Sets section, at 390, 768, 1280, and 1920 CSS pixels. The shots use Liberation Sans and hidden scrollbars. CI fails when a screenshot differs from the committed baseline beyond rendering noise. A column or spacing change still fails.
+
+After an intentional layout change, refresh the baselines and commit the new PNGs:
+
+```bash
+npm run test:e2e -- e2e/visual.spec.ts --update-snapshots
+```
+
+## License
+
+MIT.

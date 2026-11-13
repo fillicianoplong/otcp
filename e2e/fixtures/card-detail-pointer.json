@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0.0",
+  "datasetFile": "data/datasets/card-detail-e2e.json",
+  "sha256": "e2e-card-detail-fixture",
+  "publishedAt": "2026-10-28T12:00:00.000Z",
+  "cardCount": 23
+}

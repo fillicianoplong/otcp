@@ -1,0 +1,114 @@
+@import 'tailwindcss';
+@import './styles/tokens.css';
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-text: var(--color-text);
+  --color-text-2: var(--color-text-2);
+  --color-heading: var(--color-heading);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-accent: var(--color-accent);
+  --color-on-accent: var(--color-on-accent);
+  --color-ban-forbidden: var(--color-ban-forbidden);
+  --color-ban-limited: var(--color-ban-limited);
+  --color-ban-semi: var(--color-ban-semi);
+  --color-ban-unlimited: var(--color-ban-unlimited);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --text-2xs: var(--text-2xs);
+  --text-2xs--line-height: 1;
+  --text-xs: var(--text-xs);
+  --text-xs--line-height: 1rem;
+  --text-sm: var(--text-sm);
+  --text-sm--line-height: 1.25rem;
+  --text-base: var(--text-base);
+  --text-base--line-height: 1.5rem;
+  --text-lg: var(--text-lg);
+  --text-lg--line-height: 1.75rem;
+  --text-xl: var(--text-xl);
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: var(--text-2xl);
+  --text-2xl--line-height: 2rem;
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-pill);
+
+  --spacing-control: var(--control-compact);
+  --spacing-control-x: var(--control-pad-x);
+  --spacing-touch: var(--touch-min);
+  --spacing-thumb: var(--tile-thumb);
+  --spacing-tile: var(--tile-gap);
+  --spacing-catalog: var(--tile-gap-catalog);
+  --spacing-catalog-wide: var(--tile-gap-catalog-wide);
+  --spacing-reading: var(--measure);
+  --spacing-form: var(--measure-form);
+
+  --aspect-card: 59 / 86;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: var(--radius-pill);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-thumb-active);
+}
+
+/* Full-row Formats links: other cells are hit targets, nested controls stay on top. */
+.formats-data-row:has([data-formats-row-link]:focus-visible) {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: -2px;
+}
+
+.formats-data-row
+  :is(a, button, input, select, textarea, [role='button']):not([data-formats-row-link]):not(
+    [data-formats-row-hit]
+  ) {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

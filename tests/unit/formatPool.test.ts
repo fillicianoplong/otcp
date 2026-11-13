@@ -1,0 +1,77 @@
+import { describe, expect, it } from 'vitest';
+
+import { isCardInFormatPool } from '../../src/format/formatPool.ts';
+import type { YugiohCard } from '../../src/shared/schema/card.ts';
+import type { SetIndex } from '../../src/shared/schema/setIndex.ts';
+
+const setIndex: SetIndex = {
+  'Dark Beginning 2': { tcgDate: '2005-03-08' },
+  'Cybernetic Revolution': { tcgDate: '2005-08-17' },
+  'Shadow of Infinity': { tcgDate: '2005-10-20' },
+  'Generation Force': { tcgDate: '2011-08-16' },
+  'Photon Shockwave': { tcgDate: '2011-11-15' },
+  'Duelist Pack: Kaiba': { tcgDate: '2010-04-16' },
+  'The Shining Darkness': { tcgDate: '2010-05-07' },
+  'Starstrike Blast': { tcgDate: '2010-11-11' },
+};
+
+function cardInSet(id: number, name: string, setName: string): YugiohCard {
+  return {
+    schemaVersion: '1.0.0',
+    id,
+    name,
+    type: 'Monster',
+    text: '',
+    images: { small: '/s.webp', large: '/l.webp' },
+    sets: [{ setName, setCode: 'DB2', setRarity: 'Common' }],
+    race: 'Warrior',
+  };
+}
+
+describe('formatPool tcg-earliest-on-or-before', () => {
+  it('includes a DB2 card in GOAT and excludes post-August 2005 sets', () => {
+    const inPool = cardInSet(1, 'In pool', 'Dark Beginning 2');
+    const outOfPool = cardInSet(2, 'Out of pool', 'Shadow of Infinity');
+    expect(isCardInFormatPool(inPool, 'goat', setIndex)).toBe(true);
+    expect(isCardInFormatPool(outOfPool, 'goat', setIndex)).toBe(false);
+  });
+
+  it('includes Generation Force in Tengu and excludes later sets', () => {
+    const inPool = cardInSet(3, 'GF card', 'Generation Force');
+    const outOfPool = cardInSet(4, 'Later set', 'Photon Shockwave');
+    expect(isCardInFormatPool(inPool, 'tengu', setIndex)).toBe(true);
+    expect(isCardInFormatPool(outOfPool, 'tengu', setIndex)).toBe(false);
+  });
+
+  it('includes Duelist Pack: Kaiba in Edison and excludes later 2010 sets', () => {
+    const inPool = cardInSet(7, 'DPKB card', 'Duelist Pack: Kaiba');
+    const outOfPool = cardInSet(8, 'Post-Edison pool', 'The Shining Darkness');
+    const later = cardInSet(9, 'Later era', 'Starstrike Blast');
+    expect(isCardInFormatPool(inPool, 'edison', setIndex)).toBe(true);
+    expect(isCardInFormatPool(outOfPool, 'edison', setIndex)).toBe(false);
+    expect(isCardInFormatPool(later, 'edison', setIndex)).toBe(false);
+  });
+
+  it('excludes cards with no resolvable earliest TCG date from historical pools', () => {
+    const unknown: YugiohCard = {
+      ...cardInSet(5, 'Unknown date', 'Missing from index'),
+      sets: [{ setName: 'Missing from index', setCode: 'X', setRarity: 'Common' }],
+    };
+    expect(isCardInFormatPool(unknown, 'goat', setIndex)).toBe(false);
+  });
+
+  it('keeps the full TCG pool for Advanced', () => {
+    const future = cardInSet(6, 'Future', 'Photon Shockwave');
+    expect(isCardInFormatPool(future, 'advanced', setIndex)).toBe(true);
+  });
+
+  it('uses speedDuelLegal for Speed Duel and excludes other TCG cards', () => {
+    const legal: YugiohCard = {
+      ...cardInSet(10, 'Speed card', 'Metal Raiders'),
+      speedDuelLegal: true,
+    };
+    const illegal = cardInSet(11, 'TCG only', 'Metal Raiders');
+    expect(isCardInFormatPool(legal, 'speed-duel', setIndex)).toBe(true);
+    expect(isCardInFormatPool(illegal, 'speed-duel', setIndex)).toBe(false);
+  });
+});

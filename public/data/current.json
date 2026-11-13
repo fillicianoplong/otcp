@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "2.0.0",
+  "searchIndexFile": "data/datasets/search-2026-11-15T13-21-51Z.json",
+  "searchIndexSha256": "4e3b40f4dfd92d322e07c7a918599e3bd7f3890f699f0ba02d69e4d8bc88d6af",
+  "detailsPrefix": "data/datasets/details-2026-11-15T13-21-51Z/",
+  "detailsBucketSize": 500,
+  "detailBucketCount": 30,
+  "publishedAt": "2026-11-15T13:21:51.437Z",
+  "cardCount": 14574
+}

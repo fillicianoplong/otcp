@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="ringOuter" x1="0.2" y1="0.05" x2="0.8" y2="0.95">
+      <stop offset="0%" stop-color="#f4f6f9"/>
+      <stop offset="40%" stop-color="#b8bec8"/>
+      <stop offset="70%" stop-color="#7e8694"/>
+      <stop offset="100%" stop-color="#dfe3ea"/>
+    </linearGradient>
+    <linearGradient id="ringInner" x1="0.3" y1="0.15" x2="0.7" y2="0.85">
+      <stop offset="0%" stop-color="#6a7180"/>
+      <stop offset="100%" stop-color="#3a404c"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0.25" y1="0.15" x2="0.8" y2="0.9">
+      <stop offset="0%" stop-color="#4a5160"/>
+      <stop offset="45%" stop-color="#1a1d24"/>
+      <stop offset="100%" stop-color="#07080c"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30.5" fill="url(#ringOuter)"/>
+  <circle cx="32" cy="32" r="26.2" fill="url(#ringInner)"/>
+  <circle cx="32" cy="32" r="24.2" fill="url(#face)"/>
+  <ellipse cx="24" cy="22" rx="10" ry="7" fill="#ffffff" opacity="0.07"/>
+  <g fill="#ffffff" transform="translate(32,32) rotate(42) translate(-32,-32)">
+    <path d="M30.0 9.8 L34.0 9.8 L34.8 33.8 L29.2 33.8 Z"/>
+    <path d="M30.0 9.8 L32 5.5 L34.0 9.8 Z"/>
+    <rect x="23.8" y="33.4" width="16.4" height="3.4" rx="0.9"/>
+    <rect x="29.9" y="36.6" width="4.2" height="11.2" rx="1.1"/>
+    <circle cx="32" cy="49.2" r="2.55"/>
+  </g>
+</svg>

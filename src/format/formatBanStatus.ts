@@ -1,0 +1,93 @@
+import type { BanDisplayStatus } from '../catalog/formatBanContext.ts';
+import type { YugiohCard } from '../shared/schema/card.ts';
+import { isBanlistSnapshotFormatId, resolveSnapshotBanStatus } from './banlistSnapshots.ts';
+import { getFormatById, normalizeFormatId } from './formatCatalog.ts';
+import { resolveTcgDatedBanStatus } from './tcgBanlistLookup.ts';
+
+type TcgBanField = 'banTcg';
+
+type SpeedDuelBanField = 'banSpeedDuel';
+
+function tcgBanStatus(card: YugiohCard): BanDisplayStatus | undefined {
+  return card.banlistInfo?.banTcg;
+}
+
+function tcgBanFieldForFormat(): TcgBanField {
+  return 'banTcg';
+}
+
+function speedDuelBanField(): SpeedDuelBanField {
+  return 'banSpeedDuel';
+}
+
+/** Raw TCG list status before Traditional remapping. */
+export function resolveAdvancedBanStatus(card: YugiohCard): BanDisplayStatus | null {
+  const status = tcgBanStatus(card);
+  return status ?? null;
+}
+
+/**
+ * Ban status shown in UI for the active format, or null when Unlimited / no restriction marker.
+ * Traditional maps Advanced Forbidden → Limited.
+ */
+export function resolveFormatBanStatus(
+  card: YugiohCard,
+  formatParam: string | null | undefined,
+): BanDisplayStatus | null {
+  const formatId = normalizeFormatId(formatParam);
+  if (!formatId) return null;
+
+  const format = getFormatById(formatId);
+  if (!format) return null;
+
+  if (format.banlistSource === 'genesys-points') {
+    return null;
+  }
+
+  let raw: BanDisplayStatus | null;
+
+  if (format.banlistSource === 'curated-snapshot' && isBanlistSnapshotFormatId(formatId)) {
+    raw = resolveSnapshotBanStatus(formatId, card.id, card.passcode);
+  } else if (format.banlistSource === 'tcg-dated-list' && format.banlistEffectiveDate) {
+    raw = resolveTcgDatedBanStatus(format.banlistEffectiveDate, card.id);
+  } else if (formatId === 'speed-duel') {
+    const field = speedDuelBanField();
+    raw = card.banlistInfo?.[field] ?? card.banlistInfo?.banTcg ?? null;
+  } else {
+    const field = tcgBanFieldForFormat();
+    raw = card.banlistInfo?.[field] ?? null;
+  }
+
+  if (!raw) return null;
+
+  if (format.traditionalForbiddenAsLimited && raw === 'Forbidden') {
+    return 'Limited';
+  }
+
+  return raw;
+}
+
+/** Maximum deck copies allowed for a card under the active format banlist. */
+export function maxCopiesForFormatBanStatus(status: BanDisplayStatus | null): number {
+  if (!status) return 3;
+  switch (status) {
+    case 'Forbidden':
+      return 0;
+    case 'Limited':
+      return 1;
+    case 'Semi-Limited':
+      return 2;
+    default:
+      return 3;
+  }
+}
+
+export function maxCopiesForCardInFormat(
+  card: YugiohCard,
+  formatParam: string | null | undefined,
+): number {
+  if (normalizeFormatId(formatParam) === 'genesys') {
+    return 3;
+  }
+  return maxCopiesForFormatBanStatus(resolveFormatBanStatus(card, formatParam));
+}

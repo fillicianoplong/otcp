@@ -1,0 +1,64 @@
+[
+  {
+    "id": 46986420,
+    "name": "Dark Magician",
+    "desc": "The ultimate wizard in terms of attack and defense.",
+    "type": "Normal Monster",
+    "race": "Spellcaster",
+    "attribute": "DARK",
+    "level": 7,
+    "atk": 2500,
+    "def": 2100,
+    "archetype": "Dark Magician"
+  },
+  {
+    "id": 89631139,
+    "name": "Blue-Eyes White Dragon",
+    "desc": "This legendary dragon is a powerful engine of destruction.",
+    "type": "Normal Monster",
+    "race": "Dragon",
+    "attribute": "LIGHT",
+    "level": 8,
+    "atk": 3000,
+    "def": 2500,
+    "archetype": "Blue-Eyes"
+  },
+  {
+    "id": 14558127,
+    "name": "Ash Blossom & Joyous Spring",
+    "desc": "When a card or effect is activated that includes any of these effects (Quick Effect): You can discard this card; negate that effect.",
+    "type": "Tuner Monster",
+    "race": "Zombie",
+    "attribute": "FIRE",
+    "level": 3,
+    "atk": 0,
+    "def": 1800,
+    "banTcg": "Limited"
+  },
+  {
+    "id": 86066372,
+    "name": "Accesscode Talker",
+    "desc": "2+ Effect Monsters. If this card is Link Summoned: You can target 1 Link Monster in your GY; this card gains ATK equal to that target's Link Rating times 1000.",
+    "type": "Link Monster",
+    "race": "Cyberse",
+    "attribute": "DARK",
+    "linkval": 4,
+    "atk": 2300,
+    "archetype": "Code Talker"
+  },
+  {
+    "id": 83764719,
+    "name": "Monster Reborn",
+    "desc": "Target 1 monster in either GY; Special Summon it.",
+    "type": "Spell Card",
+    "race": "Normal",
+    "banTcg": "Limited"
+  },
+  {
+    "id": 53129443,
+    "name": "Dark Hole",
+    "desc": "Destroy all monsters on the field.",
+    "type": "Spell Card",
+    "race": "Normal"
+  }
+]

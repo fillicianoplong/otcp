@@ -1,0 +1,792 @@
+import type { ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+
+import {
+  facetDefinitionById,
+  facetDefinitionsForGame,
+  facetDisplayLabel,
+  SEARCH_FACET_FIELD_ORDER,
+  type FacetDefinition,
+  type FacetFieldId,
+} from './facets.ts';
+import { formatFacetOptionLabel, sortFacetOptionsForDisplay } from './facetOptionOrdering.ts';
+import type { SetIndex } from '../shared/schema/setIndex.ts';
+import { Button } from '../ui/Button.tsx';
+import { Input } from '../ui/Input.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
+import type {
+  FacetGroupCounts,
+  FacetNumericRange,
+  FilterState,
+  FilterStateUpdater,
+} from './filterEngine.ts';
+import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
+import { CollapsibleFilterSection, FORMAT_FILTER_SECTION_ID } from './CollapsibleFilterSection.tsx';
+import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
+import { CatalogSortControls } from './CatalogSortControls.tsx';
+import type { CatalogTableSortState } from './catalogTableSort.ts';
+import type { FormatId } from '../format/formatCatalog.ts';
+
+const LINK_ARROW_VALUES = [
+  'Top',
+  'Bottom',
+  'Left',
+  'Right',
+  'Top-Left',
+  'Top-Right',
+  'Bottom-Left',
+  'Bottom-Right',
+] as const;
+
+import {
+  FACET_OPTION_LIST_SCROLL_CAP_PX,
+  facetOptionListShowsSearch,
+  facetOptionListUsesInnerScroll,
+  facetOptionShowMoreLess,
+  facetOptionVisibleCount,
+  isLongFacetOptionList,
+} from './facetOptionListLayout.ts';
+
+function selectionForField(state: FilterState, fieldId: FacetFieldId) {
+  return state.facets[fieldId];
+}
+
+function optionCountForValue(counts: FacetGroupCounts | undefined, value: string): number {
+  return counts?.options.find((opt) => opt.value === value)?.count ?? 0;
+}
+
+function facetHasActiveSelection(definition: FacetDefinition, filterState: FilterState): boolean {
+  const selection = filterState.facets[definition.id];
+  if (!selection) return false;
+  return (
+    (selection.include?.length ?? 0) > 0 ||
+    (selection.exclude?.length ?? 0) > 0 ||
+    selection.range?.min != null ||
+    selection.range?.max != null
+  );
+}
+
+const SEARCH_FACET_FIELD_RANK = new Map(
+  SEARCH_FACET_FIELD_ORDER.map((id, index) => [id, index] as const),
+);
+
+/** Unknown catalog facets render after Category and before Attribute. */
+function searchFacetFieldSortRank(fieldId: FacetFieldId): number {
+  const rank = SEARCH_FACET_FIELD_RANK.get(fieldId);
+  if (rank != null) return rank;
+  const categoryRank = SEARCH_FACET_FIELD_RANK.get('cardType') ?? 0;
+  const attributeRank = SEARCH_FACET_FIELD_RANK.get('attribute') ?? categoryRank + 1;
+  return categoryRank + 0.5 + (attributeRank - categoryRank) * 0.001;
+}
+
+function orderFacetDefinitionsForPanel(definitions: readonly FacetDefinition[]): FacetDefinition[] {
+  return [...definitions].sort((a, b) => {
+    const rankDiff = searchFacetFieldSortRank(a.id) - searchFacetFieldSortRank(b.id);
+    if (rankDiff !== 0) return rankDiff;
+    return a.id.localeCompare(b.id);
+  });
+}
+
+function facetHasVisibleOptions(
+  definition: FacetDefinition,
+  counts: FacetGroupCounts | undefined,
+  filterState: FilterState,
+): boolean {
+  if (facetHasActiveSelection(definition, filterState)) return true;
+
+  if (definition.control === 'linkArrows') {
+    return LINK_ARROW_VALUES.some((value) => optionCountForValue(counts, value) > 0);
+  }
+
+  const selection = filterState.facets[definition.id];
+  const includeSet = new Set(selection?.include ?? []);
+  const excludeSet = new Set(selection?.exclude ?? []);
+  const options =
+    counts?.options.filter(
+      (opt) => opt.count > 0 || includeSet.has(opt.value) || excludeSet.has(opt.value),
+    ) ?? [];
+  return options.length > 0;
+}
+
+function rangeBucketLabel(value: string): string {
+  if (value === '?') return '?';
+  if (value === '0') return '0';
+  if (value === '3001+') return '3001+';
+  return value.replace('-', '–');
+}
+
+function parseRangeInput(raw: string, allowDecimals: boolean): number | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  const n = allowDecimals ? Number(trimmed) : Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(n)) return undefined;
+  return n;
+}
+
+function FacetCustomRangeInputs({
+  fieldId,
+  range,
+  allowDecimals,
+  onApply,
+}: {
+  fieldId: FacetFieldId;
+  range: FacetNumericRange | undefined;
+  allowDecimals: boolean;
+  onApply: (range: FacetNumericRange | undefined) => void;
+}) {
+  const [minDraft, setMinDraft] = useState(() => (range?.min != null ? String(range.min) : ''));
+  const [maxDraft, setMaxDraft] = useState(() => (range?.max != null ? String(range.max) : ''));
+
+  const commit = () => {
+    const min = parseRangeInput(minDraft, allowDecimals);
+    const max = parseRangeInput(maxDraft, allowDecimals);
+    if (min != null && max != null && min > max) {
+      onApply({ min: max, max: min });
+      setMinDraft(String(Math.min(min, max)));
+      setMaxDraft(String(Math.max(min, max)));
+      return;
+    }
+    if (min == null && max == null) {
+      onApply(undefined);
+      return;
+    }
+    onApply({ min, max });
+  };
+
+  const fieldLabel = facetDisplayLabel(facetDefinitionById(fieldId)!);
+
+  return (
+    <div className="mb-3 grid grid-cols-2 gap-2">
+      <Input
+        field="compact"
+        type="number"
+        inputMode={allowDecimals ? 'decimal' : 'numeric'}
+        step={allowDecimals ? '0.01' : '1'}
+        value={minDraft}
+        onChange={(event) => setMinDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            commit();
+          }
+        }}
+        placeholder="Min"
+        aria-label={`${fieldLabel} minimum`}
+      />
+      <Input
+        field="compact"
+        type="number"
+        inputMode={allowDecimals ? 'decimal' : 'numeric'}
+        step={allowDecimals ? '0.01' : '1'}
+        value={maxDraft}
+        onChange={(event) => setMaxDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            commit();
+          }
+        }}
+        placeholder="Max"
+        aria-label={`${fieldLabel} maximum`}
+      />
+    </div>
+  );
+}
+
+type FacetFilterPanelProps = {
+  filterState: FilterState;
+  groupCounts: readonly FacetGroupCounts[];
+  catalogFieldIds: readonly FacetFieldId[];
+  onChange: (next: FilterStateUpdater) => void;
+  className?: string;
+  setIndex?: SetIndex | null;
+  activeFormatId?: FormatId | null;
+  onFormatChange?: (formatId: FormatId | null) => void;
+  /** Search can return to every card. A deck always keeps a format. */
+  formatAllowEmpty?: boolean;
+  /** Shared grid and table sort. Omitted on panels that do not sort the catalog. */
+  sort?: CatalogTableSortState;
+  onSortChange?: (next: CatalogTableSortState) => void;
+};
+
+export function FacetFilterPanel({
+  filterState,
+  groupCounts,
+  catalogFieldIds,
+  onChange,
+  className,
+  setIndex,
+  activeFormatId = null,
+  onFormatChange,
+  formatAllowEmpty = true,
+  sort,
+  onSortChange,
+}: FacetFilterPanelProps) {
+  const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
+  const countsByField = useMemo(() => {
+    const map = new Map<FacetFieldId, FacetGroupCounts>();
+    for (const group of groupCounts) map.set(group.fieldId, group);
+    return map;
+  }, [groupCounts]);
+
+  const [collapsedFields, setCollapsedFields] = useState<Record<string, boolean>>({});
+  const toggleField = (fieldId: string) => {
+    setCollapsedFields((current) => ({ ...current, [fieldId]: !current[fieldId] }));
+  };
+
+  const catalogIdSet = useMemo(() => new Set(catalogFieldIds), [catalogFieldIds]);
+
+  const visibleDefinitions = useMemo(() => {
+    const byId = new Map(definitions.map((def) => [def.id, def]));
+    const ordered: FacetDefinition[] = [];
+    for (const id of catalogFieldIds) {
+      if (id === 'banStatus' && !activeFormatId) continue;
+      const def = byId.get(id);
+      if (def) ordered.push(def);
+    }
+    for (const def of definitions) {
+      if (def.id === 'banStatus' && !activeFormatId) continue;
+      if (
+        !catalogIdSet.has(def.id) &&
+        facetHasVisibleOptions(def, countsByField.get(def.id), filterState)
+      ) {
+        ordered.push(def);
+      }
+    }
+    return orderFacetDefinitionsForPanel(ordered);
+  }, [activeFormatId, catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
+
+  return (
+    <div className={className}>
+      <div className="mb-3">
+        <SectionHeader>Filters</SectionHeader>
+      </div>
+      <div className="flex flex-col gap-3">
+        {sort && onSortChange ? (
+          <CollapsibleFilterSection
+            title="Sort"
+            collapsed={collapsedFields.sort ?? false}
+            onToggleCollapse={() => toggleField('sort')}
+            className="relative z-10 overflow-visible"
+          >
+            <CatalogSortControls sort={sort} onChange={onSortChange} />
+          </CollapsibleFilterSection>
+        ) : null}
+        {onFormatChange ? (
+          <CollapsibleFilterSection
+            title="Format"
+            collapsed={collapsedFields[FORMAT_FILTER_SECTION_ID] ?? false}
+            onToggleCollapse={() => toggleField(FORMAT_FILTER_SECTION_ID)}
+            className="relative overflow-visible"
+          >
+            <FormatFilterGroup
+              value={activeFormatId}
+              allowEmpty={formatAllowEmpty}
+              onChange={onFormatChange}
+            />
+          </CollapsibleFilterSection>
+        ) : null}
+        {visibleDefinitions.map((def) => {
+          const collapsed = collapsedFields[def.id] ?? false;
+          return (
+            <FacetFieldCard
+              key={def.id}
+              definition={def}
+              title={facetDisplayLabel(def)}
+              collapsed={collapsed}
+              onToggleCollapse={() => toggleField(def.id)}
+              filterState={filterState}
+              counts={countsByField.get(def.id)}
+              onChange={onChange}
+              setIndex={setIndex}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FacetFieldCard({
+  definition,
+  title,
+  collapsed,
+  onToggleCollapse,
+  filterState,
+  counts,
+  onChange,
+  setIndex,
+}: {
+  definition: FacetDefinition;
+  title: string;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  filterState: FilterState;
+  counts: FacetGroupCounts | undefined;
+  onChange: (next: FilterStateUpdater) => void;
+  setIndex?: SetIndex | null;
+}) {
+  return (
+    <CollapsibleFilterSection
+      title={title}
+      collapsed={collapsed}
+      onToggleCollapse={onToggleCollapse}
+    >
+      <FacetFieldBlock
+        definition={definition}
+        filterState={filterState}
+        counts={counts}
+        onChange={onChange}
+        setIndex={setIndex}
+      />
+    </CollapsibleFilterSection>
+  );
+}
+
+function FacetFieldBlock({
+  definition,
+  filterState,
+  counts,
+  onChange,
+  setIndex,
+}: {
+  definition: FacetDefinition;
+  filterState: FilterState;
+  counts: FacetGroupCounts | undefined;
+  onChange: (next: FilterStateUpdater) => void;
+  setIndex?: SetIndex | null;
+}) {
+  const selection = selectionForField(filterState, definition.id);
+  const includeSet = new Set(selection?.include ?? []);
+  const excludeSet = new Set(selection?.exclude ?? []);
+
+  if (definition.control === 'priceRange') {
+    return (
+      <FacetCustomRangeInputs
+        key={`${selection?.range?.min ?? 'x'}-${selection?.range?.max ?? 'x'}`}
+        fieldId={definition.id}
+        range={selection?.range}
+        allowDecimals
+        onApply={(nextRange) => onChange((state) => setFacetRange(state, definition.id, nextRange))}
+      />
+    );
+  }
+
+  if (definition.control === 'linkArrows') {
+    const options = LINK_ARROW_VALUES.map((value) => ({
+      value,
+      count: optionCountForValue(counts, value),
+    }));
+    const hasAny =
+      options.some((opt) => opt.count > 0) ||
+      LINK_ARROW_VALUES.some((value) => includeSet.has(value) || excludeSet.has(value));
+    if (!hasAny) {
+      return <p className="text-sm text-text-2">No values</p>;
+    }
+    return (
+      <FieldShell>
+        <OptionList
+          definition={definition}
+          options={options}
+          includeSet={includeSet}
+          excludeSet={excludeSet}
+          onCycle={(value) =>
+            onChange((state) =>
+              cycleFacetValue(state, definition.id, value, definition.includeExclude),
+            )
+          }
+        />
+      </FieldShell>
+    );
+  }
+
+  const options =
+    counts?.options.filter(
+      (opt) => opt.count > 0 || includeSet.has(opt.value) || excludeSet.has(opt.value),
+    ) ?? [];
+
+  if (options.length === 0 && definition.control !== 'range') {
+    return <p className="text-sm text-text-2">No values</p>;
+  }
+
+  if (definition.control === 'toggle') {
+    const yes = options.find((opt) => opt.value === 'yes');
+    const no = options.find((opt) => opt.value === 'no');
+    return (
+      <FieldShell>
+        <div className="flex flex-col gap-0.5">
+          {[yes, no].filter(Boolean).map((opt) => (
+            <OptionRow
+              key={opt!.value}
+              label={opt!.value === 'yes' ? 'Yes' : 'No'}
+              count={opt!.count}
+              included={includeSet.has(opt!.value)}
+              excluded={false}
+              allowExclude={false}
+              onCycle={() =>
+                onChange((state) => cycleFacetValue(state, definition.id, opt!.value, false))
+              }
+            />
+          ))}
+        </div>
+      </FieldShell>
+    );
+  }
+
+  const displayOptions = sortFacetOptionsForDisplay(
+    definition.id,
+    options.map((opt) => ({
+      value: opt.value,
+      count: opt.count,
+      label:
+        definition.control === 'range'
+          ? definition.id === 'level'
+            ? formatFacetOptionLabel(definition.id, opt.value)
+            : rangeBucketLabel(opt.value)
+          : undefined,
+    })),
+    definition.id === 'set' ? { setIndex } : undefined,
+  );
+
+  const preserveOptionOrder =
+    definition.id === 'set' ||
+    definition.control === 'range' ||
+    definition.id === 'level' ||
+    definition.id === 'atk' ||
+    definition.id === 'def';
+
+  const rangeBlock =
+    definition.control === 'range' ? (
+      <FacetCustomRangeInputs
+        key={`${selection?.range?.min ?? 'x'}-${selection?.range?.max ?? 'x'}`}
+        fieldId={definition.id}
+        range={selection?.range}
+        allowDecimals={definition.id === 'price'}
+        onApply={(nextRange) => onChange((state) => setFacetRange(state, definition.id, nextRange))}
+      />
+    ) : null;
+
+  if (definition.control === 'range' && displayOptions.length === 0) {
+    return (
+      <>
+        {rangeBlock}
+        <p className="text-sm text-text-2">No values</p>
+      </>
+    );
+  }
+
+  return (
+    <FieldShell>
+      {rangeBlock}
+      <OptionList
+        definition={definition}
+        options={displayOptions}
+        includeSet={includeSet}
+        excludeSet={excludeSet}
+        preserveOptionOrder={preserveOptionOrder}
+        onCycle={(value) =>
+          onChange((state) =>
+            cycleFacetValue(state, definition.id, value, definition.includeExclude),
+          )
+        }
+      />
+    </FieldShell>
+  );
+}
+
+function FieldShell({ children }: { children: ReactNode }) {
+  return <div>{children}</div>;
+}
+
+function OptionList({
+  definition,
+  options,
+  includeSet,
+  excludeSet,
+  preserveOptionOrder,
+  onCycle,
+}: {
+  definition: FacetDefinition;
+  options: readonly { value: string; count: number; label?: string }[];
+  includeSet: Set<string>;
+  excludeSet: Set<string>;
+  preserveOptionOrder?: boolean;
+  onCycle: (value: string) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [listExpanded, setListExpanded] = useState(false);
+  const isLongGroup = isLongFacetOptionList(definition.id, options.length);
+  const showSearch = facetOptionListShowsSearch(isLongGroup);
+  const facetLabel = facetDisplayLabel(definition);
+  const searchPlaceholder = definition.id === 'set' ? 'Search within…' : `Search ${facetLabel}…`;
+
+  const sortedOptions = useMemo(() => {
+    if (preserveOptionOrder) return options;
+    return [...options].sort(
+      (a, b) => b.count - a.count || (a.label ?? a.value).localeCompare(b.label ?? b.value),
+    );
+  }, [options, preserveOptionOrder]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return sortedOptions;
+    return sortedOptions.filter((opt) => {
+      const label = (opt.label ?? opt.value).toLowerCase();
+      return label.includes(q) || opt.value.toLowerCase().includes(q);
+    });
+  }, [query, sortedOptions]);
+
+  const visibleCount = facetOptionVisibleCount(filtered.length, listExpanded);
+  const visible = filtered.slice(0, visibleCount);
+  const showMoreLess = facetOptionShowMoreLess(filtered.length, listExpanded);
+  const listScrollable = facetOptionListUsesInnerScroll(isLongGroup, listExpanded);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {showSearch ? (
+        <>
+          <label className="sr-only" htmlFor={`facet-search-${definition.id}`}>
+            Search {facetLabel}
+          </label>
+          <input
+            id={`facet-search-${definition.id}`}
+            type="search"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setListExpanded(false);
+            }}
+            placeholder={searchPlaceholder}
+            className="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+          />
+        </>
+      ) : null}
+      <div
+        data-facet-options={definition.id}
+        className={listScrollable ? 'overflow-y-auto pr-1' : undefined}
+        style={listScrollable ? { maxHeight: `${FACET_OPTION_LIST_SCROLL_CAP_PX}px` } : undefined}
+      >
+        <ul className="flex flex-col gap-0.5">
+          {visible.map((opt) => {
+            const displayLabel = opt.label ?? opt.value;
+            return (
+              <li key={opt.value}>
+                <OptionRow
+                  label={displayLabel}
+                  triStateName={facetOptionTriStateName(definition, displayLabel)}
+                  count={opt.count}
+                  included={includeSet.has(opt.value)}
+                  excluded={excludeSet.has(opt.value)}
+                  allowExclude={definition.includeExclude}
+                  onCycle={() => onCycle(opt.value)}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      {showMoreLess === 'more' ? (
+        <button
+          type="button"
+          onClick={() => setListExpanded(true)}
+          className="text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
+        >
+          Show more
+        </button>
+      ) : null}
+      {showMoreLess === 'less' ? (
+        <button
+          type="button"
+          onClick={() => setListExpanded(false)}
+          className="text-left text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
+        >
+          Show less
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function facetOptionTriStateName(definition: FacetDefinition, displayLabel: string): string {
+  if (definition.id === 'level' || definition.id === 'atk' || definition.id === 'def') {
+    return `${definition.label} ${displayLabel}`;
+  }
+  return displayLabel;
+}
+
+function triStateLabel(name: string, included: boolean, excluded: boolean): string {
+  if (included) return `Include ${name}`;
+  if (excluded) return `Exclude ${name}`;
+  return `Include ${name}`;
+}
+
+function OptionRow({
+  label,
+  triStateName,
+  count,
+  included,
+  excluded,
+  allowExclude,
+  onCycle,
+}: {
+  label: string;
+  triStateName?: string;
+  count: number;
+  included: boolean;
+  excluded: boolean;
+  allowExclude: boolean;
+  onCycle: () => void;
+}) {
+  const ariaChecked = included ? true : excluded ? 'mixed' : false;
+  const ariaLabel = triStateLabel(triStateName ?? label, included, excluded);
+
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={ariaChecked}
+      aria-label={ariaLabel}
+      onClick={onCycle}
+      className={`flex min-h-8 w-full items-center gap-2 rounded-sm text-left text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong ${
+        excluded ? 'text-text-2' : 'text-text'
+      }`}
+    >
+      <span
+        aria-hidden="true"
+        className={`inline-flex size-4 shrink-0 items-center justify-center rounded border ${
+          excluded
+            ? 'border-border-strong bg-surface-2 text-heading'
+            : included
+              ? 'border-border-strong bg-heading text-on-accent'
+              : 'border-border bg-surface'
+        }`}
+      >
+        {included ? (
+          <svg viewBox="0 0 12 12" className="size-3">
+            <path
+              d="M2 6.5 4.5 9 10 3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : excluded && allowExclude ? (
+          <svg viewBox="0 0 12 12" className="size-3">
+            <path
+              d="M3 6h6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : null}
+      </span>
+      <span className={`truncate ${excluded ? 'line-through' : ''}`}>{label}</span>
+      <span className="ml-auto shrink-0 tabular-nums text-text-2">{count}</span>
+    </button>
+  );
+}
+
+type PhoneFiltersSheetProps = {
+  open: boolean;
+  onClose: () => void;
+  draftState: FilterState;
+  onDraftChange: (next: FilterStateUpdater) => void;
+  onApply: () => void;
+  onReset: () => void;
+  resultCount: number;
+  draftGroupCounts: readonly FacetGroupCounts[];
+  catalogFieldIds: readonly FacetFieldId[];
+  setIndex?: SetIndex | null;
+  draftFormatId?: FormatId | null;
+  onDraftFormatChange?: (formatId: FormatId | null) => void;
+  formatAllowEmpty?: boolean;
+  draftSort?: CatalogTableSortState;
+  onDraftSortChange?: (next: CatalogTableSortState) => void;
+};
+
+export function PhoneFiltersSheet({
+  open,
+  onClose,
+  draftState,
+  onDraftChange,
+  onApply,
+  onReset,
+  resultCount,
+  draftGroupCounts,
+  catalogFieldIds,
+  setIndex,
+  draftFormatId = null,
+  onDraftFormatChange,
+  formatAllowEmpty = true,
+  draftSort,
+  onDraftSortChange,
+}: PhoneFiltersSheetProps) {
+  const titleId = useId().replace(/:/g, '');
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        closeButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const resultLabel = resultCount === 1 ? '1 result' : `${resultCount.toLocaleString()} results`;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-bg lg:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+    >
+      <header className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <Button ref={closeButtonRef} variant="icon" onClick={onClose} aria-label="Close filters">
+          ×
+        </Button>
+        <SectionHeader id={titleId} size="section">
+          Filters
+        </SectionHeader>
+        <button
+          type="button"
+          onClick={onReset}
+          className="ml-auto text-sm text-text underline decoration-border underline-offset-2 hover:text-heading"
+        >
+          Reset
+        </button>
+      </header>
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <FacetFilterPanel
+          filterState={draftState}
+          groupCounts={draftGroupCounts}
+          catalogFieldIds={catalogFieldIds}
+          onChange={onDraftChange}
+          setIndex={setIndex}
+          activeFormatId={draftFormatId}
+          onFormatChange={onDraftFormatChange}
+          formatAllowEmpty={formatAllowEmpty}
+          sort={draftSort}
+          onSortChange={onDraftSortChange}
+        />
+      </div>
+      <footer className="border-t border-border p-4">
+        <Button variant="primary" fullWidth onClick={onApply} className="text-base">
+          See {resultLabel}
+        </Button>
+      </footer>
+    </div>
+  );
+}

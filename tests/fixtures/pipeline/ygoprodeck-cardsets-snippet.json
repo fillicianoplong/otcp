@@ -1,0 +1,14 @@
+[
+  {
+    "set_name": "Starter Deck: Yugi",
+    "set_code": "SDY",
+    "num_of_cards": 50,
+    "tcg_date": "2002-03-08"
+  },
+  {
+    "set_name": "Legend of Blue Eyes White Dragon",
+    "set_code": "LOB",
+    "num_of_cards": 126,
+    "tcg_date": "2002-03-08"
+  }
+]
