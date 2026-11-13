@@ -1,7 +1,8 @@
-import { Link, Navigate, useParams } from 'react-router';
+import { Navigate, useParams } from 'react-router';
 import { useEffect, useId, useMemo, useRef, useState, type DragEvent } from 'react';
 
 import { CardFinder } from '../cardFinder/CardFinder.tsx';
+import { CardFinderViewToggle } from '../cardFinder/CardFinderViewToggle.tsx';
 import { LIBRARY_GRID_COLUMNS, LIBRARY_SHEET_COLUMNS } from '../cardFinder/libraryGrid.ts';
 import { catalogSmallImageUrl } from '../catalog/cardArt.ts';
 import { getGuestDeckDraft, updateGuestDeckDraft } from '../deckStore/guestDeckDraftStore.ts';
@@ -24,6 +25,16 @@ import {
   type DeckZone,
 } from '../deckEditor/deckPlacement.ts';
 import { deckListColumnCount } from '../deckEditor/deckTileSize.ts';
+import {
+  readDeckZoneSortMode,
+  writeDeckZoneSortMode,
+  type DeckZoneSortMode,
+} from '../deckEditor/deckZoneSort.ts';
+import {
+  readDeckZoneViewMode,
+  writeDeckZoneViewMode,
+  type DeckZoneViewMode,
+} from '../deckEditor/deckZoneView.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { emptyFilterState, type FilterState } from '../catalog/filterEngine.ts';
 import {
@@ -34,15 +45,14 @@ import {
 import { evaluateDeckAdd, type DeckListState } from '../format/formatEngine.ts';
 import type { FormatId } from '../format/formatCatalog.ts';
 import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
+import { Button } from '../ui/Button.tsx';
+import { Input } from '../ui/Input.tsx';
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
+import { Toolbar } from '../ui/Toolbar.tsx';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
 const panelClassName = 'rounded-md border border-border bg-surface p-4';
-
-const primaryButtonClassName =
-  'inline-flex min-h-[var(--touch-min)] w-full items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
-
-const quietButtonClassName =
-  'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
 const SAMPLE_SKILL_IDS = {
   heroesUnite: 300302050,
@@ -107,14 +117,15 @@ function GenesysPointsBar({
       </div>
       <label className="flex flex-col gap-1 text-sm text-text">
         <span>Custom point cap (optional)</span>
-        <input
+        <Input
+          field="inset"
           type="number"
           min={0}
           inputMode="numeric"
           placeholder="100"
           value={capInput}
           onChange={(event) => onCapInputChange(event.target.value)}
-          className="min-h-[var(--touch-min)] w-full max-w-[8rem] rounded-md border border-border bg-bg px-3 text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+          className="max-w-[8rem] text-heading"
         />
       </label>
     </div>
@@ -128,6 +139,16 @@ export function DeckEditorPage() {
   const initialDraft = draftId ? getGuestDeckDraft(draftId) : null;
   const [draft, setDraft] = useState<GuestDeckDraft | null>(initialDraft);
   const [nameDraft, setNameDraft] = useState(initialDraft?.name ?? '');
+  const [zoneView, setZoneView] = useState<DeckZoneViewMode>(() => readDeckZoneViewMode());
+  const [zoneSort, setZoneSort] = useState<DeckZoneSortMode>(() => readDeckZoneSortMode());
+  const chooseZoneView = (mode: DeckZoneViewMode) => {
+    setZoneView(mode);
+    writeDeckZoneViewMode(mode);
+  };
+  const chooseZoneSort = (mode: DeckZoneSortMode) => {
+    setZoneSort(mode);
+    writeDeckZoneSortMode(mode);
+  };
   const [capInput, setCapInput] = useState(() =>
     initialDraft?.genesysCap != null ? String(initialDraft.genesysCap) : '',
   );
@@ -522,8 +543,8 @@ export function DeckEditorPage() {
         },
       }}
     >
-      <div
-        className="flex min-w-0 flex-col gap-4 overflow-x-hidden"
+      <PageContainer
+        className="flex flex-col gap-4 overflow-x-hidden"
         onClick={(event) => {
           if (!(event.target instanceof Element)) return;
           if (event.target.closest('[data-tile-root]')) return;
@@ -545,32 +566,51 @@ export function DeckEditorPage() {
           E, or S moves it.
         </p>
         <div className="min-w-0 space-y-3">
-          <Link
-            to="/decks"
-            className="text-sm font-medium text-heading underline-offset-2 hover:underline"
-          >
-            ← My decks
-          </Link>
           <form
             onSubmit={(event) => {
               event.preventDefault();
               commitName();
             }}
           >
-            <label className="flex min-w-0 flex-col gap-1 text-sm text-text" htmlFor="deck-name">
-              <span>Deck name</span>
-              <input
-                id="deck-name"
-                value={nameDraft}
-                onChange={(event) => setNameDraft(event.target.value)}
-                onBlur={commitName}
-                className="min-h-[var(--touch-min)] w-full rounded-md border border-border bg-bg px-3 text-2xl font-semibold text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-              />
-            </label>
+            <Input
+              id="deck-name"
+              field="title"
+              aria-label="Deck name"
+              placeholder="Deck name"
+              value={nameDraft}
+              onChange={(event) => setNameDraft(event.target.value)}
+              onBlur={commitName}
+            />
           </form>
-          <p className="text-sm tabular-nums text-text-2">
-            Main {draft.main.length} / Extra {draft.extra.length} / Side {draft.side.length}
-          </p>
+          <Toolbar
+            actions={
+              <>
+                <div className="inline-flex h-control items-center rounded-md border border-border bg-surface focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-strong">
+                  <span className="pl-2 text-sm text-text-2" aria-hidden="true">
+                    Sort:
+                  </span>
+                  <select
+                    id="deck-zone-sort"
+                    aria-label="Sort deck"
+                    value={zoneSort}
+                    onChange={(event) => chooseZoneSort(event.target.value as DeckZoneSortMode)}
+                    className="h-control bg-transparent py-0 pr-1 pl-1 text-sm text-heading outline-none"
+                  >
+                    <option value="type">Type</option>
+                    <option value="name">Name</option>
+                    <option value="added">Added</option>
+                  </select>
+                </div>
+                <CardFinderViewToggle
+                  value={zoneView}
+                  onChange={chooseZoneView}
+                  groupLabel="Deck view"
+                  listLabel="Deck list view"
+                  gridLabel="Deck grid view"
+                />
+              </>
+            }
+          />
         </div>
 
         {isGenesysFormat(draft.formatId) && genesysStatus ? (
@@ -585,9 +625,7 @@ export function DeckEditorPage() {
 
         {draft.formatId === 'speed-duel' ? (
           <div className={`${panelClassName} space-y-3`} aria-labelledby="skill-heading">
-            <h2 id="skill-heading" className="text-base font-semibold text-heading">
-              Skill card
-            </h2>
+            <SectionHeader id="skill-heading">Skill card</SectionHeader>
             <p className="text-sm text-text-2">
               Speed Duel allows one active Skill. It does not count toward Main Deck size.
             </p>
@@ -599,20 +637,12 @@ export function DeckEditorPage() {
               <p className="text-sm text-text-2">No Skill selected yet.</p>
             )}
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90"
-                onClick={() => trySetSkill(SAMPLE_SKILL_IDS.heroesUnite)}
-              >
+              <Button variant="primary" onClick={() => trySetSkill(SAMPLE_SKILL_IDS.heroesUnite)}>
                 Set HEROES UNITE - FUSION!!
-              </button>
-              <button
-                type="button"
-                className={quietButtonClassName}
-                onClick={() => trySetSkill(SAMPLE_SKILL_IDS.ancientFusion)}
-              >
+              </Button>
+              <Button onClick={() => trySetSkill(SAMPLE_SKILL_IDS.ancientFusion)}>
                 Set Ancient Fusion
-              </button>
+              </Button>
             </div>
             {skillRefusalMessage ? (
               <p className="text-sm text-heading" role="alert">
@@ -661,18 +691,16 @@ export function DeckEditorPage() {
             tileSizePx={tileSizePx}
             highlight={highlight}
             onTileSize={setTileSizePx}
+            viewMode={zoneView}
+            sortMode={zoneSort}
           />
         </div>
 
         {!desktop ? (
           <div className="sticky bottom-0 z-20 border-t border-border bg-bg py-3">
-            <button
-              type="button"
-              className={primaryButtonClassName}
-              onClick={() => setLibraryOpen(true)}
-            >
+            <Button variant="primary" fullWidth onClick={() => setLibraryOpen(true)}>
               Add cards
-            </button>
+            </Button>
           </div>
         ) : null}
 
@@ -690,24 +718,20 @@ export function DeckEditorPage() {
               onClick={(event) => event.stopPropagation()}
             >
               <header className="flex items-center gap-2 border-b border-border px-3 py-2">
-                <h2 id={libraryTitleId} className="text-base font-semibold text-heading">
-                  Add cards
-                </h2>
-                <button
-                  type="button"
-                  className={`${quietButtonClassName} ml-auto`}
+                <SectionHeader id={libraryTitleId}>Add cards</SectionHeader>
+                <Button
+                  className="ml-auto"
                   onClick={() => setLibraryExpanded((current) => !current)}
                 >
                   {libraryExpanded ? 'Half' : 'Full'}
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] items-center justify-center rounded-md border border-border text-heading"
+                </Button>
+                <Button
+                  variant="icon"
                   aria-label="Close add cards"
                   onClick={() => setLibraryOpen(false)}
                 >
                   ×
-                </button>
+                </Button>
               </header>
               <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
                 {messageNode}
@@ -725,7 +749,7 @@ export function DeckEditorPage() {
         >
           <img
             alt=""
-            className="pointer-events-none aspect-[59/86] w-full object-contain"
+            className="pointer-events-none aspect-card w-full object-contain"
             onError={(event) => {
               event.currentTarget.hidden = true;
               const label = event.currentTarget.nextElementSibling;
@@ -734,10 +758,10 @@ export function DeckEditorPage() {
           />
           <span
             hidden
-            className="flex aspect-[59/86] w-full items-center justify-center px-1 text-center text-[10px] leading-tight text-heading"
+            className="flex aspect-card w-full items-center justify-center px-1 text-center text-2xs leading-tight text-heading"
           />
         </div>
-      </div>
+      </PageContainer>
     </DeckInteractionProvider>
   );
 }

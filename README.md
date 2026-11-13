@@ -68,7 +68,17 @@ CI runs these checks on pull requests and on pushes to `main`.
 - `npm run lint` runs ESLint.
 - `npm run format:check` checks formatting with Prettier.
 - `npm run test` runs the Vitest unit tests.
-- `npm run test:e2e` runs the Chromium Playwright smoke test.
+- `npm run test:e2e` runs the Chromium Playwright smoke test and the visual layout screenshots.
+
+### Visual baselines
+
+Screenshot checks live in `e2e/visual.spec.ts`. They cover the viewport of Search, card details, Formats, the deck editor, and `/styleguide`, plus the Sets section, at 390, 768, 1280, and 1920 CSS pixels. The shots use Liberation Sans and hidden scrollbars. CI fails when a screenshot differs from the committed baseline beyond rendering noise. A column or spacing change still fails.
+
+After an intentional layout change, refresh the baselines and commit the new PNGs:
+
+```bash
+npm run test:e2e -- e2e/visual.spec.ts --update-snapshots
+```
 
 ## License
 

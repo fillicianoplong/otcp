@@ -19,6 +19,38 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+
+  --text-2xs: var(--text-2xs);
+  --text-2xs--line-height: 1;
+  --text-xs: var(--text-xs);
+  --text-xs--line-height: 1rem;
+  --text-sm: var(--text-sm);
+  --text-sm--line-height: 1.25rem;
+  --text-base: var(--text-base);
+  --text-base--line-height: 1.5rem;
+  --text-lg: var(--text-lg);
+  --text-lg--line-height: 1.75rem;
+  --text-xl: var(--text-xl);
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: var(--text-2xl);
+  --text-2xl--line-height: 2rem;
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-pill);
+
+  --spacing-control: var(--control-compact);
+  --spacing-control-x: var(--control-pad-x);
+  --spacing-touch: var(--touch-min);
+  --spacing-thumb: var(--tile-thumb);
+  --spacing-tile: var(--tile-gap);
+  --spacing-catalog: var(--tile-gap-catalog);
+  --spacing-catalog-wide: var(--tile-gap-catalog-wide);
+  --spacing-reading: var(--measure);
+  --spacing-form: var(--measure-form);
+
+  --aspect-card: 59 / 86;
 }
 
 body {

@@ -1,3 +1,10 @@
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { PageTitle } from '../ui/PageTitle.tsx';
+
 export function ListsPage() {
-  return <h1 className="text-2xl font-semibold text-heading">Lists</h1>;
+  return (
+    <PageContainer>
+      <PageTitle>Lists</PageTitle>
+    </PageContainer>
+  );
 }

@@ -14,8 +14,7 @@ export function catalogGridColumnCount(viewportWidthCssPx: number): number {
 }
 
 /** Full card scan in catalog grid tiles (Search + format ban grids). */
-export const CATALOG_GRID_TILE_ART_CLASS =
-  'block aspect-[59/86] w-full object-cover object-left-top';
+export const CATALOG_GRID_TILE_ART_CLASS = 'block aspect-card w-full object-cover object-left-top';
 
 /** Denser grid for format banlist sections (smaller thumbnails). */
 export const FORMAT_BANLIST_GRID_CLASS =
@@ -23,4 +22,4 @@ export const FORMAT_BANLIST_GRID_CLASS =
 
 /** Tailwind classes aligned with {@link catalogGridColumnCount} breakpoints. */
 export const CATALOG_GRID_CLASS =
-  'grid grid-cols-2 min-[360px]:grid-cols-4 items-start gap-2 sm:gap-3 lg:grid-cols-6 [&_li_a>div]:leading-none [&_li_a>div>img]:block [&_li_a>div>img]:object-left-top [&_li_a>div>div]:block [&_li_a>div>div]:object-left-top';
+  'grid grid-cols-2 min-[360px]:grid-cols-4 items-start gap-catalog sm:gap-catalog-wide lg:grid-cols-6 [&_li_a>div]:leading-none [&_li_a>div>img]:block [&_li_a>div>img]:object-left-top [&_li_a>div>div]:block [&_li_a>div>div]:object-left-top';

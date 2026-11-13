@@ -1,23 +1,16 @@
-import { useLayoutEffect, useRef, useState, type DragEvent } from 'react';
+import { useLayoutEffect, useRef, type DragEvent } from 'react';
 
-import { CardFinderViewToggle } from '../cardFinder/CardFinderViewToggle.tsx';
+import { Button } from '../ui/Button.tsx';
+import { CardGrid } from '../ui/CardGrid.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { EditorCardRow } from '../cardFinder/EditorCardRow.tsx';
 import type { FormatId } from '../format/formatCatalog.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { DeckArtTile } from './DeckArtTile.tsx';
 import type { DeckDropTarget } from './deckInteractionContext.ts';
-import {
-  orderZoneCards,
-  readDeckZoneSortMode,
-  writeDeckZoneSortMode,
-  type DeckZoneSortMode,
-} from './deckZoneSort.ts';
-import {
-  readDeckZoneViewMode,
-  writeDeckZoneViewMode,
-  type DeckZoneViewMode,
-} from './deckZoneView.ts';
-import { DECK_TILE_GAP_PX, deckTileSizePx } from './deckTileSize.ts';
+import { orderZoneCards, type DeckZoneSortMode } from './deckZoneSort.ts';
+import { type DeckZoneViewMode } from './deckZoneView.ts';
+import { deckTileSizePx } from './deckTileSize.ts';
 import {
   DECK_ZONES,
   deckZoneLabel,
@@ -41,6 +34,8 @@ export function DeckZoneList({
   tileSizePx,
   highlight,
   onTileSize,
+  viewMode,
+  sortMode,
 }: {
   formatId: FormatId;
   zones: Record<DeckZone, readonly number[]>;
@@ -56,17 +51,9 @@ export function DeckZoneList({
   tileSizePx: number;
   highlight: DeckDropTarget | null;
   onTileSize: (px: number) => void;
+  viewMode: DeckZoneViewMode;
+  sortMode: DeckZoneSortMode;
 }) {
-  const [viewMode, setViewMode] = useState<DeckZoneViewMode>(() => readDeckZoneViewMode());
-  const [sortMode, setSortMode] = useState<DeckZoneSortMode>(() => readDeckZoneSortMode());
-  const chooseView = (mode: DeckZoneViewMode) => {
-    setViewMode(mode);
-    writeDeckZoneViewMode(mode);
-  };
-  const chooseSort = (mode: DeckZoneSortMode) => {
-    setSortMode(mode);
-    writeDeckZoneSortMode(mode);
-  };
   const measureRef = useRef<HTMLElement | null>(null);
   useLayoutEffect(() => {
     const el = measureRef.current;
@@ -87,29 +74,6 @@ export function DeckZoneList({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <label className="sr-only" htmlFor="deck-zone-sort">
-          Sort deck
-        </label>
-        <select
-          id="deck-zone-sort"
-          aria-label="Sort deck"
-          value={sortMode}
-          onChange={(event) => chooseSort(event.target.value as DeckZoneSortMode)}
-          className="h-8 rounded-md border border-border bg-surface px-2 text-xs text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-        >
-          <option value="type">Type</option>
-          <option value="name">Name</option>
-          <option value="added">Added</option>
-        </select>
-        <CardFinderViewToggle
-          value={viewMode}
-          onChange={chooseView}
-          groupLabel="Deck view"
-          listLabel="Deck list view"
-          gridLabel="Deck grid view"
-        />
-      </div>
       {DECK_ZONES.map((zone) => {
         const ids = zones[zone];
         const ordered = orderZoneCards(ids, cardsById, sortMode);
@@ -150,10 +114,8 @@ export function DeckZoneList({
                 : undefined
             }
           >
-            <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h2 id={`deck-zone-${zone}-heading`} className="text-base font-semibold text-heading">
-                {label}
-              </h2>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <SectionHeader id={`deck-zone-${zone}-heading`}>{label}</SectionHeader>
               <p
                 className="text-sm tabular-nums text-text-2"
                 data-testid={`deck-zone-${zone}-count`}
@@ -166,11 +128,11 @@ export function DeckZoneList({
                 {dropEnabled ? 'Drop cards here.' : 'No cards yet.'}
               </p>
             ) : viewMode === 'grid' ? (
-              <ul
-                className="grid w-full min-w-0 justify-start"
+              <CardGrid
+                variant="deck"
                 style={{
                   gridTemplateColumns: `repeat(${columns}, ${tile})`,
-                  gap: `${DECK_TILE_GAP_PX}px`,
+                  gap: 'var(--tile-gap)',
                 }}
                 data-view="grid"
               >
@@ -204,7 +166,7 @@ export function DeckZoneList({
                     </li>
                   );
                 })}
-              </ul>
+              </CardGrid>
             ) : (
               <ul className="flex flex-col gap-2" data-view="list">
                 {groups.map((entry) => {
@@ -216,13 +178,9 @@ export function DeckZoneList({
                         className="flex items-center justify-between gap-2 rounded-md border border-border bg-bg px-2 py-2"
                       >
                         <p className="text-sm text-heading">Card {entry.cardId}</p>
-                        <button
-                          type="button"
-                          className="inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border px-3 text-sm text-heading"
-                          onClick={() => onRemoveFromZone(zone, entry.cardId)}
-                        >
+                        <Button onClick={() => onRemoveFromZone(zone, entry.cardId)}>
                           Remove one
-                        </button>
+                        </Button>
                       </li>
                     );
                   }

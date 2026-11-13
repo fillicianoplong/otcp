@@ -11,6 +11,9 @@ import {
 } from './facets.ts';
 import { formatFacetOptionLabel, sortFacetOptionsForDisplay } from './facetOptionOrdering.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
+import { Button } from '../ui/Button.tsx';
+import { Input } from '../ui/Input.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 import type {
   FacetGroupCounts,
   FacetNumericRange,
@@ -150,12 +153,10 @@ function FacetCustomRangeInputs({
 
   const fieldLabel = facetDisplayLabel(facetDefinitionById(fieldId)!);
 
-  const inputClassName =
-    'h-8 min-h-8 w-full min-w-0 rounded-md border border-border bg-surface px-2 py-0 text-sm text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
-
   return (
     <div className="mb-3 grid grid-cols-2 gap-2">
-      <input
+      <Input
+        field="compact"
         type="number"
         inputMode={allowDecimals ? 'decimal' : 'numeric'}
         step={allowDecimals ? '0.01' : '1'}
@@ -170,9 +171,9 @@ function FacetCustomRangeInputs({
         }}
         placeholder="Min"
         aria-label={`${fieldLabel} minimum`}
-        className={inputClassName}
       />
-      <input
+      <Input
+        field="compact"
         type="number"
         inputMode={allowDecimals ? 'decimal' : 'numeric'}
         step={allowDecimals ? '0.01' : '1'}
@@ -187,7 +188,6 @@ function FacetCustomRangeInputs({
         }}
         placeholder="Max"
         aria-label={`${fieldLabel} maximum`}
-        className={inputClassName}
       />
     </div>
   );
@@ -277,7 +277,7 @@ export function FacetFilterPanel({
   return (
     <div className={className}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-heading">Filters</h2>
+        <SectionHeader>Filters</SectionHeader>
         {collapsibleSectionIds.length > 0 ? (
           <div className="flex items-center gap-2 text-sm">
             <button
@@ -774,18 +774,12 @@ export function PhoneFiltersSheet({
       aria-labelledby={titleId}
     >
       <header className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <button
-          ref={closeButtonRef}
-          type="button"
-          onClick={onClose}
-          className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] items-center justify-center rounded-md border border-border text-heading"
-          aria-label="Close filters"
-        >
+        <Button ref={closeButtonRef} variant="icon" onClick={onClose} aria-label="Close filters">
           ×
-        </button>
-        <h2 id={titleId} className="text-lg font-semibold text-heading">
+        </Button>
+        <SectionHeader id={titleId} size="section">
           Filters
-        </h2>
+        </SectionHeader>
         <button
           type="button"
           onClick={onReset}
@@ -807,13 +801,9 @@ export function PhoneFiltersSheet({
         />
       </div>
       <footer className="border-t border-border p-4">
-        <button
-          type="button"
-          onClick={onApply}
-          className="inline-flex min-h-[var(--touch-min)] w-full items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-base font-medium text-on-accent hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-        >
+        <Button variant="primary" fullWidth onClick={onApply} className="text-base">
           See {resultLabel}
-        </button>
+        </Button>
       </footer>
     </div>
   );

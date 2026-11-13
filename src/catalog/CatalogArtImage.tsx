@@ -30,7 +30,7 @@ function NamedArtPlaceholder({
   return (
     <div
       className={`flex flex-col items-center justify-center gap-1 rounded-sm border border-border bg-surface-2 text-center text-text-2 ${className ?? ''} ${
-        compact ? 'px-1 py-1 text-[9px] leading-tight' : 'px-2 py-3 text-xs'
+        compact ? 'px-1 py-1 text-2xs leading-tight' : 'px-2 py-3 text-xs'
       }`}
     >
       <span className="font-medium text-heading">{cardName}</span>

@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 
+import { Combobox, type ComboboxOption } from '../ui/Combobox.tsx';
 import { listFormatsNewestFirst, type FormatId } from './formatCatalog.ts';
 import { formatOptionMatchesQuery } from './formatFilterSearch.ts';
 
@@ -22,6 +23,12 @@ type FormatOption = {
   name: string;
 };
 
+const ALL_FORMATS_OPTION_ID = 'all';
+
+function optionKey(id: FormatId | null): string {
+  return id ?? ALL_FORMATS_OPTION_ID;
+}
+
 function filterFormatOptions(options: readonly FormatOption[], query: string): FormatOption[] {
   const normalized = query.trim().toLowerCase();
   if (!normalized) return [...options];
@@ -30,16 +37,6 @@ function filterFormatOptions(options: readonly FormatOption[], query: string): F
 
 function isPrintableKey(event: KeyboardEvent<HTMLElement>): boolean {
   return event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
-}
-
-function optionClassName(selected: boolean, active: boolean): string {
-  const base =
-    'flex min-h-8 w-full min-w-0 cursor-pointer items-center px-3 text-left text-sm font-normal';
-  if (active) {
-    return `${base} bg-surface-2 text-heading ring-1 ring-inset ring-border-strong`;
-  }
-  if (selected) return `${base} bg-surface-2 text-heading`;
-  return `${base} text-text hover:bg-surface-2`;
 }
 
 export function FormatFilterGroup({
@@ -51,7 +48,6 @@ export function FormatFilterGroup({
   const rawId = useId().replace(/:/g, '');
   const inputId = `${rawId}-format`;
   const listId = `${rawId}-list`;
-  const labelId = labelledBy ?? `${rawId}-label`;
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -190,103 +186,47 @@ export function FormatFilterGroup({
     }
   };
 
+  const comboboxOptions: ComboboxOption[] = filtered.map((option) => ({
+    id: optionKey(option.id),
+    label: option.name,
+  }));
+
   return (
-    <div
-      ref={rootRef}
-      className="relative min-w-0 w-full max-w-full"
+    <Combobox
+      label="Format"
+      labelledBy={labelledBy}
+      inputId={inputId}
+      listId={listId}
+      open={open}
+      query={query}
+      valueLabel={triggerLabel}
+      placeholder={open ? 'Search formats' : allowEmpty ? ALL_FORMATS_LABEL : 'Format'}
+      options={comboboxOptions}
+      activeIndex={activeIndexClamped}
+      selectedId={value == null ? (allowEmpty ? ALL_FORMATS_OPTION_ID : null) : value}
+      emptyMessage="No formats match."
+      optionDomId={(id) => `${rawId}-opt-${id}`}
+      inputRef={inputRef}
+      rootRef={rootRef}
+      caretHidden
+      disclosureLabel={{ open: 'Hide formats', closed: 'Show formats' }}
+      onQueryChange={(next) => {
+        setQuery(next);
+        setActiveIndex(0);
+      }}
+      onOpen={() => openList(selectedIndex >= 0 ? selectedIndex : 0)}
+      onClose={closeList}
+      onActiveIndex={setActiveIndex}
+      onSelect={(id) => {
+        const option = options.find((entry) => optionKey(entry.id) === id);
+        if (option) selectOption(option);
+      }}
       onKeyDown={onKeyDown}
       onBlur={(event) => {
         const next = event.relatedTarget;
         if (next instanceof Node && rootRef.current?.contains(next)) return;
         if (open) closeList();
       }}
-    >
-      {labelledBy ? null : (
-        <label id={labelId} htmlFor={inputId} className="sr-only">
-          Format
-        </label>
-      )}
-      <div className="flex min-h-[var(--touch-min)] min-w-0 max-w-full items-center rounded-md border border-border bg-surface hover:border-border-strong focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-strong">
-        <input
-          ref={inputRef}
-          id={inputId}
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded={open}
-          aria-controls={open ? listId : undefined}
-          aria-activedescendant={open ? activeOptionId : undefined}
-          aria-labelledby={labelId}
-          type="text"
-          value={open ? query : triggerLabel}
-          placeholder={open ? 'Search formats' : allowEmpty ? ALL_FORMATS_LABEL : 'Format'}
-          autoComplete="off"
-          spellCheck={false}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setActiveIndex(0);
-          }}
-          onPointerDown={() => {
-            if (!open) openList(selectedIndex >= 0 ? selectedIndex : 0);
-          }}
-          className={`min-w-0 flex-1 bg-transparent px-3 text-sm font-normal text-heading outline-none placeholder:font-normal placeholder:text-text-2 ${
-            open ? '' : 'cursor-default caret-transparent'
-          }`}
-        />
-        <button
-          type="button"
-          aria-label={open ? 'Hide formats' : 'Show formats'}
-          aria-expanded={open}
-          aria-controls={listId}
-          onPointerDown={(event) => event.preventDefault()}
-          onClick={() => {
-            if (open) {
-              closeList();
-              inputRef.current?.focus();
-              return;
-            }
-            openList(selectedIndex >= 0 ? selectedIndex : 0);
-            inputRef.current?.focus();
-          }}
-          className="inline-flex size-8 shrink-0 items-center justify-center text-text-2 hover:text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-        >
-          <span aria-hidden="true">{open ? '▴' : '▾'}</span>
-        </button>
-      </div>
-      {open ? (
-        <ul
-          id={listId}
-          role="listbox"
-          aria-labelledby={labelId}
-          className="absolute top-full right-0 left-0 z-20 mt-1 max-h-60 w-full max-w-full overflow-x-hidden overflow-y-auto overscroll-contain rounded-md border border-border bg-surface py-1 shadow-lg"
-        >
-          {filtered.length === 0 ? (
-            <li className="px-3 py-2 text-sm font-normal text-text-2">No formats match.</li>
-          ) : (
-            filtered.map((option, index) => {
-              const selected = option.id === value;
-              const active = index === activeIndexClamped;
-              const optionId = `${rawId}-opt-${option.id ?? 'all'}`;
-              return (
-                <li key={option.id ?? 'all'} role="none">
-                  <div
-                    id={optionId}
-                    role="option"
-                    aria-selected={selected}
-                    onPointerEnter={() => setActiveIndex(index)}
-                    onPointerDown={(event) => {
-                      event.preventDefault();
-                      selectOption(option);
-                    }}
-                    className={optionClassName(selected, active)}
-                  >
-                    <span className="min-w-0 truncate font-normal">{option.name}</span>
-                  </div>
-                </li>
-              );
-            })
-          )}
-        </ul>
-      ) : null}
-    </div>
+    />
   );
 }

@@ -6,6 +6,7 @@ import {
 } from 'react';
 
 import { BanThumbMarker } from '../catalog/BanThumbMarker.tsx';
+import { Button } from '../ui/Button.tsx';
 import { CatalogArtImage } from '../catalog/CatalogArtImage.tsx';
 import { resolveCardBanForFormat } from '../catalog/formatBanContext.ts';
 import type { FormatId } from '../format/formatCatalog.ts';
@@ -156,7 +157,7 @@ export function DeckArtTile({
           size="small"
           alt=""
           loading="lazy"
-          imgClassName="pointer-events-none aspect-[59/86] w-full object-contain"
+          imgClassName="pointer-events-none aspect-card w-full object-contain"
         />
         {banStatus ? <BanThumbMarker status={banStatus} /> : null}
       </div>
@@ -165,9 +166,8 @@ export function DeckArtTile({
           className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-bg/80"
           onPointerDown={(event) => event.stopPropagation()}
         >
-          <button
-            type="button"
-            className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface text-base text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+          <Button
+            variant="icon"
             aria-label={addLabel}
             onClick={(event) => {
               event.stopPropagation();
@@ -175,10 +175,9 @@ export function DeckArtTile({
             }}
           >
             +
-          </button>
-          <button
-            type="button"
-            className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface text-base text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-40"
+          </Button>
+          <Button
+            variant="icon"
             aria-label={removeLabel}
             disabled={!canRemove}
             onClick={(event) => {
@@ -187,7 +186,7 @@ export function DeckArtTile({
             }}
           >
             −
-          </button>
+          </Button>
         </div>
       ) : null}
       <span className="sr-only">{card.name}</span>

@@ -14,6 +14,7 @@ import { AboutPage } from './pages/AboutPage';
 import { BanlistDateRedirect } from './pages/BanlistDateRedirect.tsx';
 import { CardDetailPage } from './pages/CardDetailPage';
 import { SearchPage } from './pages/SearchPage';
+import { StyleGuidePage } from './pages/StyleGuidePage';
 
 export function App() {
   return (
@@ -34,6 +35,7 @@ export function App() {
               <Route path="collection" element={<CollectionPage />} />
               <Route path="lists" element={<ListsPage />} />
               <Route path="about" element={<AboutPage />} />
+              <Route path="styleguide" element={<StyleGuidePage />} />
               <Route path="account" element={<AccountPage />} />
               <Route path="notices" element={<Navigate to="/about" replace />} />
               <Route path="*" element={<NotFoundPage />} />

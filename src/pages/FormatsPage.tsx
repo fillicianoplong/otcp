@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { PageTitle } from '../ui/PageTitle.tsx';
+
 import {
   formatBanlistEffectiveDate,
   formatDetailPath,
@@ -110,9 +113,9 @@ export function FormatsPage() {
   const formats = listFormatsNewestFirst();
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 overflow-x-hidden">
+    <PageContainer className="flex flex-col gap-6 overflow-x-hidden">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-heading">Formats</h1>
+        <PageTitle>Formats</PageTitle>
         <p className="max-w-[70ch] text-sm text-text-2">
           Every Format Library era and TCG Forbidden &amp; Limited list is playable here. Pick a row
           to open banlist details and search the matching card pool.
@@ -214,6 +217,6 @@ export function FormatsPage() {
         </Link>{' '}
         with a format filter, or open any format above for the full banlist grid.
       </p>
-    </div>
+    </PageContainer>
   );
 }
