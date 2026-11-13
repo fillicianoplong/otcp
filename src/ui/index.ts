@@ -16,7 +16,8 @@ export { PageContainer } from './PageContainer.tsx';
 export { PageTitle } from './PageTitle.tsx';
 export { SectionHeader } from './SectionHeader.tsx';
 export { Toolbar } from './Toolbar.tsx';
-export { SearchIcon, ToolbarIconButton } from './ToolbarIconButton.tsx';
+export { FiltersToolbarButton } from './FiltersToolbarButton.tsx';
+export { FilterIcon, SearchIcon, ToolbarIconButton } from './ToolbarIconButton.tsx';
 export { ColumnTable } from './ColumnTable.tsx';
 export { TableToolbar } from './TableToolbar.tsx';
 export {

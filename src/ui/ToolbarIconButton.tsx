@@ -41,3 +41,16 @@ export function SearchIcon() {
     </svg>
   );
 }
+
+export function FilterIcon() {
+  return (
+    <svg aria-hidden viewBox="0 0 16 16" className="h-4 w-4" fill="none">
+      <path
+        d="M2 4h12M4 8h8M6 12h4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}

@@ -3,10 +3,12 @@
  */
 /// <reference types="@testing-library/jest-dom" />
 import { cleanup, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import sampleDataset from '../../public/data/datasets/sample-dev.json';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { DEFAULT_CATALOG_TABLE_SORT } from './catalogTableSort.ts';
 import { FacetFilterPanel } from './FacetFilterPanel.tsx';
 import { facetDefinitionById, facetDisplayLabel, SEARCH_FACET_FIELD_ORDER } from './facets.ts';
 import { FilterEngine, emptyFilterState } from './filterEngine.ts';
@@ -80,6 +82,95 @@ describe('FacetFilterPanel filter group order', () => {
 
     const titles = filterPanelSectionTitles(container);
     expect(titles).not.toContain('Legality');
+  });
+});
+
+describe('FacetFilterPanel section chrome', () => {
+  function renderPanel() {
+    const engine = new FilterEngine(sampleCards);
+    const groupCounts = engine.recount(emptyFilterState(), { formatParam: 'advanced' });
+    const catalogFieldIds = engine.fieldsWithCatalog();
+    return render(
+      <FacetFilterPanel
+        filterState={emptyFilterState()}
+        groupCounts={groupCounts}
+        catalogFieldIds={catalogFieldIds}
+        onChange={() => {}}
+        activeFormatId="advanced"
+        onFormatChange={() => {}}
+      />,
+    );
+  }
+
+  it('names the header Filters and leaves each section to collapse on its own', async () => {
+    const user = userEvent.setup();
+    const { container } = renderPanel();
+
+    const heading = screen.getByRole('heading', { name: 'Filters' });
+    expect(heading.textContent).toBe('Filters');
+    expect(screen.queryByRole('button', { name: 'Collapse all' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Expand all' })).toBeNull();
+
+    const category = screen.getByRole('button', { name: 'Category' });
+    expect(category).toHaveAttribute('aria-expanded', 'true');
+    await user.click(category);
+    expect(category).toHaveAttribute('aria-expanded', 'false');
+
+    const format = container.querySelector('section button');
+    expect(format).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('rounds open headers and bodies on every section, including Format', () => {
+    const { container } = renderPanel();
+    const sections = container.querySelectorAll('section');
+    expect(sections.length).toBeGreaterThan(1);
+    for (const section of sections) {
+      expect(section.className).toContain('rounded-lg');
+      const header = section.querySelector(':scope > button');
+      expect(header?.className).toContain('rounded-t-lg');
+      const body = section.querySelector(':scope > div');
+      expect(body).toBeTruthy();
+      expect(body!.className).toContain('rounded-lg');
+    }
+  });
+});
+
+describe('FacetFilterPanel sort section', () => {
+  it('puts Sort above Format and keeps the field and direction in one row', async () => {
+    const user = userEvent.setup();
+    const engine = new FilterEngine(sampleCards);
+    const groupCounts = engine.recount(emptyFilterState(), { formatParam: 'advanced' });
+    const onSortChange = vi.fn();
+    const { container } = render(
+      <FacetFilterPanel
+        filterState={emptyFilterState()}
+        groupCounts={groupCounts}
+        catalogFieldIds={engine.fieldsWithCatalog()}
+        onChange={() => {}}
+        activeFormatId="advanced"
+        onFormatChange={() => {}}
+        sort={DEFAULT_CATALOG_TABLE_SORT}
+        onSortChange={onSortChange}
+      />,
+    );
+
+    const titles = filterPanelSectionTitles(container);
+    expect(titles[0]).toBe('Sort');
+    expect(titles.indexOf('Format')).toBeGreaterThan(0);
+
+    const sortSection = screen.getByRole('button', { name: 'Sort' }).closest('section');
+    expect(sortSection?.className).toContain('rounded-lg');
+    const panel = within(sortSection!);
+    expect(panel.getByRole('combobox', { name: 'Field' })).toHaveValue('Name');
+    const direction = panel.getByRole('button', { name: 'Ascending' });
+    expect(direction).toHaveAttribute('title', 'Ascending');
+    expect(direction.className).toContain('h-touch');
+    expect(direction.className).toContain('rounded-md');
+    await user.click(panel.getByRole('button', { name: 'Show fields' }));
+    await user.click(panel.getByRole('option', { name: 'ATK' }));
+    expect(onSortChange).toHaveBeenCalledWith({ column: 'atk', direction: 'asc' });
+    await user.click(direction);
+    expect(onSortChange).toHaveBeenCalledWith({ column: 'name', direction: 'desc' });
   });
 });
 

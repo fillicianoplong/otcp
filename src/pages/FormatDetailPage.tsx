@@ -284,6 +284,7 @@ export function FormatDetailPage() {
               >
                 <SearchIcon />
               </ToolbarIconButton>
+              <CatalogSortSelect sort={tableSort} onChange={setTableSort} />
               {effectiveViewMode === 'table' ? (
                 <TableToolbar
                   variant="inline"
@@ -291,9 +292,7 @@ export function FormatDetailPage() {
                   visibility={columnVisibility}
                   onVisibilityChange={setColumnVisibility}
                 />
-              ) : (
-                <CatalogSortSelect sort={tableSort} onChange={setTableSort} />
-              )}
+              ) : null}
               <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
             </>
           }
