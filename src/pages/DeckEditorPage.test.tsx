@@ -11,6 +11,9 @@ import sampleDevDataset from '../../public/data/datasets/sample-dev.json';
 import { CardCatalogProvider } from '../catalog/CardCatalogProvider.tsx';
 import { clearCardCatalogCache } from '../catalog/loadCatalog.ts';
 import { clearGuestDeckDraftsStorage, createGuestDeckDraft, getGuestDeckDraft } from '../deckStore';
+import { CARD_FINDER_VIEW_STORAGE_KEY } from '../cardFinder/cardFinderView.ts';
+import { DECK_ZONE_SORT_STORAGE_KEY } from '../deckEditor/deckZoneSort.ts';
+import { DECK_ZONE_VIEW_STORAGE_KEY } from '../deckEditor/deckZoneView.ts';
 import { DECK_EDITOR_SPLIT_MIN_PX } from '../deckEditor/deckEditorLayout.ts';
 import { OTCP_DATASET_SCHEMA_VERSION_LEGACY } from '../shared/schema/constants.ts';
 import { DeckEditorPage } from './DeckEditorPage.tsx';
@@ -151,7 +154,7 @@ describe('DeckEditorPage', () => {
       within(screen.getByTestId('card-finder-results')).getByText('Stardust Dragon'),
     ).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+    await user.click(screen.getByRole('button', { name: 'Clear all' }));
     await user.type(screen.getByRole('searchbox', { name: 'Search cards' }), 'Stardust');
 
     const stardustRow = within(screen.getByTestId('card-finder-results')).getByTestId(
@@ -189,7 +192,7 @@ describe('DeckEditorPage', () => {
     expect(getGuestDeckDraft(draft.id)?.side).toEqual([cardId('Blue-Eyes White Dragon')]);
   });
 
-  it('adds into a named section from the phone sheet without drag', async () => {
+  it('adds from the phone sheet without a section picker', async () => {
     mockViewport(false);
     const draft = createGuestDeckDraft({ name: 'Phone deck', formatId: 'advanced' });
     const user = userEvent.setup();
@@ -208,14 +211,7 @@ describe('DeckEditorPage', () => {
     expect(getGuestDeckDraft(draft.id)?.extra).toEqual([cardId('Stardust Dragon')]);
 
     expect(within(dialog).queryByText(/Extra Deck monsters/)).toBeNull();
-    expect(within(dialog).queryByText(/Side needs Side/)).toBeNull();
-    const addTo = within(dialog).getByRole('radiogroup', { name: 'Add to' });
-    expect(addTo.className).toContain('inline-flex');
-    for (const name of ['Auto', 'Main', 'Extra', 'Side']) {
-      const radio = within(addTo).getByRole('radio', { name });
-      expect(radio.className).toContain('min-h-8');
-      expect(radio.className).not.toContain('touch-min');
-    }
+    expect(within(dialog).queryByRole('radiogroup', { name: 'Add to' })).toBeNull();
 
     await user.clear(within(dialog).getByRole('searchbox', { name: 'Search cards' }));
     await user.type(
@@ -226,19 +222,60 @@ describe('DeckEditorPage', () => {
     expect(within(screen.getByTestId('deck-zone-main')).getByText('Dark Magician')).toBeTruthy();
     expect(screen.getByTestId('deck-zone-main-count')).toHaveTextContent(/^1/);
     expect(getGuestDeckDraft(draft.id)?.main).toEqual([cardId('Dark Magician')]);
+  });
 
-    await user.click(within(dialog).getByRole('radio', { name: 'Side' }));
-    await user.clear(within(dialog).getByRole('searchbox', { name: 'Search cards' }));
-    await user.type(
-      within(dialog).getByRole('searchbox', { name: 'Search cards' }),
-      'Polymerization',
+  it('reveals add and remove on a tapped phone tile and routes the copy', async () => {
+    localStorage.setItem(CARD_FINDER_VIEW_STORAGE_KEY, 'grid');
+    localStorage.setItem(DECK_ZONE_VIEW_STORAGE_KEY, 'grid');
+    mockViewport(false);
+    const stardust = cardId('Stardust Dragon');
+    const draft = createGuestDeckDraft({
+      name: 'Phone taps',
+      formatId: 'advanced',
+      extra: [stardust],
+    });
+    const user = userEvent.setup();
+    renderEditor(draft.id);
+
+    const extraTile = await screen.findByTestId('zone-card-extra-0');
+    expect(within(extraTile).queryByRole('button')).toBeNull();
+    await user.click(extraTile);
+    const addExtra = within(extraTile).getByRole('button', {
+      name: 'Add Stardust Dragon to Extra',
+    });
+    expect(addExtra.className).toContain('min-h-[var(--touch-min)]');
+    expect(addExtra.className).toContain('min-w-[var(--touch-min)]');
+    await user.click(addExtra);
+    expect(getGuestDeckDraft(draft.id)?.extra).toEqual([stardust, stardust]);
+    await user.click(
+      within(extraTile).getByRole('button', { name: 'Remove one Stardust Dragon from Extra' }),
     );
-    await user.click(within(dialog).getByRole('button', { name: 'Add Polymerization' }));
+    expect(getGuestDeckDraft(draft.id)?.extra).toEqual([stardust]);
 
-    expect(within(screen.getByTestId('deck-zone-side')).getByText('Polymerization')).toBeTruthy();
-    expect(within(screen.getByTestId('deck-zone-main')).queryByText('Polymerization')).toBeNull();
-    expect(screen.getByTestId('deck-zone-main-count')).toHaveTextContent(/^1/);
-    expect(getGuestDeckDraft(draft.id)?.side).toEqual([cardId('Polymerization')]);
+    await user.click(screen.getByRole('button', { name: 'Add cards' }));
+    const dialog = screen.getByRole('dialog', { name: 'Add cards' });
+    await user.click(extraTile);
+    const magician = await within(dialog).findByTestId(`library-card-${cardId('Dark Magician')}`);
+    await user.click(magician);
+    expect(within(extraTile).queryByRole('button')).toBeNull();
+    const removeMagician = within(magician).getByRole('button', {
+      name: 'Remove one Dark Magician',
+    });
+    expect(removeMagician).toBeDisabled();
+    await user.click(within(magician).getByRole('button', { name: 'Add Dark Magician' }));
+    expect(
+      getGuestDeckDraft(draft.id)?.extra.filter((id) => id === cardId('Dark Magician')),
+    ).toEqual([]);
+    expect(screen.getByTestId('deck-editor-message')).toHaveTextContent(/cannot go in the Extra/);
+
+    await user.click(screen.getByRole('heading', { name: 'Main' }));
+    expect(within(magician).queryByRole('button')).toBeNull();
+    await user.click(magician);
+    await user.click(within(magician).getByRole('button', { name: 'Add Dark Magician' }));
+    expect(getGuestDeckDraft(draft.id)?.main).toEqual([cardId('Dark Magician')]);
+    expect(
+      within(magician).getByRole('button', { name: 'Remove one Dark Magician' }),
+    ).toBeEnabled();
   });
 
   it('changes format from Filters and clears the chip back to Advanced', async () => {
@@ -252,14 +289,13 @@ describe('DeckEditorPage', () => {
     expect(document.getElementById('deck-format-select')).toBeNull();
     expect(screen.queryByRole('combobox', { name: 'Format' })).toBeNull();
     expect(screen.getByRole('searchbox', { name: 'Search cards' })).toBeTruthy();
-    expect(screen.getByRole('radiogroup', { name: 'Add to' })).toBeTruthy();
+    expect(screen.queryByRole('radiogroup', { name: 'Add to' })).toBeNull();
     expect(screen.getByText('Main 0 / Extra 0 / Side 0')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Filters' }).textContent).toBe('Filters');
 
     const filtersButton = screen.getByRole('button', { name: 'Filters' });
     const chip = screen.getByRole('button', { name: /Remove Yugi-Kaiba format/ });
-    expect(filtersButton.parentElement?.contains(chip)).toBe(false);
-    expect(filtersButton.parentElement?.parentElement?.contains(chip)).toBe(true);
+    expect(filtersButton.parentElement?.contains(chip)).toBe(true);
     expect(chip.className).toContain('rounded-full');
     await user.click(within(chip).getByText('×'));
 
@@ -327,5 +363,139 @@ describe('DeckEditorPage', () => {
     expect(getGuestDeckDraft(draft.id)?.formatId).toBe('edison');
     expect(within(library).getByRole('button', { name: /Remove Edison format/ })).toBeTruthy();
     expect(screen.queryByRole('dialog', { name: 'Filters' })).toBeNull();
+  });
+
+  it('toggles the library between list rows and a four-column grid and keeps the choice', async () => {
+    localStorage.removeItem(CARD_FINDER_VIEW_STORAGE_KEY);
+    mockViewport(true);
+    const draft = createGuestDeckDraft({ name: 'Locals', formatId: 'advanced' });
+    const user = userEvent.setup();
+    renderEditor(draft.id);
+
+    const results = await screen.findByTestId('card-finder-results');
+    expect(results.className).toContain('flex-col');
+    expect(results.getAttribute('data-view')).toBe('list');
+    const blueEyes = within(results).getByTestId(
+      `library-card-${cardId('Blue-Eyes White Dragon')}`,
+    );
+    expect(within(blueEyes).getByText('LIGHT, Normal, Dragon')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'List view' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'Filters' }).className).toContain('h-8');
+    expect(screen.getByRole('button', { name: 'Filters' }).className).toContain('text-sm');
+    expect(screen.getByRole('button', { name: 'Grid view' }).className).toContain('h-8');
+    expect(screen.getByRole('button', { name: 'Grid view' }).className).toContain('text-sm');
+    expect(screen.queryByText('Remove', { selector: '[data-drop="trash"]' })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Grid view' }));
+
+    const grid = screen.getByTestId('card-finder-results');
+    expect(grid.style.gridTemplateColumns).toBe('repeat(4, minmax(0, 1fr))');
+    expect(grid.getAttribute('data-columns')).toBe('4');
+    expect(grid.getAttribute('data-view')).toBe('grid');
+    const tile = within(grid).getByTestId(`library-card-${cardId('Blue-Eyes White Dragon')}`);
+    expect(within(tile).queryByRole('button')).toBeNull();
+    tile.focus();
+    await user.keyboard('{Enter}');
+    expect(
+      within(screen.getByTestId('deck-zone-main')).getByText('Blue-Eyes White Dragon'),
+    ).toBeTruthy();
+    const stardust = within(grid).getByTestId(`library-card-${cardId('Stardust Dragon')}`);
+    stardust.focus();
+    await user.keyboard('{Enter}');
+    expect(within(screen.getByTestId('deck-zone-extra')).getByText('Stardust Dragon')).toBeTruthy();
+    expect(screen.queryByRole('radiogroup', { name: 'Add to' })).toBeNull();
+    await user.click(tile);
+    expect(within(tile).queryByRole('button')).toBeNull();
+    expect(localStorage.getItem(CARD_FINDER_VIEW_STORAGE_KEY)).toBe('grid');
+
+    cleanup();
+    renderEditor(draft.id);
+    const restored = await screen.findByTestId('card-finder-results');
+    expect(restored.getAttribute('data-view')).toBe('grid');
+    expect(screen.getByRole('button', { name: 'Grid view' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    const restoredUser = userEvent.setup();
+    await restoredUser.click(screen.getByRole('button', { name: 'List view' }));
+    const list = screen.getByTestId('card-finder-results');
+    expect(list.className).toContain('flex-col');
+    expect(within(list).getByText('LIGHT, Normal, Dragon')).toBeTruthy();
+    expect(within(list).getByRole('group', { name: /Copies of Blue-Eyes/ }).className).toContain(
+      'ml-auto',
+    );
+    expect(localStorage.getItem(CARD_FINDER_VIEW_STORAGE_KEY)).toBe('list');
+  });
+
+  it('shows each deck copy as its own tile, sorted by type, and removes one from the corner', async () => {
+    localStorage.removeItem(DECK_ZONE_VIEW_STORAGE_KEY);
+    localStorage.removeItem(DECK_ZONE_SORT_STORAGE_KEY);
+    mockViewport(true);
+    const blueEyes = cardId('Blue-Eyes White Dragon');
+    const darkMagician = cardId('Dark Magician');
+    const reborn = cardId('Monster Reborn');
+    const mirror = cardId('Mirror Force');
+    const draft = createGuestDeckDraft({
+      name: 'Locals',
+      formatId: 'advanced',
+      main: [mirror, darkMagician, blueEyes, blueEyes, reborn],
+    });
+    const user = userEvent.setup();
+    renderEditor(draft.id);
+
+    const main = await screen.findByTestId('deck-zone-main');
+    await within(main).findAllByLabelText(
+      'Blue-Eyes White Dragon in Main. Delete removes it. M, E, or S moves it.',
+    );
+    const grid = main.querySelector('ul');
+    expect(grid?.style.gridTemplateColumns).toContain('repeat(10');
+    expect(grid?.getAttribute('data-view')).toBe('grid');
+    expect(
+      within(main).queryByRole('button', { name: 'Add Blue-Eyes White Dragon to Main' }),
+    ).toBeNull();
+    expect(within(main).queryByText('1')).toBeNull();
+
+    const tileName = (tile: Element) =>
+      tile.querySelector('[data-card-name]')?.getAttribute('data-card-name') ?? '';
+    const tiles = [...(grid?.querySelectorAll(':scope > li') ?? [])];
+    expect(tiles.map(tileName)).toEqual([
+      'Blue-Eyes White Dragon',
+      'Blue-Eyes White Dragon',
+      'Dark Magician',
+      'Monster Reborn',
+      'Mirror Force',
+    ]);
+
+    const copies = within(main).getAllByLabelText(
+      'Blue-Eyes White Dragon in Main. Delete removes it. M, E, or S moves it.',
+    );
+    expect(copies).toHaveLength(2);
+    copies[0]!.focus();
+    await user.keyboard('{Delete}');
+    expect(
+      within(main).getAllByLabelText(
+        'Blue-Eyes White Dragon in Main. Delete removes it. M, E, or S moves it.',
+      ),
+    ).toHaveLength(1);
+    expect(getGuestDeckDraft(draft.id)?.main.filter((id) => id === blueEyes)).toEqual([blueEyes]);
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Sort deck' }), 'added');
+    expect(localStorage.getItem(DECK_ZONE_SORT_STORAGE_KEY)).toBe('added');
+    const addedOrder = [...(main.querySelector('ul')?.querySelectorAll(':scope > li') ?? [])].map(
+      tileName,
+    );
+    expect(addedOrder[0]).toBe('Mirror Force');
+
+    await user.click(screen.getByRole('button', { name: 'Deck list view' }));
+    expect(main.querySelector('ul')?.className).toContain('flex-col');
+    expect(within(main).getByText('LIGHT, Normal, Dragon')).toBeTruthy();
+    expect(
+      within(main).getByRole('button', { name: 'Add Blue-Eyes White Dragon to Main' }),
+    ).toBeEnabled();
+    expect(localStorage.getItem(DECK_ZONE_VIEW_STORAGE_KEY)).toBe('list');
   });
 });

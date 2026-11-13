@@ -55,38 +55,83 @@ export function isExtraDeckMonster(card: Pick<YugiohCard, 'type'>): boolean {
   return EXTRA_DECK_TYPE_MARKERS.some((marker) => type.includes(marker));
 }
 
-export function writeDraggedCardId(dataTransfer: DataTransfer, cardId: number): void {
-  const id = String(cardId);
+export type DeckDragSource = 'library' | DeckZone;
+
+export type DeckDragPayload = {
+  cardId: number;
+  from: DeckDragSource;
+  sourceIndex?: number;
+};
+
+export function writeDeckDrag(dataTransfer: DataTransfer, payload: DeckDragPayload): void {
+  const id = String(payload.cardId);
+  let encoded: string;
   try {
-    dataTransfer.setData(DECK_CARD_DRAG_MIME, id);
+    encoded = JSON.stringify(payload);
+  } catch {
+    encoded = id;
+  }
+  try {
+    dataTransfer.setData(DECK_CARD_DRAG_MIME, encoded);
   } catch {
     // Some engines only accept a fixed set of types during dragstart.
   }
   try {
     dataTransfer.setData('text/plain', id);
   } catch {
-    // The editor also keeps the dragged id in memory.
+    // The editor also keeps the dragged payload in memory.
   }
   try {
-    dataTransfer.effectAllowed = 'copy';
+    dataTransfer.effectAllowed = payload.from === 'library' ? 'copy' : 'move';
   } catch {
     // Ignore when the transfer object is read-only.
   }
 }
 
-export function readDraggedCardId(
+export function writeDraggedCardId(dataTransfer: DataTransfer, cardId: number): void {
+  writeDeckDrag(dataTransfer, { cardId, from: 'library' });
+}
+
+export function readDeckDrag(
   dataTransfer: DataTransfer,
-  fallback: number | null,
-): number | null {
+  fallback: DeckDragPayload | null,
+): DeckDragPayload | null {
   let raw: string;
   try {
     raw = dataTransfer.getData(DECK_CARD_DRAG_MIME) || dataTransfer.getData('text/plain');
   } catch {
     raw = '';
   }
-  const parsed = Number(raw);
-  if (Number.isInteger(parsed) && parsed > 0) return parsed;
+  if (raw.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(raw) as Partial<DeckDragPayload>;
+      const cardId = Number(parsed.cardId);
+      if (!Number.isInteger(cardId) || cardId <= 0) return fallback;
+      const from = parsed.from;
+      if (from === 'main' || from === 'extra' || from === 'side' || from === 'library') {
+        return {
+          cardId,
+          from,
+          ...(typeof parsed.sourceIndex === 'number' ? { sourceIndex: parsed.sourceIndex } : {}),
+        };
+      }
+    } catch {
+      return fallback;
+    }
+  }
+  const parsedId = Number(raw);
+  if (Number.isInteger(parsedId) && parsedId > 0) return { cardId: parsedId, from: 'library' };
   return fallback;
+}
+
+export function readDraggedCardId(
+  dataTransfer: DataTransfer,
+  fallback: number | null,
+): number | null {
+  return (
+    readDeckDrag(dataTransfer, fallback == null ? null : { cardId: fallback, from: 'library' })
+      ?.cardId ?? null
+  );
 }
 
 export function deckCopyCount(cardId: number, lists: DeckCardLists): number {
@@ -234,6 +279,32 @@ function zonesToSearch(card: YugiohCard, target: DeckAddTarget): DeckZone[] {
     target === 'auto' ? (isExtraDeckMonster(card) ? 'extra' : 'main') : target;
   const rest = DECK_ZONES.filter((zone) => zone !== preferred);
   return [preferred, ...rest];
+}
+
+/** Move one copy. The source copy is removed only when the destination accepts the card. */
+export function moveCardBetweenZones(
+  card: YugiohCard,
+  from: DeckZone,
+  to: DeckZone,
+  formatId: FormatId,
+  lists: DeckCardLists,
+  setIndex?: SetIndex | null,
+): DeckAddSuccess | DeckAddFailure {
+  if (from === to) {
+    return {
+      ok: true,
+      lists,
+      placedIn: to,
+      message: `${card.name} stays in ${deckZoneLabel(to)}.`,
+    };
+  }
+  const removed = removeOneCardFromZone(lists, from, card.id);
+  if (!removed) {
+    return { ok: false, message: `${card.name} is not in ${deckZoneLabel(from)}.` };
+  }
+  const added = addCardToDeck(card, to, formatId, removed, setIndex);
+  if (!added.ok) return { ok: false, message: added.message };
+  return { ...added, message: `Moved ${card.name} to ${deckZoneLabel(to)}.` };
 }
 
 export function removeOneCardFromZone(

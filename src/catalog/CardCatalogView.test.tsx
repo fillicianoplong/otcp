@@ -73,6 +73,14 @@ describe('CardCatalogView grid tiles', () => {
     expect(image.getAttribute('loading')).toBe('lazy');
     expect(image.getAttribute('alt')).toBe('');
     expect(screen.queryByText('Blue-Eyes White Dragon', { selector: 'p' })).toBeNull();
+
+    const grid = link.closest('ul');
+    expect(grid?.className).toContain('lg:grid-cols-6');
+    expect(grid?.className).toContain('min-[360px]:grid-cols-4');
+    expect(grid?.className).not.toContain('grid-cols-3');
+    expect(grid?.className).not.toContain('grid-cols-5');
+    expect(grid?.className).not.toContain('grid-cols-8');
+    expect(grid?.className).not.toContain('grid-cols-10');
   });
 
   it('shows the card name on the no-image fallback', async () => {
