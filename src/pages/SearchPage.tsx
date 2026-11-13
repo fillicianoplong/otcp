@@ -56,13 +56,21 @@ import {
 import { clearBanStatusSelection } from '../catalog/filterSelection.ts';
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
+import { CatalogSortSelect } from '../catalog/CatalogSortSelect.tsx';
 import {
   CATALOG_TABLE_TOOLBAR_COLUMNS,
   catalogTableVisibilityFromRecord,
   type CatalogTableColumnVisibility,
 } from '../catalog/catalogTableColumns.ts';
+import {
+  readCatalogTableSortFromParams,
+  writeCatalogTableSortToParams,
+} from '../catalog/catalogSortQuery.ts';
+import {
+  isDefaultCatalogTableSort,
+  type CatalogTableSortState,
+} from '../catalog/catalogTableSort.ts';
 import { TableToolbar } from '../ui/TableToolbar.tsx';
-import { type CatalogTableSortState } from '../catalog/catalogTableSort.ts';
 import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 
@@ -117,9 +125,14 @@ export function SearchPage() {
   const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
     () => readSearchTablePrefsForUi().visibility,
   );
-  const [tableSort, setTableSort] = useState<CatalogTableSortState>(
+  const [storedTableSort, setStoredTableSort] = useState<CatalogTableSortState>(
     () => readSearchTablePrefsForUi().sort,
   );
+  const explicitTableSort = useMemo(
+    () => readCatalogTableSortFromParams(searchParams),
+    [searchParams],
+  );
+  const tableSort = explicitTableSort ?? storedTableSort;
 
   useEffect(() => {
     if (!searchParams.has(ALL_ARTWORKS_QUERY_KEY)) return;
@@ -136,7 +149,7 @@ export function SearchPage() {
     const snapshot = readSearchTablePrefsForUi();
     queueMicrotask(() => {
       setTableColumnVisibility(snapshot.visibility);
-      setTableSort(snapshot.sort);
+      setStoredTableSort(snapshot.sort);
     });
   }, [profilePreferenceRevision]);
 
@@ -150,11 +163,38 @@ export function SearchPage() {
 
   const handleTableSortChange = useCallback(
     (next: CatalogTableSortState) => {
-      setTableSort(next);
+      setStoredTableSort(next);
       persistSearchTablePreferences({ visibility: tableColumnVisibility, sort: next });
+      const params = new URLSearchParams(searchParams);
+      writeCatalogTableSortToParams(params, next);
+      const search = params.toString();
+      if (search === searchParams.toString()) return;
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : '' },
+        { replace: true, state: withoutSearchScrollRestore(location.state) },
+      );
     },
-    [tableColumnVisibility],
+    [location.pathname, location.state, navigate, searchParams, tableColumnVisibility],
   );
+
+  useEffect(() => {
+    if (explicitTableSort || isDefaultCatalogTableSort(storedTableSort)) return;
+    const params = new URLSearchParams(searchParams);
+    writeCatalogTableSortToParams(params, storedTableSort);
+    const search = params.toString();
+    if (search === searchParams.toString()) return;
+    navigate(
+      { pathname: location.pathname, search: search ? `?${search}` : '' },
+      { replace: true, state: location.state },
+    );
+  }, [
+    explicitTableSort,
+    location.pathname,
+    location.state,
+    navigate,
+    searchParams,
+    storedTableSort,
+  ]);
 
   const effectiveViewMode = displayCatalogViewMode(resolvedViewPreference, {
     tableAvailable: tableViewportOk,
@@ -381,7 +421,9 @@ export function SearchPage() {
                       handleTableColumnVisibilityChange(catalogTableVisibilityFromRecord(next))
                     }
                   />
-                ) : null}
+                ) : (
+                  <CatalogSortSelect sort={tableSort} onChange={handleTableSortChange} />
+                )}
                 <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
               </>
             }
