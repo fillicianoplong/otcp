@@ -6,7 +6,7 @@ import { CATALOG_GRID_CLASS, FORMAT_BANLIST_GRID_CLASS } from '../catalog/catalo
  * - library: 4 across the deck side search (the caller may pass fewer when the panel is narrow)
  * - deck: 4 on phone, 10 from 1024px
  * - lists: 4 for Lists and Collection
- * - banlist: the denser format-pool grid
+ * - banlist: format detail, 4 on phone and 10 from 1024px
  */
 export type CardGridVariant = 'search' | 'library' | 'deck' | 'lists' | 'banlist';
 

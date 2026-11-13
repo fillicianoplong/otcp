@@ -6,9 +6,15 @@ export const focusRingClass =
 export const focusRingInsetClass =
   'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-strong';
 
-export const toolbarButtonClass = `inline-flex h-control shrink-0 items-center justify-center gap-1 rounded-md border border-border bg-surface px-control-x text-sm font-medium text-heading hover:border-border-strong ${focusRingClass}`;
+const toolbarControlChrome = `h-control shrink-0 items-center justify-center border border-border bg-surface text-sm hover:border-border-strong hover:text-heading focus-visible:z-[1] ${focusRingClass} disabled:cursor-not-allowed disabled:opacity-50`;
 
-export const toolbarToggleButtonClass = `h-control w-control shrink-0 items-center justify-center border border-border bg-surface text-sm text-text-2 hover:border-border-strong hover:text-heading focus-visible:z-[1] ${focusRingClass} disabled:cursor-not-allowed disabled:opacity-50`;
+/** Labeled compact control (Filters, Columns). Same chrome as a toolbar icon button. */
+export const toolbarButtonClass = `inline-flex ${toolbarControlChrome} gap-1 rounded-md px-control-x font-medium text-heading`;
+
+/** Square icon control, the same size as one view-toggle segment. */
+export const toolbarIconButtonClass = `inline-flex ${toolbarControlChrome} w-control rounded-md text-text-2`;
+
+export const toolbarToggleButtonClass = `${toolbarControlChrome} w-control text-text-2`;
 
 export const toolbarGroupClass = 'inline-flex shrink-0 items-center rounded-md';
 
@@ -70,3 +76,15 @@ export const sectionTitleClass = 'text-lg font-semibold text-heading';
 export const groupTitleClass = 'text-base font-semibold text-heading';
 
 export const selectControlClass = `h-control rounded-md border border-border bg-surface px-control-x text-xs text-heading ${focusRingClass}`;
+
+export const tableWrapClass = 'min-w-0 overflow-x-auto rounded-md border border-border';
+
+export const tableClass = 'min-w-full border-collapse text-left text-sm';
+
+export const tableHeadClass = 'bg-surface-2 text-text-2';
+
+export const tableHeadCellClass = 'whitespace-nowrap px-3 py-2 font-medium';
+
+export const tableBodyClass = 'divide-y divide-border bg-surface';
+
+export const tableCellClass = 'px-3 py-2 text-text';

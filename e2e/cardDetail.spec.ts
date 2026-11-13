@@ -294,11 +294,11 @@ test.describe('Card detail prices', () => {
     const setsSection = page.locator('section', {
       has: page.getByRole('heading', { name: 'Sets (24)' }),
     });
-    await expect(setsSection.getByRole('listitem')).toHaveCount(5);
+    await expect(setsSection.locator('tbody tr')).toHaveCount(5);
     await expect(page.getByRole('button', { name: 'Show all 24 sets' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Show all 24 sets' }).click();
-    await expect(setsSection.getByRole('listitem')).toHaveCount(24);
+    await expect(setsSection.locator('tbody tr')).toHaveCount(24);
     await expect(page.getByRole('button', { name: 'Show fewer' })).toBeVisible();
   });
 

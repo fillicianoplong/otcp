@@ -56,8 +56,12 @@ import {
 import { clearBanStatusSelection } from '../catalog/filterSelection.ts';
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
-import { CatalogTableColumnsMenu } from '../catalog/CatalogTableColumnsMenu.tsx';
-import { type CatalogTableColumnVisibility } from '../catalog/catalogTableColumns.ts';
+import {
+  CATALOG_TABLE_TOOLBAR_COLUMNS,
+  catalogTableVisibilityFromRecord,
+  type CatalogTableColumnVisibility,
+} from '../catalog/catalogTableColumns.ts';
+import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { type CatalogTableSortState } from '../catalog/catalogTableSort.ts';
 import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
@@ -369,9 +373,13 @@ export function SearchPage() {
             actions={
               <>
                 {effectiveViewMode === 'table' ? (
-                  <CatalogTableColumnsMenu
+                  <TableToolbar
+                    variant="inline"
+                    columns={CATALOG_TABLE_TOOLBAR_COLUMNS}
                     visibility={tableColumnVisibility}
-                    onChange={handleTableColumnVisibilityChange}
+                    onVisibilityChange={(next) =>
+                      handleTableColumnVisibilityChange(catalogTableVisibilityFromRecord(next))
+                    }
                   />
                 ) : null}
                 <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />

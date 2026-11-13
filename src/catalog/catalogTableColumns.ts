@@ -145,3 +145,22 @@ export function catalogTablePriceSortValue(card: YugiohCard): number | undefined
   if (value === undefined || value <= 0) return undefined;
   return value;
 }
+
+/** Optional Search / format-detail columns for the shared table toolbar. */
+export const CATALOG_TABLE_TOOLBAR_COLUMNS = CATALOG_TABLE_OPTIONAL_COLUMN_DEFS.map((column) => ({
+  id: column.id,
+  label: column.label,
+  defaultVisible: column.defaultVisible,
+}));
+
+/** Map a toolbar visibility record onto the catalog column type. */
+export function catalogTableVisibilityFromRecord(
+  record: Readonly<Partial<Record<string, boolean>>>,
+): CatalogTableColumnVisibility {
+  const visibility = { ...DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY };
+  for (const column of CATALOG_TABLE_OPTIONAL_COLUMN_DEFS) {
+    const value = record[column.id];
+    if (typeof value === 'boolean') visibility[column.id] = value;
+  }
+  return visibility;
+}
