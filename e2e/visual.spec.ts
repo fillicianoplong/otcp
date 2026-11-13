@@ -137,6 +137,8 @@ test.describe('visual layout', () => {
       await prepare(page, width);
       await page.goto('/otcp/styleguide');
       await expect(page.getByRole('heading', { level: 1, name: 'Style guide' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Table', exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Columns' })).toBeVisible();
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
       await settle(page);
       await expect(page).toHaveScreenshot(`styleguide-${width}.png`, screenshotOptions);

@@ -1,11 +1,14 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 
 import { BanThumbMarker } from '../catalog/BanThumbMarker.tsx';
 import { CardCatalogTable } from '../catalog/CardCatalogTable.tsx';
 import { CardListRow } from '../catalog/CardListRow.tsx';
-import { CatalogGridTileFrame, CatalogGridTileImage } from '../catalog/CatalogGridTileArt.tsx';
+import { CatalogGridTileImage } from '../catalog/CatalogGridTileArt.tsx';
+import { sortCatalogTableRows } from '../catalog/catalogTableSort.ts';
 import { CardGrid } from '../ui/CardGrid.tsx';
-import { SectionHeader } from '../ui/SectionHeader.tsx';
+import { CardTile, CardTileFrame } from '../ui/CardTile.tsx';
+import { CollapsibleSection } from '../ui/CollapsibleSection.tsx';
 import { buildSearchCardDetailPath } from '../catalog/searchCardLinks.ts';
 import {
   cardDetailLinkStateFromFormat,
@@ -53,7 +56,7 @@ export function BanlistGridTile({
   const { card, banStatus, changeBadge, genesysPoints } = entry;
   const placeholder = isGenesysPlaceholderCardId(card.id);
   const tile = (
-    <CatalogGridTileFrame>
+    <CardTileFrame>
       {card.images.small ? (
         <CatalogGridTileImage card={card} alt="" />
       ) : (
@@ -66,28 +69,25 @@ export function BanlistGridTile({
           {genesysPoints} pts
         </span>
       ) : null}
-    </CatalogGridTileFrame>
+    </CardTileFrame>
   );
 
   if (placeholder) {
     return (
-      <li aria-label={card.name} className="block rounded-sm">
+      <li aria-label={card.name} className="min-w-0">
         {tile}
       </li>
     );
   }
 
   return (
-    <li>
-      <Link
-        to={buildSearchCardDetailPath(card.id, formatParam ? { formatParam } : undefined)}
-        state={banlistLinkState(formatParam)}
-        aria-label={card.name}
-        className="block rounded-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-      >
-        {tile}
-      </Link>
-    </li>
+    <CardTile
+      to={buildSearchCardDetailPath(card.id, formatParam ? { formatParam } : undefined)}
+      state={banlistLinkState(formatParam)}
+      label={card.name}
+    >
+      {tile}
+    </CardTile>
   );
 }
 
@@ -103,20 +103,18 @@ export function BanlistGridSection({
   if (section.cards.length === 0) return null;
 
   return (
-    <section
-      aria-labelledby={`${headingIdPrefix}-${section.id}`}
-      className="flex flex-col gap-3 overflow-x-hidden rounded-md border border-border bg-surface p-3"
+    <CollapsibleSection
+      title={section.heading}
+      titleId={`${headingIdPrefix}-${section.id}`}
+      count={formatCardCount(section.cards.length)}
+      className="overflow-x-hidden"
     >
-      <div className="flex items-baseline justify-between gap-2 px-1">
-        <SectionHeader id={`${headingIdPrefix}-${section.id}`}>{section.heading}</SectionHeader>
-        <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
-      </div>
       <CardGrid variant="banlist">
         {section.cards.map((entry) => (
           <BanlistGridTile key={banlistEntryKey(entry)} entry={entry} formatParam={formatParam} />
         ))}
       </CardGrid>
-    </section>
+    </CollapsibleSection>
   );
 }
 
@@ -185,15 +183,12 @@ export function BanlistListSection({
   const linkState = banlistLinkState(formatParam);
 
   return (
-    <section
-      aria-labelledby={`${headingIdPrefix}-${section.id}`}
-      className="overflow-hidden rounded-md border border-border bg-surface"
+    <CollapsibleSection
+      title={section.heading}
+      titleId={`${headingIdPrefix}-${section.id}`}
+      count={formatCardCount(section.cards.length)}
     >
-      <div className="flex items-baseline justify-between gap-2 border-b border-border px-3 py-2">
-        <SectionHeader id={`${headingIdPrefix}-${section.id}`}>{section.heading}</SectionHeader>
-        <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
-      </div>
-      <ul className="flex flex-col gap-2 p-2">
+      <ul className="flex flex-col gap-2">
         {section.cards.map((entry) =>
           entry.genesysPoints != null ? (
             <BanlistGenesysListRow
@@ -216,7 +211,7 @@ export function BanlistListSection({
           ),
         )}
       </ul>
-    </section>
+    </CollapsibleSection>
   );
 }
 
@@ -233,31 +228,38 @@ export function BanlistTableSection({
   columnVisibility?: CatalogTableColumnVisibility;
   tableSort?: CatalogTableSortState;
 }) {
+  const [sort, setSort] = useState(tableSort);
+  const sortedCards = useMemo(
+    () =>
+      sortCatalogTableRows(
+        section.cards.map((entry) => entry.card),
+        sort,
+        formatParam,
+      ),
+    [formatParam, section.cards, sort],
+  );
   if (section.cards.length === 0) return null;
 
-  const cards = section.cards.map((entry) => entry.card);
   const linkState = banlistLinkState(formatParam);
 
   return (
-    <section
-      aria-labelledby={`${headingIdPrefix}-${section.id}`}
-      className="flex flex-col gap-3 overflow-x-hidden rounded-md border border-border bg-surface p-3"
+    <CollapsibleSection
+      title={section.heading}
+      titleId={`${headingIdPrefix}-${section.id}`}
+      count={formatCardCount(section.cards.length)}
+      className="overflow-x-hidden"
     >
-      <div className="flex items-baseline justify-between gap-2 px-1">
-        <SectionHeader id={`${headingIdPrefix}-${section.id}`}>{section.heading}</SectionHeader>
-        <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
-      </div>
       <CardCatalogTable
-        visibleCards={cards}
-        matchCount={cards.length}
+        visibleCards={sortedCards}
+        matchCount={sortedCards.length}
         searchQuery=""
         formatParam={formatParam}
         columnVisibility={columnVisibility}
-        sort={tableSort}
-        onSortChange={() => {}}
+        sort={sort}
+        onSortChange={setSort}
         onBeforeNavigate={() => {}}
         linkState={linkState}
       />
-    </section>
+    </CollapsibleSection>
   );
 }

@@ -52,11 +52,11 @@ test.describe('Search on Search page', () => {
     await monsterReborn.click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\//);
 
-    const backControl = page.getByRole('button', { name: '← Back to Search' });
-    await expect(backControl).toBeInViewport();
+    await expect(page.getByRole('button', { name: /Back to/ })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /Back to/ })).toHaveCount(0);
     await expect.poll(async () => page.evaluate(() => window.scrollY)).toBe(0);
 
-    await backControl.click();
+    await page.goBack();
     await expect(page).toHaveURL(/\/otcp\/search(\?view=grid)?\/?$/);
     await expect(page.getByRole('link', { name: 'Monster Reborn', exact: true })).toBeVisible();
     await expect
@@ -80,7 +80,7 @@ test.describe('Search on Search page', () => {
     await monsterReborn.click();
     await expect(page).toHaveURL(/\/otcp\/search\/card\//);
 
-    await page.getByRole('button', { name: '← Back to Search' }).click();
+    await page.goBack();
     await expect(page).toHaveURL(/\/otcp\/search(\?view=grid)?\/?$/);
     await expect(page.getByRole('link', { name: 'Monster Reborn', exact: true })).toBeVisible();
     await expect

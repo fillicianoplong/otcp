@@ -11,40 +11,62 @@ test.describe('Format banlist pages', () => {
 
     const details = page.getByRole('complementary', { name: 'Format details' });
     for (const label of [
-      'Effective',
       'Ban list',
+      'Effective',
       'Cards released by',
       'Latest set',
       'Not included',
-      'Sources',
     ]) {
       await expect(details.getByText(label, { exact: true })).toBeVisible();
     }
     await expect(details.getByText('Deck size')).toHaveCount(0);
-    const widths = await details.evaluate((aside) => {
-      const inner = aside.firstElementChild;
-      if (!(inner instanceof HTMLElement)) return null;
-      const probe = document.createElement('span');
-      probe.textContent = '0';
-      probe.style.font = getComputedStyle(inner).font;
-      probe.style.position = 'absolute';
-      probe.style.visibility = 'hidden';
-      inner.appendChild(probe);
-      const ch = probe.getBoundingClientRect().width;
-      probe.remove();
-      return {
-        asideWidth: aside.getBoundingClientRect().width,
-        innerWidth: inner.getBoundingClientRect().width,
-        maxWidth: Number.parseFloat(getComputedStyle(inner).maxWidth),
-        ch,
-      };
-    });
-    expect(widths).not.toBeNull();
-    expect(Math.abs(widths!.maxWidth - 70 * widths!.ch)).toBeLessThan(1.5);
-    expect(widths!.innerWidth).toBeLessThanOrEqual(widths!.maxWidth + 1);
-    expect(widths!.asideWidth).toBeGreaterThan(widths!.innerWidth + 8);
+    await expect(details.getByText(/Goat snapshots/)).toHaveCount(0);
+    await expect(details.getByText('Sources')).toHaveCount(0);
+    await expect(page.getByRole('contentinfo')).toContainText('Sources:');
+    await expect(
+      page.getByRole('contentinfo').getByRole('link', { name: 'GoatFormat.com' }),
+    ).toBeAttached();
+    const labels = await details.locator('[data-info-card] dt').allTextContents();
+    expect(labels).toEqual([
+      'Ban list',
+      'Effective',
+      'Cards released by',
+      'Latest set',
+      'Not included',
+    ]);
+    const desktopCards = await details.locator('[data-info-card]').evaluateAll((cards) =>
+      cards.map((card) => {
+        const box = card.getBoundingClientRect();
+        return { top: box.top, height: box.height, left: box.left };
+      }),
+    );
+    expect(Math.abs(desktopCards[0]!.top - desktopCards[1]!.top)).toBeLessThan(2);
+    expect(Math.abs(desktopCards[0]!.height - desktopCards[1]!.height)).toBeLessThan(1);
+    await expect(details.getByRole('link', { name: /Ban list/ })).toHaveAttribute(
+      'href',
+      '/otcp/search?format=goat',
+    );
 
-    await page.getByRole('link', { name: 'Card pool' }).click();
+    const forbidden = page.locator('section').filter({
+      has: page.getByRole('heading', { name: 'Forbidden', exact: true }),
+    });
+    await expect(forbidden.getByRole('list')).toBeVisible();
+    await forbidden.locator('summary').click();
+    await expect(forbidden.getByRole('list')).toBeHidden();
+    await forbidden.locator('summary').click();
+    await expect(forbidden.getByRole('list')).toBeVisible();
+
+    await expect(page.getByRole('link', { name: /All formats/ })).toHaveCount(0);
+    const pool = page.getByRole('button', { name: 'Search card pool' });
+    await expect(pool).toBeVisible();
+    const poolBox = await pool.boundingBox();
+    const toggleBox = await page.getByRole('button', { name: 'Grid view' }).boundingBox();
+    expect(poolBox).not.toBeNull();
+    expect(toggleBox).not.toBeNull();
+    expect(Math.abs(poolBox!.y - toggleBox!.y)).toBeLessThan(1);
+    expect(Math.abs(poolBox!.height - toggleBox!.height)).toBeLessThan(1);
+    expect(Math.abs(poolBox!.width - toggleBox!.width)).toBeLessThan(1);
+    await pool.click();
     await expect(page).toHaveURL(/\/otcp\/search\?format=goat$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Search' })).toBeVisible();
   });
@@ -150,11 +172,54 @@ test.describe('Format banlist pages', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/otcp/formats/goat');
     await expect(page.getByRole('heading', { level: 2, name: 'Forbidden' })).toBeVisible();
+    const phoneCards = await page
+      .getByRole('complementary', { name: 'Format details' })
+      .locator('[data-info-card]')
+      .evaluateAll((cards) =>
+        cards.map((card) => {
+          const box = card.getBoundingClientRect();
+          const label = card.querySelector('dt')?.textContent ?? '';
+          return { label, top: box.top, left: box.left, width: box.width };
+        }),
+      );
+    const byLabel = new Map(phoneCards.map((card) => [card.label, card]));
+    const banList = byLabel.get('Ban list');
+    const effective = byLabel.get('Effective');
+    const released = byLabel.get('Cards released by');
+    const latest = byLabel.get('Latest set');
+    const excluded = byLabel.get('Not included');
+    expect(banList && effective && released && latest && excluded).toBeTruthy();
+    expect(banList!.width).toBeGreaterThan(effective!.width + released!.width * 0.5);
+    expect(Math.abs(effective!.top - released!.top)).toBeLessThan(2);
+    expect(effective!.top).toBeGreaterThan(banList!.top + 8);
+    expect(Math.abs(latest!.top - excluded!.top)).toBeLessThan(2);
+    expect(latest!.top).toBeGreaterThan(effective!.top + 8);
 
     const overflow = await page.evaluate(() => {
       const root = document.documentElement;
       return root.scrollWidth > root.clientWidth;
     });
     expect(overflow).toBe(false);
+  });
+
+  test('format detail grid is 4 across on a phone and 10 on desktop', async ({ page }) => {
+    async function columnCount(width: number) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto('/otcp/formats/goat');
+      const grid = page
+        .locator('section')
+        .filter({ has: page.getByRole('heading', { name: 'Forbidden', exact: true }) })
+        .getByRole('list');
+      await expect(grid).toBeVisible();
+      return grid.evaluate(
+        (element) =>
+          getComputedStyle(element)
+            .gridTemplateColumns.split(' ')
+            .filter((part) => part.length > 0).length,
+      );
+    }
+
+    expect(await columnCount(390)).toBe(4);
+    expect(await columnCount(1280)).toBe(10);
   });
 });

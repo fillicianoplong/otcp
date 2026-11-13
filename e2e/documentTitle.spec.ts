@@ -43,7 +43,7 @@ test.describe('document titles', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Dark Magician' })).toBeVisible();
     await expect(page).toHaveTitle('Dark Magician - OTCP');
 
-    await page.getByRole('button', { name: '← Back to Search' }).click();
+    await page.goBack();
     await page.getByRole('searchbox', { name: 'Find a card' }).fill('Blue-Eyes White Dragon');
     const blueEyes = page
       .getByRole('link', { name: 'Blue-Eyes White Dragon', exact: true })
