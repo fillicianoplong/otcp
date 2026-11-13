@@ -191,7 +191,7 @@ export function CardImageZoomViewer({ src, alt, onClose, triggerRef }: CardImage
         type="button"
         onClick={handleClose}
         className={[
-          'fixed z-[60] inline-flex min-h-[var(--touch-min)] items-center rounded-md border border-border-strong bg-surface px-4 text-sm font-medium text-heading hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong',
+          'fixed z-[60] inline-flex min-h-touch items-center rounded-md border border-border-strong bg-surface px-4 text-sm font-medium text-heading hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong',
           CARD_IMAGE_VIEWER_CLOSE_INSET_CLASS,
         ].join(' ')}
       >

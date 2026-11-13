@@ -29,12 +29,10 @@ import {
 import { useAuth } from '../shared/auth';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { getSupabaseClient } from '../shared/supabase/client.ts';
-
-const newDeckButtonClassName =
-  'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
-
-const deckSecondaryActionClassName =
-  'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
+import { Button } from '../ui/Button.tsx';
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { PageTitle } from '../ui/PageTitle.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 
 type GuestDraftImportDialogProps = {
   open: boolean;
@@ -80,36 +78,25 @@ function GuestDraftImportDialog({
       role="presentation"
     >
       <div
-        className="relative w-full max-w-md space-y-4 rounded-md border border-border bg-surface p-4 shadow-lg"
+        className="relative w-full max-w-form space-y-4 rounded-md border border-border bg-surface p-4 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <h2 id={titleId} className="text-lg font-semibold text-heading">
+        <SectionHeader id={titleId} size="section">
           Import local deck {noun}?
-        </h2>
+        </SectionHeader>
         <p className="text-sm text-text">
           You have {draftCount} local deck {noun} from before you signed in. Import{' '}
           {draftCount === 1 ? 'it' : 'them'} to your account so they sync across browsers.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <button
-            ref={declineRef}
-            type="button"
-            className={`${deckSecondaryActionClassName} w-full sm:w-auto`}
-            disabled={busy}
-            onClick={onDecline}
-          >
+          <Button ref={declineRef} className="w-full sm:w-auto" disabled={busy} onClick={onDecline}>
             Not now
-          </button>
-          <button
-            type="button"
-            className={`${newDeckButtonClassName} w-full sm:w-auto`}
-            disabled={busy}
-            onClick={onImport}
-          >
+          </Button>
+          <Button variant="primary" className="w-full sm:w-auto" disabled={busy} onClick={onImport}>
             Import
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -333,7 +320,7 @@ export function DecksPage() {
     !loading && !savedLoading && drafts.length === 0 && (!signedIn || savedDecks.length === 0);
 
   return (
-    <div className="space-y-6">
+    <PageContainer className="space-y-6">
       <GuestDraftImportDialog
         open={importDialogOpen}
         draftCount={pendingImportDrafts.length}
@@ -345,10 +332,10 @@ export function DecksPage() {
       />
 
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-heading">My decks</h1>
-        <button type="button" className={newDeckButtonClassName} onClick={handleNewDraft}>
+        <PageTitle>My decks</PageTitle>
+        <Button variant="primary" onClick={handleNewDraft}>
           New deck
-        </button>
+        </Button>
       </header>
 
       {loading ? (
@@ -368,9 +355,9 @@ export function DecksPage() {
 
       {signedIn ? (
         <section className="space-y-3" aria-labelledby="saved-decks-heading">
-          <h2 id="saved-decks-heading" className="text-lg font-semibold text-heading">
+          <SectionHeader id="saved-decks-heading" size="section">
             Saved to your account
-          </h2>
+          </SectionHeader>
           {savedLoading ? (
             <p className="text-base text-text" role="status">
               Loading saved decks…
@@ -410,9 +397,9 @@ export function DecksPage() {
 
       {drafts.length > 0 ? (
         <section className="space-y-3" aria-labelledby="local-drafts-heading">
-          <h2 id="local-drafts-heading" className="text-lg font-semibold text-heading">
+          <SectionHeader id="local-drafts-heading" size="section">
             {signedIn ? 'Local drafts' : 'Deck drafts'}
-          </h2>
+          </SectionHeader>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {drafts.map((draft) => (
               <li key={draft.id}>
@@ -451,6 +438,6 @@ export function DecksPage() {
           page.
         </p>
       ) : null}
-    </div>
+    </PageContainer>
   );
 }

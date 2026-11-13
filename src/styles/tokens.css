@@ -21,6 +21,7 @@
     'Segoe UI Emoji';
   --font-mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', 'Roboto Mono', monospace;
 
+  --text-2xs: 10px;
   --text-xs: 11px;
   --text-sm: 13px;
   --text-base: 15px;
@@ -42,7 +43,20 @@
   --radius-lg: 12px;
   --radius-pill: 9999px;
 
+  --border-width: 1px;
+
+  /* Compact toolbar controls (Filters, chips, view toggle) and the 44px touch target. */
+  --control-compact: 2rem;
+  --control-pad-x: 0.625rem;
   --touch-min: 44px;
+
+  --tile-thumb: 2.25rem;
+  --tile-gap: 6px;
+  --tile-gap-catalog: 0.5rem;
+  --tile-gap-catalog-wide: 0.75rem;
+
+  --measure: 70ch;
+  --measure-form: 28rem;
   --motion-fast: 120ms;
   --motion-normal: 200ms;
 

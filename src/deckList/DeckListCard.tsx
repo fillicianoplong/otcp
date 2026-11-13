@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useState } from 'react';
 import { Link } from 'react-router';
 
 import { CatalogArtImage } from '../catalog/CatalogArtImage.tsx';
@@ -8,11 +8,11 @@ import type { DeckCover } from '../deckStore/types.ts';
 import { formatDisplayName, type FormatId } from '../format/formatCatalog.ts';
 import { ygoprodeckSmallImageUrl } from '../shared/cardImageUrls.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { Menu, type MenuItem } from '../ui/Menu.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
+import { quietIconButtonClass } from '../ui/classes.ts';
 import { DeckCoverDialog } from './DeckCoverDialog.tsx';
 import { resolveDisplayedCover, uniqueDeckCardIds, type DeckCoverSource } from './deckCover.ts';
-
-const menuItemClassName =
-  'flex min-h-[var(--touch-min)] w-full items-center px-3 text-left text-sm font-medium text-heading hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
 
 const openOverlayClassName =
   'absolute inset-0 z-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
@@ -23,15 +23,6 @@ export type DeckListCardModel = DeckCoverSource & {
   formatId: FormatId;
   updatedAt: string;
   localDraft: boolean;
-};
-
-type MenuItem = {
-  key: string;
-  label: string;
-  href?: string;
-  disabled?: boolean;
-  title?: string;
-  onSelect?: () => void;
 };
 
 type DeckListCardProps = {
@@ -123,139 +114,6 @@ function DeckCoverVisual({
       onError={() => setFailed(true)}
       className="absolute inset-0 h-full w-full object-cover object-left-top"
     />
-  );
-}
-
-function focusMenuItem(menu: HTMLElement, delta: number) {
-  const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]:not([disabled])')];
-  if (items.length === 0) {
-    return;
-  }
-  const current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  const index = current ? items.indexOf(current) : -1;
-  const nextIndex = (index + delta + items.length) % items.length;
-  items[nextIndex]?.focus();
-}
-
-function DeckActionsMenu({ deckName, items }: { deckName: string; items: readonly MenuItem[] }) {
-  const menuId = useId().replace(/:/g, '');
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const onPointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]:not([disabled])')?.focus();
-  }, [open]);
-
-  return (
-    <div ref={rootRef} className="pointer-events-auto relative z-10 shrink-0">
-      <button
-        ref={buttonRef}
-        type="button"
-        aria-expanded={open}
-        aria-controls={menuId}
-        aria-haspopup="menu"
-        aria-label={`Actions for ${deckName}`}
-        onClick={() => setOpen((value) => !value)}
-        className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] items-center justify-center rounded-md text-heading hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-      >
-        <span aria-hidden="true" className="text-xl leading-none">
-          ⋯
-        </span>
-      </button>
-      {open ? (
-        <div
-          ref={menuRef}
-          id={menuId}
-          role="menu"
-          aria-label={`Actions for ${deckName}`}
-          className="absolute right-0 z-20 mt-1 min-w-[12rem] rounded-md border border-border bg-surface py-1 shadow-sm"
-          onKeyDown={(event) => {
-            const menu = menuRef.current;
-            if (!menu) {
-              return;
-            }
-            if (event.key === 'ArrowDown') {
-              event.preventDefault();
-              focusMenuItem(menu, 1);
-            } else if (event.key === 'ArrowUp') {
-              event.preventDefault();
-              focusMenuItem(menu, -1);
-            } else if (event.key === 'Home') {
-              event.preventDefault();
-              menu.querySelector<HTMLElement>('[role="menuitem"]:not([disabled])')?.focus();
-            } else if (event.key === 'End') {
-              event.preventDefault();
-              const entries = menu.querySelectorAll<HTMLElement>(
-                '[role="menuitem"]:not([disabled])',
-              );
-              entries[entries.length - 1]?.focus();
-            } else if (event.key === 'Tab') {
-              setOpen(false);
-            }
-          }}
-        >
-          {items.map((item) =>
-            item.href && !item.disabled ? (
-              <Link
-                key={item.key}
-                role="menuitem"
-                to={item.href}
-                className={menuItemClassName}
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ) : (
-              <button
-                key={item.key}
-                type="button"
-                role="menuitem"
-                className={menuItemClassName}
-                disabled={item.disabled}
-                title={item.title}
-                onClick={() => {
-                  if (item.disabled) {
-                    return;
-                  }
-                  setOpen(false);
-                  item.onSelect?.();
-                }}
-              >
-                {item.label}
-              </button>
-            ),
-          )}
-        </div>
-      ) : null}
-    </div>
   );
 }
 
@@ -358,13 +216,22 @@ export function DeckListCard({
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-start justify-between gap-1">
-            <h2
-              id={nameId}
-              className="min-w-0 flex-1 text-lg font-semibold break-words text-heading"
-            >
+            <SectionHeader id={nameId} size="section" className="min-w-0 flex-1 break-words">
               {deck.name}
-            </h2>
-            <DeckActionsMenu deckName={deck.name} items={items} />
+            </SectionHeader>
+            <Menu
+              label={`Actions for ${deck.name}`}
+              triggerAriaLabel={`Actions for ${deck.name}`}
+              trigger={
+                <span aria-hidden="true" className="text-xl leading-none">
+                  ⋯
+                </span>
+              }
+              triggerClassName={quietIconButtonClass}
+              rootClassName="pointer-events-auto z-10"
+              focusFirstItem
+              items={items}
+            />
           </div>
           <p className="text-sm text-text">{formatDisplayName(deck.formatId)}</p>
           <p className="flex flex-wrap gap-x-3 text-sm text-text">

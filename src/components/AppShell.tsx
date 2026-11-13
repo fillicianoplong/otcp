@@ -7,7 +7,7 @@ import { DocumentTitle } from './DocumentTitle.tsx';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'inline-flex min-h-[var(--touch-min)] items-center px-3 text-base text-text transition-colors',
+    'inline-flex min-h-touch items-center px-3 text-base text-text transition-colors',
     'hover:text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong',
     isActive
       ? 'font-semibold text-heading underline decoration-border-strong underline-offset-4'
@@ -75,7 +75,7 @@ export function AppShell() {
           <button
             ref={menuButtonRef}
             type="button"
-            className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface-2 text-heading md:hidden"
+            className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-md border border-border bg-surface-2 text-heading md:hidden"
             aria-expanded={menuOpen}
             aria-controls={drawerId}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}

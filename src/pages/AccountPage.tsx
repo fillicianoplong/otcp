@@ -10,37 +10,32 @@ import {
   signUp,
   useAuth,
 } from '../shared/auth';
+import { Button } from '../ui/Button.tsx';
+import { Input } from '../ui/Input.tsx';
+import { PageContainer } from '../ui/PageContainer.tsx';
+import { PageTitle } from '../ui/PageTitle.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 
 type AuthMode = 'sign-in' | 'sign-up';
-
-const accountPageShellClassName = 'w-full space-y-6 md:mx-auto md:max-w-md md:pt-[13vh]';
 
 const accountHeaderClassName = 'space-y-2 md:text-center';
 
 const accountCardClassName = 'w-full space-y-4 rounded-md border border-border bg-surface p-4';
 
-const inputClassName =
-  'min-h-[var(--touch-min)] w-full rounded-md border border-border bg-surface px-3 text-base text-text placeholder:text-text-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
-
-const primaryButtonClassName =
-  'inline-flex min-h-[var(--touch-min)] w-full items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
-
-const secondaryButtonClassName =
-  'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-4 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
-
-const dangerButtonClassName =
-  'inline-flex min-h-[var(--touch-min)] w-full items-center justify-center rounded-md border border-ban-forbidden bg-surface px-4 text-sm font-medium text-ban-forbidden hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong disabled:cursor-not-allowed disabled:opacity-50';
-
 const DELETE_CONFIRM_TEXT = 'DELETE';
 
 function AccountPageShell({ children }: { children: ReactNode }) {
-  return <div className={accountPageShellClassName}>{children}</div>;
+  return (
+    <PageContainer width="form" className="space-y-6 md:pt-[13vh]">
+      {children}
+    </PageContainer>
+  );
 }
 
 function AccountHeading({ subtitle }: { subtitle?: ReactNode }) {
   return (
     <header className={accountHeaderClassName}>
-      <h1 className="text-2xl font-semibold text-heading">Account</h1>
+      <PageTitle>Account</PageTitle>
       {subtitle}
     </header>
   );
@@ -94,28 +89,27 @@ function DeleteAccountDialog({
       role="presentation"
     >
       <div
-        className={`${accountCardClassName} relative max-w-md shadow-lg`}
+        className={`${accountCardClassName} relative max-w-form shadow-lg`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <h2 id={titleId} className="text-lg font-semibold text-heading">
+        <SectionHeader id={titleId} size="section">
           Delete account
-        </h2>
+        </SectionHeader>
         <p className="text-sm text-text">
           This permanently deletes your account, saved decks, want lists, collection, and share
           links. Type {DELETE_CONFIRM_TEXT} to confirm.
         </p>
         <label htmlFor={confirmFieldId} className="flex flex-col gap-2 text-sm text-heading">
           Confirmation
-          <input
+          <Input
             id={confirmFieldId}
             type="text"
             autoComplete="off"
             value={confirmText}
             disabled={busy}
             onChange={(event) => onConfirmTextChange(event.target.value)}
-            className={inputClassName}
           />
         </label>
         {errorMessage ? (
@@ -124,23 +118,22 @@ function DeleteAccountDialog({
           </p>
         ) : null}
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <button
+          <Button
             ref={cancelButtonRef}
-            type="button"
-            className={`${secondaryButtonClassName} w-full sm:w-auto`}
+            className="w-full sm:w-auto"
             disabled={busy}
             onClick={onCancel}
           >
             Cancel
-          </button>
-          <button
-            type="button"
-            className={`${dangerButtonClassName} sm:w-auto`}
+          </Button>
+          <Button
+            variant="danger"
+            className="w-full sm:w-auto"
             disabled={!canConfirm}
             onClick={onConfirm}
           >
             Delete account
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -206,13 +199,12 @@ export function AccountPage() {
       <AccountPageShell>
         <AccountHeading />
         <section className={accountCardClassName} aria-labelledby={`${formId}-signed-in-heading`}>
-          <h2 id={`${formId}-signed-in-heading`} className="sr-only">
+          <SectionHeader id={`${formId}-signed-in-heading`} visuallyHidden>
             Signed in
-          </h2>
+          </SectionHeader>
           <p className="text-base text-text">Signed in as {userEmail}</p>
-          <button
-            type="button"
-            className={`${secondaryButtonClassName} w-full`}
+          <Button
+            fullWidth
             disabled={busy}
             onClick={() => {
               setBusy(true);
@@ -226,10 +218,10 @@ export function AccountPage() {
             }}
           >
             Sign out
-          </button>
-          <button
-            type="button"
-            className={dangerButtonClassName}
+          </Button>
+          <Button
+            variant="danger"
+            fullWidth
             disabled={busy}
             onClick={() => {
               setDeleteConfirmText('');
@@ -238,7 +230,7 @@ export function AccountPage() {
             }}
           >
             Delete account
-          </button>
+          </Button>
           {errorMessage ? (
             <p className="text-sm text-heading" role="alert">
               {errorMessage}
@@ -308,14 +300,13 @@ export function AccountPage() {
       />
 
       <section className={accountCardClassName} aria-labelledby={`${formId}-heading`}>
-        <h2 id={`${formId}-heading`} className="sr-only">
+        <SectionHeader id={`${formId}-heading`} visuallyHidden>
           {mode === 'sign-in' ? 'Sign in' : 'Create account'}
-        </h2>
+        </SectionHeader>
 
         <div className="flex gap-2">
-          <button
-            type="button"
-            className={`${secondaryButtonClassName} flex-1 ${mode === 'sign-in' ? 'border-border-strong font-semibold' : ''}`}
+          <Button
+            className={`flex-1 ${mode === 'sign-in' ? 'border-border-strong font-semibold' : ''}`}
             aria-pressed={mode === 'sign-in'}
             onClick={() => {
               setMode('sign-in');
@@ -324,10 +315,9 @@ export function AccountPage() {
             }}
           >
             Sign in
-          </button>
-          <button
-            type="button"
-            className={`${secondaryButtonClassName} flex-1 ${mode === 'sign-up' ? 'border-border-strong font-semibold' : ''}`}
+          </Button>
+          <Button
+            className={`flex-1 ${mode === 'sign-up' ? 'border-border-strong font-semibold' : ''}`}
             aria-pressed={mode === 'sign-up'}
             onClick={() => {
               setMode('sign-up');
@@ -336,7 +326,7 @@ export function AccountPage() {
             }}
           >
             Create account
-          </button>
+          </Button>
         </div>
 
         {signUpNotice ? (
@@ -368,7 +358,7 @@ export function AccountPage() {
         >
           <label htmlFor={emailId} className="flex flex-col gap-2 text-sm text-heading">
             Email
-            <input
+            <Input
               id={emailId}
               name="email"
               type="email"
@@ -377,13 +367,12 @@ export function AccountPage() {
               value={email}
               disabled={busy}
               onChange={(event) => setEmail(event.target.value)}
-              className={inputClassName}
             />
           </label>
 
           <label htmlFor={passwordId} className="flex flex-col gap-2 text-sm text-heading">
             Password
-            <input
+            <Input
               id={passwordId}
               name="password"
               type="password"
@@ -393,7 +382,6 @@ export function AccountPage() {
               value={password}
               disabled={busy}
               onChange={(event) => setPassword(event.target.value)}
-              className={inputClassName}
             />
           </label>
 
@@ -403,9 +391,9 @@ export function AccountPage() {
             </p>
           ) : null}
 
-          <button type="submit" className={primaryButtonClassName} disabled={busy}>
+          <Button type="submit" variant="primary" fullWidth disabled={busy}>
             {submitLabel}
-          </button>
+          </Button>
         </form>
       </section>
     </AccountPageShell>

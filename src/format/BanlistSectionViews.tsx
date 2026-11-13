@@ -4,7 +4,8 @@ import { BanThumbMarker } from '../catalog/BanThumbMarker.tsx';
 import { CardCatalogTable } from '../catalog/CardCatalogTable.tsx';
 import { CardListRow } from '../catalog/CardListRow.tsx';
 import { CatalogGridTileFrame, CatalogGridTileImage } from '../catalog/CatalogGridTileArt.tsx';
-import { FORMAT_BANLIST_GRID_CLASS } from '../catalog/catalogGridLayout.ts';
+import { CardGrid } from '../ui/CardGrid.tsx';
+import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { buildSearchCardDetailPath } from '../catalog/searchCardLinks.ts';
 import {
   cardDetailLinkStateFromFormat,
@@ -32,7 +33,7 @@ function banlistEntryKey(entry: FormatBanlistCardEntry): string {
 
 function FormatBanNameTile({ name }: { name: string }) {
   return (
-    <div className="flex aspect-[59/86] w-full items-center justify-center rounded-sm border border-border bg-surface-2 p-1 text-center text-[10px] leading-tight text-heading">
+    <div className="flex aspect-card w-full items-center justify-center rounded-sm border border-border bg-surface-2 p-1 text-center text-2xs leading-tight text-heading">
       {name}
     </div>
   );
@@ -61,7 +62,7 @@ export function BanlistGridTile({
       {banStatus ? <BanThumbMarker status={banStatus} /> : null}
       {changeBadge ? <BanlistChangeBadgeMarker badge={changeBadge} /> : null}
       {genesysPoints != null ? (
-        <span className="absolute bottom-0 left-0 right-0 bg-bg/90 px-1 py-0.5 text-center text-[10px] font-medium leading-tight text-heading">
+        <span className="absolute bottom-0 left-0 right-0 bg-bg/90 px-1 py-0.5 text-center text-2xs font-medium leading-tight text-heading">
           {genesysPoints} pts
         </span>
       ) : null}
@@ -107,19 +108,14 @@ export function BanlistGridSection({
       className="flex flex-col gap-3 overflow-x-hidden rounded-md border border-border bg-surface p-3"
     >
       <div className="flex items-baseline justify-between gap-2 px-1">
-        <h2
-          id={`${headingIdPrefix}-${section.id}`}
-          className="text-base font-semibold text-heading"
-        >
-          {section.heading}
-        </h2>
+        <SectionHeader id={`${headingIdPrefix}-${section.id}`}>{section.heading}</SectionHeader>
         <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
       </div>
-      <ul className={FORMAT_BANLIST_GRID_CLASS}>
+      <CardGrid variant="banlist">
         {section.cards.map((entry) => (
           <BanlistGridTile key={banlistEntryKey(entry)} entry={entry} formatParam={formatParam} />
         ))}
-      </ul>
+      </CardGrid>
     </section>
   );
 }
@@ -141,7 +137,7 @@ function BanlistGenesysListRow({
             alt=""
             loading="lazy"
             decoding="async"
-            className="aspect-[59/86] w-full object-cover"
+            className="aspect-card w-full object-cover"
           />
         ) : (
           <FormatBanNameTile name={entry.card.name} />
@@ -194,12 +190,7 @@ export function BanlistListSection({
       className="overflow-hidden rounded-md border border-border bg-surface"
     >
       <div className="flex items-baseline justify-between gap-2 border-b border-border px-3 py-2">
-        <h2
-          id={`${headingIdPrefix}-${section.id}`}
-          className="text-base font-semibold text-heading"
-        >
-          {section.heading}
-        </h2>
+        <SectionHeader id={`${headingIdPrefix}-${section.id}`}>{section.heading}</SectionHeader>
         <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
       </div>
       <ul className="flex flex-col gap-2 p-2">
@@ -253,12 +244,7 @@ export function BanlistTableSection({
       className="flex flex-col gap-3 overflow-x-hidden rounded-md border border-border bg-surface p-3"
     >
       <div className="flex items-baseline justify-between gap-2 px-1">
-        <h2
-          id={`${headingIdPrefix}-${section.id}`}
-          className="text-base font-semibold text-heading"
-        >
-          {section.heading}
-        </h2>
+        <SectionHeader id={`${headingIdPrefix}-${section.id}`}>{section.heading}</SectionHeader>
         <span className="text-xs text-text-2">{formatCardCount(section.cards.length)}</span>
       </div>
       <CardCatalogTable

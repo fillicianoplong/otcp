@@ -29,6 +29,7 @@ describe('documentTitleForRoute', () => {
     expect(documentTitleForRoute({ pathname: '/lists' })).toBe('Lists - OTCP');
     expect(documentTitleForRoute({ pathname: '/about' })).toBe('About - OTCP');
     expect(documentTitleForRoute({ pathname: '/account' })).toBe('Account - OTCP');
+    expect(documentTitleForRoute({ pathname: '/styleguide' })).toBe('Style guide - OTCP');
     expect(documentTitleForRoute({ pathname: '/missing' })).toBe('OTCP');
     expect(documentTitleForRoute({ pathname: '/search/nope' })).toBe('OTCP');
     expect(documentTitleForRoute({ pathname: '/banlists' })).toBe('OTCP');

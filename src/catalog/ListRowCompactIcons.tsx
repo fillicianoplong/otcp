@@ -14,7 +14,7 @@ import {
 } from './catalogTableColumns.ts';
 import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
 
-const compactValueClass = 'text-[10px] leading-none tabular-nums text-text-2';
+const compactValueClass = 'text-2xs leading-none tabular-nums text-text-2';
 
 function CompactIconWithValue({
   src,

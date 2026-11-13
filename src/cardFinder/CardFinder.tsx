@@ -1,7 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
-import { FilterChips } from '../catalog/FilterChips.tsx';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
 import { queryCatalog } from '../catalog/catalogQueryCache.ts';
@@ -11,15 +10,18 @@ import {
   type FilterState,
   type FilterStateUpdater,
 } from '../catalog/filterEngine.ts';
-import { countActiveFacetSelections, filterStateToChips } from '../catalog/filterUrlState.ts';
+import { countActiveFacetSelections } from '../catalog/filterUrlState.ts';
+import { clearAllFilters } from '../catalog/filterSelection.ts';
 import { DeckArtTile } from '../deckEditor/DeckArtTile.tsx';
-import { DECK_TILE_GAP_PX } from '../deckEditor/deckTileSize.ts';
 import { LIBRARY_GRID_COLUMNS, libraryGridColumnCount } from './libraryGrid.ts';
 import { writeDraggedCardId } from '../deckEditor/deckPlacement.ts';
-import { formatDisplayName, type FormatId } from '../format/formatCatalog.ts';
+import type { FormatId } from '../format/formatCatalog.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
-import { resultToolbarButtonClass } from '../catalog/resultToolbar.ts';
+import { Button } from '../ui/Button.tsx';
+import { CardGrid } from '../ui/CardGrid.tsx';
+import { Input } from '../ui/Input.tsx';
+import { Toolbar } from '../ui/Toolbar.tsx';
 import { CardFinderViewToggle } from './CardFinderViewToggle.tsx';
 import {
   readCardFinderViewMode,
@@ -29,18 +31,6 @@ import {
 import { EditorCardRow } from './EditorCardRow.tsx';
 
 const RESULT_PAGE_SIZE = 40;
-
-const fieldClassName =
-  'min-h-[var(--touch-min)] w-full rounded-md border border-border bg-bg px-3 text-sm text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
-
-const quietButtonClassName =
-  'inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border bg-surface px-3 text-sm font-medium text-heading hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
-
-/** A deck stays on a format. The chip returns the choice to this baseline. */
-const CLEARED_DECK_FORMAT_ID: FormatId = 'advanced';
-
-const formatChipClassName =
-  'inline-flex h-8 max-w-full items-center gap-1 rounded-full border border-border bg-surface-2 px-2.5 text-sm text-text hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
 
 export function CardFinder({
   formatId,
@@ -146,8 +136,8 @@ export function CardFinder({
     return () => observer.disconnect();
   }, [preferredColumns, viewMode, visibleCards.length]);
 
-  const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
   const activeFilters = countActiveFacetSelections(filterState);
+  const filterCount = activeFilters + 1;
 
   const commitFilters = (updater: FilterStateUpdater) => {
     onFilterStateChange(resolveFilterStateUpdater(updater, filterState));
@@ -160,10 +150,6 @@ export function CardFinder({
       setPhoneDraft(filterState);
       setPhoneDraftFormatId(formatId);
     }
-  };
-
-  const clearFormat = () => {
-    if (formatId !== CLEARED_DECK_FORMAT_ID) onFormatChange(CLEARED_DECK_FORMAT_ID);
   };
 
   const chooseView = (mode: CardFinderViewMode) => {
@@ -193,23 +179,19 @@ export function CardFinder({
   } else {
     body = (
       <div className="flex min-h-0 flex-col gap-2">
-        <ul
-          ref={resultsRef}
-          className={viewMode === 'grid' ? 'grid w-full min-w-0' : 'flex flex-col gap-2'}
-          style={
-            viewMode === 'grid'
-              ? {
-                  gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))`,
-                  gap: `${DECK_TILE_GAP_PX}px`,
-                }
-              : undefined
-          }
-          data-testid="card-finder-results"
-          data-view={viewMode}
-          data-columns={viewMode === 'grid' ? gridColumns : undefined}
-        >
-          {visibleCards.map((card) =>
-            viewMode === 'grid' ? (
+        {viewMode === 'grid' ? (
+          <CardGrid
+            ref={resultsRef}
+            variant="library"
+            style={{
+              gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))`,
+              gap: 'var(--tile-gap)',
+            }}
+            data-testid="card-finder-results"
+            data-view={viewMode}
+            data-columns={gridColumns}
+          >
+            {visibleCards.map((card) => (
               <li key={card.id} className="min-w-0">
                 <DeckArtTile
                   card={card}
@@ -220,7 +202,16 @@ export function CardFinder({
                   tileId={`library-${card.id}`}
                 />
               </li>
-            ) : (
+            ))}
+          </CardGrid>
+        ) : (
+          <ul
+            ref={resultsRef}
+            className="flex flex-col gap-2"
+            data-testid="card-finder-results"
+            data-view={viewMode}
+          >
+            {visibleCards.map((card) => (
               <EditorCardRow
                 key={card.id}
                 card={card}
@@ -237,17 +228,13 @@ export function CardFinder({
                   onCardDragStart?.(card.id);
                 }}
               />
-            ),
-          )}
-        </ul>
+            ))}
+          </ul>
+        )}
         {orderedCards.length > visibleCards.length ? (
-          <button
-            type="button"
-            className={quietButtonClassName}
-            onClick={() => setVisibleLimit((current) => current + RESULT_PAGE_SIZE)}
-          >
+          <Button onClick={() => setVisibleLimit((current) => current + RESULT_PAGE_SIZE)}>
             Show more
-          </button>
+          </Button>
         ) : null}
       </div>
     );
@@ -262,36 +249,26 @@ export function CardFinder({
     >
       <label className="flex flex-col gap-1 text-sm text-text">
         <span>Search cards</span>
-        <input
+        <Input
+          field="inset"
           type="search"
           value={query}
           autoFocus={autoFocusSearch}
           placeholder="Name or passcode"
           onChange={(event) => onQueryChange(event.target.value)}
-          className={fieldClassName}
         />
       </label>
 
       <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className={resultToolbarButtonClass}
+        <Toolbar actions={viewToggle}>
+          <Button
+            variant="toolbar"
             aria-expanded={filtersOpen}
             onClick={() => setFiltersVisible(!filtersOpen)}
           >
-            {activeFilters > 0 ? `Filters (${activeFilters})` : 'Filters'}
-          </button>
-          <button type="button" onClick={clearFormat} className={formatChipClassName}>
-            <span className="truncate">{formatDisplayName(formatId)}</span>
-            <span aria-hidden="true" className="text-text-2">
-              ×
-            </span>
-            <span className="sr-only">Remove {formatDisplayName(formatId)} format</span>
-          </button>
-          <FilterChips chips={chips} onChange={commitFilters} />
-          <div className="ml-auto">{viewToggle}</div>
-        </div>
+            {`Filters · ${filterCount}`}
+          </Button>
+        </Toolbar>
         {orderedCards.length > 0 ? (
           <p className="text-xs text-text-2">
             {orderedCards.length > visibleCards.length
@@ -302,7 +279,10 @@ export function CardFinder({
       </div>
 
       {filtersOpen && !filtersInSheet && catalogDerived ? (
-        <div className="max-h-72 overflow-y-auto rounded-md border border-border p-2">
+        <div className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-md border border-border p-2">
+          <Button className="self-start" onClick={() => commitFilters(clearAllFilters())}>
+            Clear all
+          </Button>
           <FacetFilterPanel
             filterState={filterState}
             groupCounts={queryResult?.facetGroupCounts ?? []}
