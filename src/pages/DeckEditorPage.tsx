@@ -2,21 +2,28 @@ import { Link, Navigate, useParams } from 'react-router';
 import { useEffect, useId, useMemo, useRef, useState, type DragEvent } from 'react';
 
 import { CardFinder } from '../cardFinder/CardFinder.tsx';
+import { LIBRARY_GRID_COLUMNS, LIBRARY_SHEET_COLUMNS } from '../cardFinder/libraryGrid.ts';
+import { catalogSmallImageUrl } from '../catalog/cardArt.ts';
 import { getGuestDeckDraft, updateGuestDeckDraft } from '../deckStore/guestDeckDraftStore.ts';
 import type { GuestDeckDraft, GuestDeckDraftUpdate } from '../deckStore/types.ts';
 import { DeckZoneList } from '../deckEditor/DeckZoneList.tsx';
 import { DECK_EDITOR_SPLIT_MIN_PX } from '../deckEditor/deckEditorLayout.ts';
+import { DeckInteractionProvider } from '../deckEditor/deckInteraction.tsx';
+import { readDropTarget, type DeckDropTarget } from '../deckEditor/deckInteractionContext.ts';
 import {
   addCardToDeck,
   deckCopyCount,
   deckZoneLabel,
-  readDraggedCardId,
+  moveCardBetweenZones,
+  readDeckDrag,
   removeOneCardFromZone,
   removeOneLibraryCopy,
   type DeckAddTarget,
   type DeckCardLists,
+  type DeckDragPayload,
   type DeckZone,
 } from '../deckEditor/deckPlacement.ts';
+import { deckListColumnCount } from '../deckEditor/deckTileSize.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { emptyFilterState, type FilterState } from '../catalog/filterEngine.ts';
 import {
@@ -126,13 +133,18 @@ export function DeckEditorPage() {
   );
   const [query, setQuery] = useState('');
   const [filterState, setFilterState] = useState<FilterState>(() => emptyFilterState());
-  const [addTarget, setAddTarget] = useState<DeckAddTarget>('auto');
   const [message, setMessage] = useState<{ tone: 'ok' | 'refuse'; text: string } | null>(null);
   const [skillRefusalMessage, setSkillRefusalMessage] = useState<string | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [libraryExpanded, setLibraryExpanded] = useState(false);
   const [activeDropZone, setActiveDropZone] = useState<DeckZone | null>(null);
-  const draggingCardId = useRef<number | null>(null);
+  const [highlight, setHighlight] = useState<DeckDropTarget | null>(null);
+  const [tileSizePx, setTileSizePx] = useState(0);
+  const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
+  const [activeZone, setActiveZone] = useState<DeckZone | null>(null);
+  const ghostRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef<DeckDragPayload | null>(null);
+  const helpId = useId();
   const filtersOpenRef = useRef(false);
   const libraryTitleId = useId();
 
@@ -201,7 +213,7 @@ export function DeckEditorPage() {
   };
 
   const handleLibraryRemove = (card: YugiohCard) => {
-    const result = removeOneLibraryCopy(card, addTarget, listsFromDraft(draft));
+    const result = removeOneLibraryCopy(card, 'auto', listsFromDraft(draft));
     if (!result) return;
     persistLists(result.lists, result.message, 'ok');
   };
@@ -214,18 +226,162 @@ export function DeckEditorPage() {
     persistLists(next, `Removed one ${label} from ${deckZoneLabel(zone)}.`, 'ok');
   };
 
-  const handleDrop = (zone: DeckZone, event: DragEvent<HTMLElement>) => {
-    event.preventDefault();
+  const deckColumns = deckListColumnCount(desktop ? DECK_EDITOR_SPLIT_MIN_PX : 0);
+
+  const finishDrop = (payload: DeckDragPayload | null, target: DeckDropTarget | null) => {
+    dragging.current = null;
+    setHighlight(null);
     setActiveDropZone(null);
-    const cardId = readDraggedCardId(event.dataTransfer, draggingCardId.current);
-    draggingCardId.current = null;
-    if (cardId == null) return;
-    const card = catalogById.get(cardId);
+    if (ghostRef.current) ghostRef.current.hidden = true;
+    if (!payload || !draft) return;
+    const card = catalogById.get(payload.cardId);
     if (!card) {
       setMessage({ tone: 'refuse', text: 'That card is not in the loaded catalog.' });
       return;
     }
-    handleAddCard(card, zone);
+    const lists = listsFromDraft(draft);
+    if (payload.from === 'library') {
+      if (target === 'main' || target === 'extra' || target === 'side') {
+        handleAddCard(card, target);
+      }
+      return;
+    }
+    if (target === 'main' || target === 'extra' || target === 'side') {
+      const moved = moveCardBetweenZones(
+        card,
+        payload.from,
+        target,
+        draft.formatId,
+        lists,
+        setIndex,
+      );
+      if (!moved.ok) {
+        setMessage({ tone: 'refuse', text: moved.message });
+        return;
+      }
+      if (target !== payload.from) persistLists(moved.lists, moved.message, 'ok');
+      return;
+    }
+    handleRemoveFromZone(payload.from, payload.cardId);
+  };
+
+  const handleDrop = (zone: DeckZone, event: DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const payload = readDeckDrag(event.dataTransfer, dragging.current);
+    finishDrop(payload, zone);
+  };
+
+  const placeGhost = (x: number, y: number, cardId: number) => {
+    const node = ghostRef.current;
+    if (!node) return;
+    const img = node.querySelector('img');
+    const label = node.querySelector('span');
+    const card = catalogById.get(cardId);
+    if (img instanceof HTMLImageElement && img.dataset.cardId !== String(cardId)) {
+      img.dataset.cardId = String(cardId);
+      img.alt = '';
+      if (card) img.src = catalogSmallImageUrl(card, card.id);
+      img.hidden = false;
+      if (label) label.hidden = true;
+    }
+    if (label && card) label.textContent = card.name;
+    node.hidden = false;
+    const width = node.offsetWidth || tileSizePx || 72;
+    node.style.left = `${Math.max(8, x - width / 2)}px`;
+    node.style.top = `${Math.max(8, y - 28)}px`;
+  };
+
+  const applyDropEffect = (event: DragEvent, payload: DeckDragPayload | null) => {
+    try {
+      event.dataTransfer.dropEffect = payload?.from === 'library' ? 'copy' : 'move';
+    } catch {
+      // Ignore when the transfer object is read-only.
+    }
+  };
+
+  const onEditorDragOver = (event: DragEvent<HTMLDivElement>) => {
+    if (!dragging.current) return;
+    placeGhost(event.clientX, event.clientY, dragging.current.cardId);
+    const target = readDropTarget(event.target);
+    if (target) {
+      event.preventDefault();
+      applyDropEffect(event, dragging.current);
+      setHighlight(target);
+      if (target === 'main' || target === 'extra' || target === 'side') setActiveDropZone(target);
+      return;
+    }
+    if (dragging.current.from !== 'library') {
+      event.preventDefault();
+      applyDropEffect(event, dragging.current);
+      setHighlight('away');
+    }
+  };
+
+  const onEditorDrop = (event: DragEvent<HTMLDivElement>) => {
+    const payload = readDeckDrag(event.dataTransfer, dragging.current);
+    const target = readDropTarget(event.target);
+    if (target === 'main' || target === 'extra' || target === 'side') return;
+    event.preventDefault();
+    finishDrop(payload, target ?? (payload && payload.from !== 'library' ? 'away' : null));
+  };
+
+  const selectTile = (id: string, zone: DeckZone | null) => {
+    setSelectedTileId(id);
+    if (zone) setActiveZone(zone);
+  };
+
+  const clearTileSelection = () => {
+    setSelectedTileId(null);
+    setActiveZone(null);
+  };
+
+  const onPhoneAdd = (payload: DeckDragPayload) => {
+    const card = catalogById.get(payload.cardId);
+    if (!card) return;
+    handleAddCard(card, payload.from === 'library' ? (activeZone ?? 'auto') : payload.from);
+  };
+
+  const onPhoneRemove = (payload: DeckDragPayload) => {
+    const card = catalogById.get(payload.cardId);
+    if (!card) return;
+    if (payload.from === 'library') {
+      handleLibraryRemove(card);
+      return;
+    }
+    handleRemoveFromZone(payload.from, payload.cardId);
+  };
+
+  const onKeyAction = (payload: DeckDragPayload, action: 'add' | 'remove' | DeckZone) => {
+    const card = catalogById.get(payload.cardId);
+    if (!card || !draft) return;
+    if (action === 'add') {
+      handleAddCard(card, 'auto');
+      return;
+    }
+    if (payload.from === 'library') {
+      if (action === 'main' || action === 'extra' || action === 'side') handleAddCard(card, action);
+      return;
+    }
+    if (action === 'remove') {
+      handleRemoveFromZone(payload.from, payload.cardId);
+      return;
+    }
+    if (action === 'main' || action === 'extra' || action === 'side') {
+      const moved = moveCardBetweenZones(
+        card,
+        payload.from,
+        action,
+        draft.formatId,
+        listsFromDraft(draft),
+        setIndex,
+      );
+      if (!moved.ok) {
+        setMessage({ tone: 'refuse', text: moved.message });
+        return;
+      }
+      if (action !== payload.from) persistLists(moved.lists, moved.message, 'ok');
+    }
   };
 
   const commitName = () => {
@@ -318,14 +474,14 @@ export function DeckEditorPage() {
       onQueryChange={setQuery}
       filterState={filterState}
       onFilterStateChange={setFilterState}
-      addTarget={addTarget}
-      onAddTargetChange={setAddTarget}
       quantityForCard={(cardId) => deckCopyCount(cardId, listsFromDraft(draft))}
-      onAdd={(card) => handleAddCard(card, addTarget)}
+      onAdd={(card) => handleAddCard(card, activeZone ?? 'auto')}
       onRemove={handleLibraryRemove}
       dragEnabled={desktop}
+      dropActive={highlight === 'library'}
+      preferredColumns={desktop ? LIBRARY_GRID_COLUMNS : LIBRARY_SHEET_COLUMNS}
       onCardDragStart={(cardId) => {
-        draggingCardId.current = cardId;
+        dragging.current = { cardId, from: 'library' };
       }}
       filtersInSheet={!desktop}
       onFiltersVisibilityChange={(open) => {
@@ -337,177 +493,251 @@ export function DeckEditorPage() {
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden">
-      <div className="min-w-0 space-y-3">
-        <Link
-          to="/decks"
-          className="text-sm font-medium text-heading underline-offset-2 hover:underline"
-        >
-          ← My decks
-        </Link>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            commitName();
-          }}
-        >
-          <label className="flex min-w-0 flex-col gap-1 text-sm text-text" htmlFor="deck-name">
-            <span>Deck name</span>
-            <input
-              id="deck-name"
-              value={nameDraft}
-              onChange={(event) => setNameDraft(event.target.value)}
-              onBlur={commitName}
-              className="min-h-[var(--touch-min)] w-full rounded-md border border-border bg-bg px-3 text-2xl font-semibold text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-            />
-          </label>
-        </form>
-        <p className="text-sm tabular-nums text-text-2">
-          Main {draft.main.length} / Extra {draft.extra.length} / Side {draft.side.length}
-        </p>
-      </div>
-
-      {isGenesysFormat(draft.formatId) && genesysStatus ? (
-        <GenesysPointsBar
-          totalPoints={genesysStatus.totalPoints}
-          cap={effectiveCap}
-          overCap={genesysStatus.overCap}
-          capInput={capInput}
-          onCapInputChange={handleCapInputChange}
-        />
-      ) : null}
-
-      {draft.formatId === 'speed-duel' ? (
-        <div className={`${panelClassName} space-y-3`} aria-labelledby="skill-heading">
-          <h2 id="skill-heading" className="text-base font-semibold text-heading">
-            Skill card
-          </h2>
-          <p className="text-sm text-text-2">
-            Speed Duel allows one active Skill. It does not count toward Main Deck size.
-          </p>
-          {skillCard ? (
-            <p className="text-sm text-heading">
-              Active Skill: <span className="font-medium">{skillCard.name}</span>
-            </p>
-          ) : (
-            <p className="text-sm text-text-2">No Skill selected yet.</p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90"
-              onClick={() => trySetSkill(SAMPLE_SKILL_IDS.heroesUnite)}
-            >
-              Set HEROES UNITE - FUSION!!
-            </button>
-            <button
-              type="button"
-              className={quietButtonClassName}
-              onClick={() => trySetSkill(SAMPLE_SKILL_IDS.ancientFusion)}
-            >
-              Set Ancient Fusion
-            </button>
-          </div>
-          {skillRefusalMessage ? (
-            <p className="text-sm text-heading" role="alert">
-              {skillRefusalMessage}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-
-      {!showLibraryInSheet ? messageNode : null}
-
+    <DeckInteractionProvider
+      value={{
+        tileSizePx,
+        helpId,
+        phoneControls: !desktop,
+        selectedTileId,
+        selectTile,
+        onPhoneAdd,
+        onPhoneRemove,
+        copyCount: (cardId) => deckCopyCount(cardId, listsFromDraft(draft)),
+        onDragPayload: (payload) => {
+          dragging.current = payload;
+        },
+        onKeyAction,
+        onTouchDrag: (phase, point, payload) => {
+          dragging.current = payload;
+          if (phase === 'move' && point) {
+            placeGhost(point.x, point.y, payload.cardId);
+            const hit = document.elementFromPoint(point.x, point.y);
+            const target = readDropTarget(hit);
+            setHighlight(target ?? (payload.from === 'library' ? null : 'away'));
+            return;
+          }
+          const hit = point ? document.elementFromPoint(point.x, point.y) : null;
+          const target = readDropTarget(hit);
+          finishDrop(payload, target ?? (payload.from === 'library' ? null : 'away'));
+        },
+      }}
+    >
       <div
-        className={
-          desktop
-            ? 'grid grid-cols-[minmax(22.5rem,25rem)_minmax(0,1fr)] items-start gap-4'
-            : 'flex flex-col gap-4'
-        }
+        className="flex min-w-0 flex-col gap-4 overflow-x-hidden"
+        onClick={(event) => {
+          if (!(event.target instanceof Element)) return;
+          if (event.target.closest('[data-tile-root]')) return;
+          if (selectedTileId) clearTileSelection();
+        }}
+        onDragOver={onEditorDragOver}
+        onDrop={onEditorDrop}
+        onDragEnd={() => {
+          setHighlight(null);
+          setActiveDropZone(null);
+          if (ghostRef.current) ghostRef.current.hidden = true;
+        }}
       >
-        {desktop ? (
-          <div className="sticky top-16 flex max-h-[calc(100dvh-5rem)] min-h-0 flex-col overflow-y-auto rounded-md border border-border bg-surface p-3">
-            {finder}
+        <p id={helpId} className="sr-only">
+          Drag a card from search into Main, Extra, or Side to add it. Drag a deck card to another
+          section to move it, or onto search or empty space to take one copy out. On a focused
+          search card, Enter adds an Extra Deck monster to Extra and any other card to Main. On a
+          phone, tap a card to show add and remove. On a focused deck card, Delete removes it and M,
+          E, or S moves it.
+        </p>
+        <div className="min-w-0 space-y-3">
+          <Link
+            to="/decks"
+            className="text-sm font-medium text-heading underline-offset-2 hover:underline"
+          >
+            ← My decks
+          </Link>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              commitName();
+            }}
+          >
+            <label className="flex min-w-0 flex-col gap-1 text-sm text-text" htmlFor="deck-name">
+              <span>Deck name</span>
+              <input
+                id="deck-name"
+                value={nameDraft}
+                onChange={(event) => setNameDraft(event.target.value)}
+                onBlur={commitName}
+                className="min-h-[var(--touch-min)] w-full rounded-md border border-border bg-bg px-3 text-2xl font-semibold text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+              />
+            </label>
+          </form>
+          <p className="text-sm tabular-nums text-text-2">
+            Main {draft.main.length} / Extra {draft.extra.length} / Side {draft.side.length}
+          </p>
+        </div>
+
+        {isGenesysFormat(draft.formatId) && genesysStatus ? (
+          <GenesysPointsBar
+            totalPoints={genesysStatus.totalPoints}
+            cap={effectiveCap}
+            overCap={genesysStatus.overCap}
+            capInput={capInput}
+            onCapInputChange={handleCapInputChange}
+          />
+        ) : null}
+
+        {draft.formatId === 'speed-duel' ? (
+          <div className={`${panelClassName} space-y-3`} aria-labelledby="skill-heading">
+            <h2 id="skill-heading" className="text-base font-semibold text-heading">
+              Skill card
+            </h2>
+            <p className="text-sm text-text-2">
+              Speed Duel allows one active Skill. It does not count toward Main Deck size.
+            </p>
+            {skillCard ? (
+              <p className="text-sm text-heading">
+                Active Skill: <span className="font-medium">{skillCard.name}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-text-2">No Skill selected yet.</p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="inline-flex min-h-[var(--touch-min)] items-center justify-center rounded-md border border-border-strong bg-accent px-4 text-sm font-medium text-on-accent hover:opacity-90"
+                onClick={() => trySetSkill(SAMPLE_SKILL_IDS.heroesUnite)}
+              >
+                Set HEROES UNITE - FUSION!!
+              </button>
+              <button
+                type="button"
+                className={quietButtonClassName}
+                onClick={() => trySetSkill(SAMPLE_SKILL_IDS.ancientFusion)}
+              >
+                Set Ancient Fusion
+              </button>
+            </div>
+            {skillRefusalMessage ? (
+              <p className="text-sm text-heading" role="alert">
+                {skillRefusalMessage}
+              </p>
+            ) : null}
           </div>
         ) : null}
-        <DeckZoneList
-          formatId={draft.formatId}
-          zones={{ main: draft.main, extra: draft.extra, side: draft.side }}
-          cardsById={catalogById}
-          dropEnabled={desktop}
-          activeDropZone={activeDropZone}
-          onDragOverZone={(zone, event) => {
-            event.preventDefault();
-            try {
-              event.dataTransfer.dropEffect = 'copy';
-            } catch {
-              // Ignore when the transfer object is read-only.
-            }
-            setActiveDropZone(zone);
-          }}
-          onDragLeaveZone={(zone, event) => {
-            const next = event.relatedTarget;
-            if (next instanceof Node && event.currentTarget.contains(next)) return;
-            setActiveDropZone((current) => (current === zone ? null : current));
-          }}
-          onDropZone={handleDrop}
-          onAddToZone={(zone, card) => handleAddCard(card, zone)}
-          onRemoveFromZone={handleRemoveFromZone}
-        />
-      </div>
 
-      {!desktop ? (
-        <div className="sticky bottom-0 z-20 border-t border-border bg-bg py-3">
-          <button
-            type="button"
-            className={primaryButtonClassName}
-            onClick={() => setLibraryOpen(true)}
-          >
-            Add cards
-          </button>
-        </div>
-      ) : null}
+        {!showLibraryInSheet ? messageNode : null}
 
-      {showLibraryInSheet ? (
         <div
-          className="fixed inset-0 z-50 flex items-end bg-bg/80"
-          role="presentation"
-          onClick={() => setLibraryOpen(false)}
+          className={
+            desktop
+              ? 'grid grid-cols-[18rem_minmax(0,1fr)] items-start gap-4'
+              : 'flex flex-col gap-4'
+          }
         >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={libraryTitleId}
-            className={`flex w-full flex-col border border-border bg-bg ${libraryExpanded ? 'h-full' : 'h-1/2'}`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <header className="flex items-center gap-2 border-b border-border px-3 py-2">
-              <h2 id={libraryTitleId} className="text-base font-semibold text-heading">
-                Add cards
-              </h2>
-              <button
-                type="button"
-                className={`${quietButtonClassName} ml-auto`}
-                onClick={() => setLibraryExpanded((current) => !current)}
-              >
-                {libraryExpanded ? 'Half' : 'Full'}
-              </button>
-              <button
-                type="button"
-                className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] items-center justify-center rounded-md border border-border text-heading"
-                aria-label="Close add cards"
-                onClick={() => setLibraryOpen(false)}
-              >
-                ×
-              </button>
-            </header>
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
-              {messageNode}
+          {desktop ? (
+            <div className="sticky top-16 flex max-h-[calc(100dvh-5rem)] min-h-0 flex-col overflow-y-auto rounded-md border border-border bg-surface p-3">
               {finder}
             </div>
-          </div>
+          ) : null}
+          <DeckZoneList
+            formatId={draft.formatId}
+            zones={{ main: draft.main, extra: draft.extra, side: draft.side }}
+            cardsById={catalogById}
+            dropEnabled={desktop}
+            activeDropZone={activeDropZone}
+            onDragOverZone={(zone, event) => {
+              event.preventDefault();
+              applyDropEffect(event, dragging.current);
+              if (dragging.current)
+                placeGhost(event.clientX, event.clientY, dragging.current.cardId);
+              setActiveDropZone(zone);
+            }}
+            onDragLeaveZone={(zone, event) => {
+              const next = event.relatedTarget;
+              if (next instanceof Node && event.currentTarget.contains(next)) return;
+              setActiveDropZone((current) => (current === zone ? null : current));
+            }}
+            onDropZone={handleDrop}
+            onAddToZone={(zone, card) => handleAddCard(card, zone)}
+            onRemoveFromZone={handleRemoveFromZone}
+            columns={deckColumns}
+            tileSizePx={tileSizePx}
+            highlight={highlight}
+            onTileSize={setTileSizePx}
+          />
         </div>
-      ) : null}
-    </div>
+
+        {!desktop ? (
+          <div className="sticky bottom-0 z-20 border-t border-border bg-bg py-3">
+            <button
+              type="button"
+              className={primaryButtonClassName}
+              onClick={() => setLibraryOpen(true)}
+            >
+              Add cards
+            </button>
+          </div>
+        ) : null}
+
+        {showLibraryInSheet ? (
+          <div
+            className="fixed inset-0 z-50 flex items-end bg-bg/80"
+            role="presentation"
+            onClick={() => setLibraryOpen(false)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={libraryTitleId}
+              className={`flex w-full flex-col border border-border bg-bg ${libraryExpanded ? 'h-full' : 'h-1/2'}`}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <header className="flex items-center gap-2 border-b border-border px-3 py-2">
+                <h2 id={libraryTitleId} className="text-base font-semibold text-heading">
+                  Add cards
+                </h2>
+                <button
+                  type="button"
+                  className={`${quietButtonClassName} ml-auto`}
+                  onClick={() => setLibraryExpanded((current) => !current)}
+                >
+                  {libraryExpanded ? 'Half' : 'Full'}
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex min-h-[var(--touch-min)] min-w-[var(--touch-min)] items-center justify-center rounded-md border border-border text-heading"
+                  aria-label="Close add cards"
+                  onClick={() => setLibraryOpen(false)}
+                >
+                  ×
+                </button>
+              </header>
+              <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
+                {messageNode}
+                {finder}
+              </div>
+            </div>
+          </div>
+        ) : null}
+        <div
+          ref={ghostRef}
+          hidden
+          data-drag-ghost
+          className="pointer-events-none fixed z-[60] overflow-hidden rounded-sm border border-border-strong bg-surface"
+          style={{ width: tileSizePx > 0 ? tileSizePx : 72 }}
+        >
+          <img
+            alt=""
+            className="pointer-events-none aspect-[59/86] w-full object-contain"
+            onError={(event) => {
+              event.currentTarget.hidden = true;
+              const label = event.currentTarget.nextElementSibling;
+              if (label instanceof HTMLElement) label.hidden = false;
+            }}
+          />
+          <span
+            hidden
+            className="flex aspect-[59/86] w-full items-center justify-center px-1 text-center text-[10px] leading-tight text-heading"
+          />
+        </div>
+      </div>
+    </DeckInteractionProvider>
   );
 }
