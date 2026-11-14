@@ -29,7 +29,7 @@ import {
 import type { FormatId } from '../format/formatCatalog.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
-import { Button } from '../ui/Button.tsx';
+import { FiltersToolbarButton } from '../ui/FiltersToolbarButton.tsx';
 import { Chip } from '../ui/Chip.tsx';
 import { Input } from '../ui/Input.tsx';
 import { PageContainer } from '../ui/PageContainer.tsx';
@@ -56,7 +56,6 @@ import {
 import { clearBanStatusSelection } from '../catalog/filterSelection.ts';
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
-import { CatalogSortSelect } from '../catalog/CatalogSortSelect.tsx';
 import {
   CATALOG_TABLE_TOOLBAR_COLUMNS,
   catalogTableVisibilityFromRecord,
@@ -67,6 +66,7 @@ import {
   writeCatalogTableSortToParams,
 } from '../catalog/catalogSortQuery.ts';
 import {
+  DEFAULT_CATALOG_TABLE_SORT,
   isDefaultCatalogTableSort,
   type CatalogTableSortState,
 } from '../catalog/catalogTableSort.ts';
@@ -121,6 +121,9 @@ export function SearchPage() {
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
   const [phoneDraftFormatId, setPhoneDraftFormatId] = useState<FormatId | null>(activeFormatId);
+  const [phoneDraftSort, setPhoneDraftSort] = useState<CatalogTableSortState>(
+    DEFAULT_CATALOG_TABLE_SORT,
+  );
   const tableViewportOk = useMinViewportWidth(CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX);
   const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
     () => readSearchTablePrefsForUi().visibility,
@@ -268,7 +271,10 @@ export function SearchPage() {
     return catalogResultCount(expandCardsToArtTiles(draftVisibleCardsForArt));
   }, [artCacheRevision, catalogDerived, draftVisibleCardsForArt]);
 
-  const activeFilterCount = countActiveFacetSelections(filterState) + (activeFormatId ? 1 : 0);
+  const activeFilterCount =
+    countActiveFacetSelections(filterState) +
+    (activeFormatId ? 1 : 0) +
+    (isDefaultCatalogTableSort(tableSort) ? 0 : 1);
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
 
   const commitFilterState = useCallback(
@@ -291,22 +297,32 @@ export function SearchPage() {
     setStoredFormatRaw(formatId);
   }, []);
 
-  const commitFilterAndFormat = useCallback(
-    (nextFilterState: FilterState, formatId: FormatId | null) => {
+  const commitPhoneFilters = useCallback(
+    (nextFilterState: FilterState, formatId: FormatId | null, sort: CatalogTableSortState) => {
       const resolved = formatId ? nextFilterState : clearBanStatusSelection(nextFilterState);
       filterStateRef.current = resolved;
       persistFormatPreference(formatId);
+      setStoredTableSort(sort);
+      persistSearchTablePreferences({ visibility: tableColumnVisibility, sort });
       const params = new URLSearchParams(searchParams);
       writeFilterStateToParams(params, resolved);
       applyFormatToSearchParams(params, formatId);
       params.delete(ALL_ARTWORKS_QUERY_KEY);
+      writeCatalogTableSortToParams(params, sort);
       const search = params.toString();
       navigate(
         { pathname: location.pathname, search: search ? `?${search}` : '' },
         { replace: true, state: withoutSearchScrollRestore(location.state) },
       );
     },
-    [location.pathname, location.state, navigate, persistFormatPreference, searchParams],
+    [
+      location.pathname,
+      location.state,
+      navigate,
+      persistFormatPreference,
+      searchParams,
+      tableColumnVisibility,
+    ],
   );
 
   const setViewMode = useCallback(
@@ -371,6 +387,7 @@ export function SearchPage() {
   const openPhoneFilters = () => {
     setPhoneDraft(filterState);
     setPhoneDraftFormatId(activeFormatId);
+    setPhoneDraftSort(tableSort);
     setPhoneFiltersOpen(true);
   };
 
@@ -394,17 +411,17 @@ export function SearchPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         {catalogDerived ? (
           <aside aria-label="Filter sidebar" className="hidden w-72 shrink-0 lg:block">
-            <div className="sticky top-[calc(var(--touch-min)+1rem)] max-h-[calc(100dvh-6rem)] overflow-y-auto pr-1">
-              <FacetFilterPanel
-                filterState={filterState}
-                groupCounts={facetGroupCounts}
-                catalogFieldIds={catalogFieldIds}
-                onChange={commitFilterState}
-                setIndex={catalogSetIndex}
-                activeFormatId={activeFormatId}
-                onFormatChange={setActiveFormat}
-              />
-            </div>
+            <FacetFilterPanel
+              filterState={filterState}
+              groupCounts={facetGroupCounts}
+              catalogFieldIds={catalogFieldIds}
+              onChange={commitFilterState}
+              setIndex={catalogSetIndex}
+              activeFormatId={activeFormatId}
+              onFormatChange={setActiveFormat}
+              sort={tableSort}
+              onSortChange={handleTableSortChange}
+            />
           </aside>
         ) : null}
 
@@ -421,16 +438,16 @@ export function SearchPage() {
                       handleTableColumnVisibilityChange(catalogTableVisibilityFromRecord(next))
                     }
                   />
-                ) : (
-                  <CatalogSortSelect sort={tableSort} onChange={handleTableSortChange} />
-                )}
+                ) : null}
                 <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
               </>
             }
           >
-            <Button variant="toolbar" className="lg:hidden" onClick={openPhoneFilters}>
-              {activeFilterCount > 0 ? `Filters · ${activeFilterCount}` : 'Filters'}
-            </Button>
+            <FiltersToolbarButton
+              className="lg:hidden"
+              count={activeFilterCount}
+              onClick={openPhoneFilters}
+            />
             <div className="max-md:hidden md:contents">
               {activeFormatId ? (
                 <Chip
@@ -470,9 +487,10 @@ export function SearchPage() {
           onReset={() => {
             setPhoneDraft(emptyFilterState());
             setPhoneDraftFormatId(null);
+            setPhoneDraftSort(DEFAULT_CATALOG_TABLE_SORT);
           }}
           onApply={() => {
-            commitFilterAndFormat(phoneDraft, phoneDraftFormatId);
+            commitPhoneFilters(phoneDraft, phoneDraftFormatId, phoneDraftSort);
             setPhoneFiltersOpen(false);
           }}
           resultCount={draftVisibleTileCount}
@@ -486,6 +504,8 @@ export function SearchPage() {
               setPhoneDraft((prev) => clearBanStatusSelection(prev));
             }
           }}
+          draftSort={phoneDraftSort}
+          onDraftSortChange={setPhoneDraftSort}
         />
       ) : null}
     </PageContainer>

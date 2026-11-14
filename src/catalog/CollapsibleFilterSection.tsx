@@ -23,7 +23,7 @@ export function CollapsibleFilterSection({
     >
       <button
         type="button"
-        className="flex min-h-10 w-full items-center justify-between gap-2 bg-surface-2 px-3 py-2 text-left text-sm font-medium text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
+        className={`flex min-h-10 w-full items-center justify-between gap-2 bg-surface-2 px-3 py-2 text-left text-sm font-medium text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong ${collapsed ? 'rounded-lg' : 'rounded-t-lg'}`}
         aria-expanded={!collapsed}
         onClick={onToggleCollapse}
       >
@@ -32,7 +32,7 @@ export function CollapsibleFilterSection({
           {collapsed ? '▸' : '▾'}
         </span>
       </button>
-      {!collapsed ? <div className="px-3 py-3">{children}</div> : null}
+      {!collapsed ? <div className="rounded-lg px-3 py-3">{children}</div> : null}
     </section>
   );
 }

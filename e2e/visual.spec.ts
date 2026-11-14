@@ -77,7 +77,7 @@ test.describe('visual layout', () => {
     await page.getByRole('button', { name: 'Filters' }).click();
     await page.getByRole('checkbox', { name: 'Include DARK', exact: true }).click();
     await page.getByRole('button', { name: /See \d+ results?/ }).click();
-    await expect(page.getByRole('button', { name: /Filters · \d+/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Filters, \d+ active/ })).toBeVisible();
     await expect(page.getByRole('list', { name: 'Active filters' })).toBeHidden();
     await settle(page);
     await expect(page).toHaveScreenshot('search-390-filtered.png', screenshotOptions);

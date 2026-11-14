@@ -145,6 +145,13 @@ describe('DeckEditorPage', () => {
     expect(screen.queryByRole('button', { name: 'Add cards' })).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /^Filters/ }));
+    const clearFilters = screen.getByRole('button', { name: 'Clear all' });
+    expect(clearFilters.parentElement?.className ?? '').not.toMatch(/max-h-|overflow-y/);
+    let column: HTMLElement | null = clearFilters;
+    while (column) {
+      expect(column.className).not.toMatch(/max-h-\[calc\(100dvh|overflow-y-auto/);
+      column = column.parentElement;
+    }
     await user.click(screen.getByRole('checkbox', { name: 'Include Synchro' }));
 
     expect(
@@ -292,7 +299,7 @@ describe('DeckEditorPage', () => {
     expect(screen.queryByRole('radiogroup', { name: 'Add to' })).toBeNull();
     expect(screen.queryByText(/Main \d+ \/ Extra/)).toBeNull();
     expect(screen.queryByRole('button', { name: /Remove Yugi-Kaiba format/ })).toBeNull();
-    expect(screen.getByRole('button', { name: /^Filters/ }).textContent).toBe('Filters · 1');
+    expect(screen.getByRole('button', { name: 'Filters, 1 active' }).textContent).toBe('1');
 
     await user.click(screen.getByRole('button', { name: /^Filters/ }));
     const combobox = screen.getByRole('combobox', { name: 'Format' });
@@ -347,11 +354,11 @@ describe('DeckEditorPage', () => {
     const library = screen.getByRole('dialog', { name: 'Add cards' });
     expect(within(library).queryByRole('combobox', { name: 'Format' })).toBeNull();
     expect(within(library).queryByRole('button', { name: /Remove Yugi-Kaiba format/ })).toBeNull();
-    expect(within(library).getByRole('button', { name: /^Filters/ }).textContent).toBe(
-      'Filters · 1',
+    expect(within(library).getByRole('button', { name: 'Filters, 1 active' }).textContent).toBe(
+      '1',
     );
 
-    await user.click(within(library).getByRole('button', { name: /^Filters/ }));
+    await user.click(within(library).getByRole('button', { name: 'Filters, 1 active' }));
     const filters = screen.getByRole('dialog', { name: 'Filters' });
     const combobox = within(filters).getByRole('combobox', { name: 'Format' });
     expect((combobox as HTMLInputElement).value).toBe('Yugi-Kaiba');
@@ -364,8 +371,8 @@ describe('DeckEditorPage', () => {
     await user.click(within(filters).getByRole('button', { name: /^See \d/ }));
     expect(getGuestDeckDraft(draft.id)?.formatId).toBe('edison');
     expect(within(library).queryByRole('button', { name: /Remove Edison format/ })).toBeNull();
-    expect(within(library).getByRole('button', { name: /^Filters/ }).textContent).toBe(
-      'Filters · 1',
+    expect(within(library).getByRole('button', { name: 'Filters, 1 active' }).textContent).toBe(
+      '1',
     );
     expect(screen.queryByRole('dialog', { name: 'Filters' })).toBeNull();
   });
@@ -488,7 +495,8 @@ describe('DeckEditorPage', () => {
     ).toHaveLength(1);
     expect(getGuestDeckDraft(draft.id)?.main.filter((id) => id === blueEyes)).toEqual([blueEyes]);
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Sort deck' }), 'added');
+    await user.click(screen.getByRole('button', { name: /^Type$/ }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Added' }));
     expect(localStorage.getItem(DECK_ZONE_SORT_STORAGE_KEY)).toBe('added');
     const addedOrder = [...(main.querySelector('ul')?.querySelectorAll(':scope > li') ?? [])].map(
       tileName,

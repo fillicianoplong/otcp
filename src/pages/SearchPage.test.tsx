@@ -159,6 +159,19 @@ describe('Search scroll restore', () => {
   });
 });
 
+describe('Search filter sidebar', () => {
+  beforeEach(() => {
+    stubIntersectionObserver();
+  });
+
+  it('scrolls with the page instead of an inner column', async () => {
+    renderSearchFlowWithRouter(['/search'], 0);
+    const sidebar = await screen.findByRole('complementary', { name: 'Filter sidebar' });
+    expect(sidebar.className).not.toMatch(/overflow|max-h-/);
+    expect(sidebar.querySelector('[class*="overflow-y"], [class*="max-h-"]')).toBeNull();
+  });
+});
+
 describe('Search format chip', () => {
   beforeEach(() => {
     stubIntersectionObserver();
