@@ -30,8 +30,13 @@ export type FormatDetailBanList = {
 
 export type FormatDetailCardPool = {
   readonly cardsReleasedBy: string;
+  /** Visible latest-set line. */
   readonly latestSet: string;
+  /** Set name for the Search filter. Null when the line is not one set. */
+  readonly latestSetQuery: string | null;
   readonly notIncluded?: string;
+  /** Set name for the Search filter. Null when the line is not one set. */
+  readonly notIncludedQuery: string | null;
 };
 
 export type FormatDetailFacts = {
@@ -87,6 +92,87 @@ function mergeSourceLinks(
   return merged;
 }
 
+const BAN_LIST_MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const;
+
+const BAN_LIST_MONTH_PATTERN = BAN_LIST_MONTHS.join('|');
+
+function titleCaseMonth(month: string): string {
+  return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+}
+
+function monthYearFromIso(iso: string | undefined): string | null {
+  if (!iso) return null;
+  const match = /^(\d{4})-(\d{2})/.exec(iso);
+  if (!match) return null;
+  const month = BAN_LIST_MONTHS[Number(match[2]) - 1];
+  if (!month) return null;
+  return `${month} ${match[1]}`;
+}
+
+/**
+ * "April 2005 TCG Forbidden/Limited List" → "April 2005 TCG".
+ * Undated names use the effective date and a region (TCG, Speed Duel, or Genesys).
+ */
+export function shortBanListLabel(listName: string, effectiveDate?: string): string {
+  const dated = listName.match(
+    new RegExp(
+      `^(${BAN_LIST_MONTH_PATTERN})\\s+(\\d{4})(?:\\s+(TCG|OCG))?(?:\\s+Lists(?:\\s+\\((TCG|OCG)\\))?)?`,
+      'i',
+    ),
+  );
+  if (dated) {
+    const region = (dated[3] ?? dated[4] ?? 'TCG').toUpperCase();
+    return `${titleCaseMonth(dated[1]!)} ${dated[2]} ${region}`;
+  }
+
+  const fromDate = monthYearFromIso(effectiveDate);
+  if (/speed duel/i.test(listName)) {
+    return fromDate ? `${fromDate} Speed Duel` : 'Speed Duel';
+  }
+  if (/genesys/i.test(listName)) {
+    return fromDate ? `${fromDate} Genesys` : 'Genesys';
+  }
+  if (fromDate) return `${fromDate} TCG`;
+
+  return listName
+    .replace(/\s+Forbidden\s*[/&]\s*Limited List$/i, '')
+    .replace(/\s+point list$/i, '')
+    .trim();
+}
+
+function shortenLatestSet(setName: string): { display: string; query: string | null } {
+  if (setName === 'All TCG sets through the list window') {
+    return { display: 'All TCG sets', query: null };
+  }
+  if (setName.startsWith('Speed Duel: ')) {
+    return { display: setName.slice('Speed Duel: '.length), query: setName };
+  }
+  return { display: setName, query: setName };
+}
+
+function shortenNotIncluded(note: string): { display: string; query: string | null } {
+  if (note === 'Printings without the Speed Duel symbol on the card') {
+    return { display: 'No Speed Duel symbol', query: null };
+  }
+  if (note === 'Link and Pendulum Monsters') {
+    return { display: 'Link, Pendulum', query: null };
+  }
+  return { display: note, query: note };
+}
+
 function historyPathForFormat(format: FormatDefinition): string {
   return formatDetailPath(format.id);
 }
@@ -101,7 +187,7 @@ function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
     if (!effectiveDate) return null;
     return {
       effectiveDate,
-      listName: format.banlistHeading,
+      listName: shortBanListLabel(format.banlistHeading, effectiveDate),
       historyPath: formatDetailPath(format.id),
     };
   }
@@ -115,14 +201,14 @@ function buildBanList(format: FormatDefinition): FormatDetailBanList | null {
     const snapshot = getFormatBanlistSnapshot(format.id);
     return {
       effectiveDate: snapshot.effectiveDate,
-      listName: snapshot.listName,
+      listName: shortBanListLabel(snapshot.listName, snapshot.effectiveDate),
       historyPath,
     };
   }
 
   return {
     effectiveDate,
-    listName: format.banlistHeading,
+    listName: shortBanListLabel(format.banlistHeading, effectiveDate),
     historyPath,
   };
 }
@@ -134,20 +220,16 @@ function buildCardPool(format: FormatDefinition): FormatDetailCardPool | null {
   if (format.poolRule !== 'tcg-earliest-on-or-before') return null;
   if (!format.poolCutoffDate) return null;
 
-  const notIncluded = poolNotIncludedFromExclusionNote(format.poolExclusionNote);
-
-  if (format.poolThroughSet) {
-    return {
-      cardsReleasedBy: format.poolCutoffDate,
-      latestSet: format.poolThroughSet,
-      notIncluded,
-    };
-  }
+  const exclusion = poolNotIncludedFromExclusionNote(format.poolExclusionNote);
+  const notIncluded = exclusion ? shortenNotIncluded(exclusion) : null;
+  const latest = shortenLatestSet(format.poolThroughSet ?? 'All TCG sets through the list window');
 
   return {
     cardsReleasedBy: format.poolCutoffDate,
-    latestSet: 'All TCG sets through the list window',
-    notIncluded,
+    latestSet: latest.display,
+    latestSetQuery: latest.query,
+    notIncluded: notIncluded?.display,
+    notIncludedQuery: notIncluded?.query ?? null,
   };
 }
 
@@ -155,12 +237,14 @@ function buildSpeedDuelDetailFacts(): FormatDetailFacts {
   return {
     description: SPEED_DUEL_DETAIL_INTRO,
     banList: {
-      listName: 'Speed Duel Forbidden & Limited List',
+      listName: shortBanListLabel('Speed Duel Forbidden & Limited List', '2026-07-10'),
     },
     cardPool: {
       cardsReleasedBy: '2024-12-13',
-      latestSet: 'Speed Duel: Battle City Finals',
-      notIncluded: 'Printings without the Speed Duel symbol on the card',
+      latestSet: 'Battle City Finals',
+      latestSetQuery: 'Speed Duel: Battle City Finals',
+      notIncluded: 'No Speed Duel symbol',
+      notIncludedQuery: null,
     },
     genesysDetail: null,
     sourceLinks: [
@@ -191,9 +275,9 @@ export function buildFormatDetailFacts(format: FormatDefinition): FormatDetailFa
       banList: null,
       cardPool: null,
       genesysDetail: {
-        banListName: format.banlistHeading,
+        banListName: shortBanListLabel(format.banlistHeading, format.sortDate),
         pointCap: konami.standardPointCap ?? DEFAULT_GENESYS_POINT_CAP,
-        notIncluded: 'Link and Pendulum Monsters',
+        notIncluded: 'Link, Pendulum',
       },
       sourceLinks: mergeSourceLinks([], format.detailSourceLinks),
     };

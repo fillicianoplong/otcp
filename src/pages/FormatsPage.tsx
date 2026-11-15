@@ -3,6 +3,9 @@ import { Link } from 'react-router';
 
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
+import { TableToolbar } from '../ui/TableToolbar.tsx';
+import { isTableColumnVisible, type TableColumn } from '../ui/tableColumns.ts';
+import { useTableColumnVisibility } from '../ui/useTableColumnVisibility.ts';
 
 import {
   formatBanlistEffectiveDate,
@@ -61,6 +64,15 @@ function BanlistCountCell({ total, delta }: { total: number; delta: number }) {
   );
 }
 
+const FORMATS_COLUMNS: readonly TableColumn[] = [
+  { id: 'name', label: 'Format', locked: true },
+  { id: 'listDate', label: 'List date' },
+  { id: 'poolThrough', label: 'Pool through' },
+  { id: 'forbidden', label: 'Forbidden' },
+  { id: 'limited', label: 'Limited' },
+  { id: 'semiLimited', label: 'Semi-Limited' },
+];
+
 const formatsDataRowClassName = 'formats-data-row group/row cursor-pointer hover:bg-surface-2/60';
 
 const formatsRowCellContentClassName = 'relative z-[1] pointer-events-none';
@@ -111,9 +123,18 @@ function FormatRowCell({
 
 export function FormatsPage() {
   const formats = listFormatsNewestFirst();
+  const [columnVisibility, setColumnVisibility] = useTableColumnVisibility(
+    'formats',
+    FORMATS_COLUMNS,
+  );
+  const showColumn = (id: string) =>
+    isTableColumnVisible(
+      FORMATS_COLUMNS.find((column) => column.id === id) ?? FORMATS_COLUMNS[0]!,
+      columnVisibility,
+    );
 
   return (
-    <PageContainer className="flex flex-col gap-6 overflow-x-hidden">
+    <PageContainer className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <PageTitle>Formats</PageTitle>
         <p className="max-w-[70ch] text-sm text-text-2">
@@ -122,28 +143,44 @@ export function FormatsPage() {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-border">
+      <TableToolbar
+        columns={FORMATS_COLUMNS}
+        visibility={columnVisibility}
+        onVisibilityChange={setColumnVisibility}
+      />
+
+      <div className="min-w-0 overflow-x-auto rounded-md border border-border">
         <table className="min-w-full border-collapse text-left text-sm">
           <thead className="bg-surface-2 text-text-2">
             <tr>
               <th scope="col" className="px-3 py-2 font-medium">
                 Format
               </th>
-              <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
-                List date
-              </th>
-              <th scope="col" className="py-2 pr-3 pl-1 font-medium whitespace-nowrap">
-                Pool through
-              </th>
-              <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
-                Forbidden
-              </th>
-              <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
-                Limited
-              </th>
-              <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
-                Semi-Limited
-              </th>
+              {showColumn('listDate') ? (
+                <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
+                  List date
+                </th>
+              ) : null}
+              {showColumn('poolThrough') ? (
+                <th scope="col" className="py-2 pr-3 pl-1 font-medium whitespace-nowrap">
+                  Pool through
+                </th>
+              ) : null}
+              {showColumn('forbidden') ? (
+                <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
+                  Forbidden
+                </th>
+              ) : null}
+              {showColumn('limited') ? (
+                <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
+                  Limited
+                </th>
+              ) : null}
+              {showColumn('semiLimited') ? (
+                <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
+                  Semi-Limited
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody className="divide-y divide-border bg-surface">
@@ -161,48 +198,61 @@ export function FormatsPage() {
                   <FormatRowCell formatId={format.id} primary className="px-3 py-2">
                     {format.name}
                   </FormatRowCell>
-                  <FormatRowCell
-                    formatId={format.id}
-                    className="px-3 py-2 pr-1 tabular-nums text-text whitespace-nowrap"
-                  >
-                    {listDate || '—'}
-                  </FormatRowCell>
-                  <FormatRowCell
-                    formatId={format.id}
-                    className="py-2 pr-3 pl-1 tabular-nums text-text-2 whitespace-nowrap"
-                  >
-                    {poolThrough || '—'}
-                  </FormatRowCell>
-                  <FormatRowCell
-                    formatId={format.id}
-                    className="hidden px-3 py-2 text-xs lg:table-cell"
-                  >
-                    {stats ? (
-                      <BanlistCountCell total={stats.forbidden} delta={stats.deltaForbidden} />
-                    ) : (
-                      '—'
-                    )}
-                  </FormatRowCell>
-                  <FormatRowCell
-                    formatId={format.id}
-                    className="hidden px-3 py-2 text-xs lg:table-cell"
-                  >
-                    {stats ? (
-                      <BanlistCountCell total={stats.limited} delta={stats.deltaLimited} />
-                    ) : (
-                      '—'
-                    )}
-                  </FormatRowCell>
-                  <FormatRowCell
-                    formatId={format.id}
-                    className="hidden px-3 py-2 text-xs lg:table-cell"
-                  >
-                    {stats ? (
-                      <BanlistCountCell total={stats.semiLimited} delta={stats.deltaSemiLimited} />
-                    ) : (
-                      '—'
-                    )}
-                  </FormatRowCell>
+                  {showColumn('listDate') ? (
+                    <FormatRowCell
+                      formatId={format.id}
+                      className="px-3 py-2 pr-1 tabular-nums text-text whitespace-nowrap"
+                    >
+                      {listDate || '—'}
+                    </FormatRowCell>
+                  ) : null}
+                  {showColumn('poolThrough') ? (
+                    <FormatRowCell
+                      formatId={format.id}
+                      className="py-2 pr-3 pl-1 tabular-nums text-text-2 whitespace-nowrap"
+                    >
+                      {poolThrough || '—'}
+                    </FormatRowCell>
+                  ) : null}
+                  {showColumn('forbidden') ? (
+                    <FormatRowCell
+                      formatId={format.id}
+                      className="hidden px-3 py-2 text-xs lg:table-cell"
+                    >
+                      {stats ? (
+                        <BanlistCountCell total={stats.forbidden} delta={stats.deltaForbidden} />
+                      ) : (
+                        '—'
+                      )}
+                    </FormatRowCell>
+                  ) : null}
+                  {showColumn('limited') ? (
+                    <FormatRowCell
+                      formatId={format.id}
+                      className="hidden px-3 py-2 text-xs lg:table-cell"
+                    >
+                      {stats ? (
+                        <BanlistCountCell total={stats.limited} delta={stats.deltaLimited} />
+                      ) : (
+                        '—'
+                      )}
+                    </FormatRowCell>
+                  ) : null}
+                  {showColumn('semiLimited') ? (
+                    <FormatRowCell
+                      formatId={format.id}
+                      className="hidden px-3 py-2 text-xs lg:table-cell"
+                    >
+                      {stats ? (
+                        <BanlistCountCell
+                          total={stats.semiLimited}
+                          delta={stats.deltaSemiLimited}
+                        />
+                      ) : (
+                        '—'
+                      )}
+                    </FormatRowCell>
+                  ) : null}
                 </tr>
               );
             })}

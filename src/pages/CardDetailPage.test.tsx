@@ -175,26 +175,10 @@ describe('CardDetailPage artwork', () => {
     screen.getByRole('dialog', { name: 'Zoomed artwork for Dark Magician' });
   });
 
-  it('uses history back for Back to Search when opened from Search', async () => {
-    const user = userEvent.setup();
-    render(
-      <MemoryRouter
-        initialEntries={[
-          '/search',
-          { pathname: '/search/card/46986420', state: { fromSearch: true } },
-        ]}
-        initialIndex={1}
-      >
-        <CardCatalogProvider>
-          <Routes>
-            <Route path="/search" element={<div>Search stub</div>} />
-            <Route path="/search/card/:id" element={<CardDetailPage />} />
-          </Routes>
-        </CardCatalogProvider>
-      </MemoryRouter>,
-    );
-
-    await user.click(await screen.findByRole('button', { name: '← Back to Search' }));
-    expect(screen.getByText('Search stub')).toBeTruthy();
+  it('does not render an in-page back link', async () => {
+    renderDetail(46986420);
+    await screen.findByRole('heading', { level: 1, name: 'Dark Magician' });
+    expect(screen.queryByRole('link', { name: /Back to/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Back to/ })).toBeNull();
   });
 });

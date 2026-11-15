@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
+import {
+  CATALOG_TABLE_TOOLBAR_COLUMNS,
+  catalogTableVisibilityFromRecord,
+} from '../catalog/catalogTableColumns.ts';
 import {
   CATALOG_WIDE_LAYOUT_MIN_WIDTH_PX,
   effectiveCatalogViewMode,
@@ -10,7 +14,11 @@ import {
 } from '../catalog/catalogViewMode.ts';
 import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
 import { PageContainer } from '../ui/PageContainer.tsx';
+import { SearchIcon, ToolbarIconButton } from '../ui/ToolbarIconButton.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
+import { TableToolbar } from '../ui/TableToolbar.tsx';
+import { Toolbar } from '../ui/Toolbar.tsx';
+import { useTableColumnVisibility } from '../ui/useTableColumnVisibility.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import {
   BanlistGridSection,
@@ -18,7 +26,10 @@ import {
   BanlistTableSection,
 } from '../format/BanlistSectionViews.tsx';
 import { buildFormatDetailFacts } from '../format/formatDetailFacts.ts';
-import { FormatDetailFactsBlock } from '../format/FormatDetailFactsBlock.tsx';
+import {
+  FormatDetailFactsBlock,
+  FormatDetailSourcesFooter,
+} from '../format/FormatDetailFactsBlock.tsx';
 import {
   buildFormatBanlistPageModel,
   buildTcgDatedFormatBanlistPageModel,
@@ -59,10 +70,12 @@ function FormatBanlistSections({
   sections,
   formatId,
   viewMode,
+  columnVisibility,
 }: {
   sections: FormatBanlistSection[];
   formatId: FormatId;
   viewMode: CatalogViewMode;
+  columnVisibility: ReturnType<typeof catalogTableVisibilityFromRecord>;
 }) {
   return (
     <>
@@ -71,7 +84,14 @@ function FormatBanlistSections({
           return <BanlistGridSection key={section.id} section={section} formatParam={formatId} />;
         }
         if (viewMode === 'table') {
-          return <BanlistTableSection key={section.id} section={section} formatParam={formatId} />;
+          return (
+            <BanlistTableSection
+              key={section.id}
+              section={section}
+              formatParam={formatId}
+              columnVisibility={columnVisibility}
+            />
+          );
         }
         return <BanlistListSection key={section.id} section={section} formatParam={formatId} />;
       })}
@@ -80,6 +100,7 @@ function FormatBanlistSections({
 }
 
 export function FormatDetailPage() {
+  const navigate = useNavigate();
   const { formatId: formatIdParam } = useParams();
   const formatId = normalizeFormatId(formatIdParam);
   const format = formatId ? getFormatById(formatId) : undefined;
@@ -89,6 +110,11 @@ export function FormatDetailPage() {
   const effectiveViewMode = effectiveCatalogViewMode(viewMode, {
     tableAvailable: tableViewportOk,
   });
+  const [columnVisibility, setColumnVisibility] = useTableColumnVisibility(
+    'format-detail',
+    CATALOG_TABLE_TOOLBAR_COLUMNS,
+  );
+  const catalogColumnVisibility = catalogTableVisibilityFromRecord(columnVisibility);
   const [tcgDatedLoad, setTcgDatedLoad] = useState<{
     effectiveDate: string;
     model: FormatBanlistPageModel | 'loading' | 'missing';
@@ -199,44 +225,54 @@ export function FormatDetailPage() {
     : undefined;
 
   return (
-    <PageContainer className="flex flex-col gap-6 overflow-x-hidden">
+    <PageContainer className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <Link
-          to="/formats"
-          className="w-fit text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
+        <Toolbar
+          actions={
+            <>
+              <ToolbarIconButton
+                label="Search card pool"
+                onClick={() => {
+                  writeFormatPreference(formatId);
+                  navigate(searchWithFormatPath(formatId));
+                }}
+              >
+                <SearchIcon />
+              </ToolbarIconButton>
+              {effectiveViewMode === 'table' ? (
+                <TableToolbar
+                  variant="inline"
+                  columns={CATALOG_TABLE_TOOLBAR_COLUMNS}
+                  visibility={columnVisibility}
+                  onVisibilityChange={setColumnVisibility}
+                />
+              ) : null}
+              <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
+            </>
+          }
         >
-          ← All formats
-        </Link>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-col gap-1">
-            <PageTitle>{format.name}</PageTitle>
-            <Link
-              to={searchWithFormatPath(formatId)}
-              onClick={() => writeFormatPreference(formatId)}
-              className="w-fit text-sm font-medium text-text-2 underline-offset-2 hover:text-heading hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
-            >
-              Search card pool →
-            </Link>
-          </div>
-          <CatalogViewToggle value={viewMode} onChange={setViewMode} />
-        </div>
-        {detailFacts ? <FormatDetailFactsBlock facts={detailFacts} /> : null}
+          <PageTitle>{format.name}</PageTitle>
+        </Toolbar>
+        {detailFacts ? <FormatDetailFactsBlock facts={detailFacts} formatId={formatId} /> : null}
       </div>
 
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden">
         <FormatBanlistSections
           sections={restrictedSections}
           formatId={formatId}
           viewMode={effectiveViewMode}
+          columnVisibility={catalogColumnVisibility}
         />
         {poolAsSection ? (
           <FormatBanlistSections
             sections={[poolAsSection]}
             formatId={formatId}
             viewMode={effectiveViewMode}
+            columnVisibility={catalogColumnVisibility}
           />
         ) : null}
       </div>
+      {detailFacts ? <FormatDetailSourcesFooter links={detailFacts.sourceLinks} /> : null}
     </PageContainer>
   );
 }

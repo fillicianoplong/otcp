@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import { cardDetailImageSrc, YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
 import { resolveArtIds, resolveSelectedArtId } from '../catalog/cardArt.ts';
@@ -28,7 +28,6 @@ import {
 } from '../catalog/cardDetailMarketPrices.ts';
 import {
   buildCardDetailSetSearchHref,
-  cardDetailSetRowCodeRarity,
   cardDetailSetRowReleaseDate,
   cardDetailSetsExpandButtonLabel,
   cardDetailSetsHeadingCount,
@@ -41,9 +40,6 @@ import {
   isSetRowMarkedForSelectedArt,
 } from '../catalog/setArtPrintings.ts';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
-import { buildSearchPathWithFormat } from '../catalog/searchCardLinks.ts';
-import type { CardDetailLinkState } from '../catalog/searchNavigation.ts';
-import { getFormatById } from '../format/formatCatalog.ts';
 import {
   banMarkerForStatus,
   isFormatBanContextActive,
@@ -56,9 +52,14 @@ import { CardImageZoomViewer } from '../components/CardImageZoomViewer.tsx';
 import { YgoCardIcon } from '../components/YgoCardIcon.tsx';
 import { formatPriceSnapshotDate } from '../prices/formatPrice.ts';
 import { LinkedRow } from '../ui/ListRow.tsx';
+import { InfoCard } from '../ui/InfoCard.tsx';
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
+import { TableToolbar } from '../ui/TableToolbar.tsx';
+import { isTableColumnVisible, type TableColumn } from '../ui/tableColumns.ts';
+import { useTableColumnVisibility } from '../ui/useTableColumnVisibility.ts';
+import { focusRingClass } from '../ui/classes.ts';
 import { buildStoreSearchUrl, STORE_LINK_LABELS } from '../prices/storeLinks.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import type { CardPrices } from '../shared/schema/core.ts';
@@ -168,12 +169,6 @@ function CardDetailBanStatus({
   );
 }
 
-const cardDetailChipFlexClassName = 'min-w-0 flex-[1_1_120px]';
-
-const cardDetailChipClassName = `${cardDetailChipFlexClassName} flex flex-col gap-0.5 rounded-md border border-border bg-surface px-3 py-2 text-sm`;
-
-const cardDetailLinkedChipClassName = `${cardDetailChipClassName} no-underline text-inherit transition-colors hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong`;
-
 function CardDetailInfoChips({ card }: { card: YugiohCard }) {
   const chips = buildCardDetailChips(card);
   if (chips.length === 0) return null;
@@ -183,28 +178,16 @@ function CardDetailInfoChips({ card }: { card: YugiohCard }) {
       {chips.map((chip) => {
         const iconSrc = resolveCardDetailChipIconPath(chip.label, card);
         const searchHref = buildCardDetailChipSearchHref(chip, card);
-        const className = searchHref ? cardDetailLinkedChipClassName : cardDetailChipClassName;
-        const content = (
-          <>
-            <dt className="text-xs font-medium text-text-2">{chip.label}</dt>
-            <dd className="font-medium text-heading">
-              <YgoCardIcon src={iconSrc} label={chip.value} tier="detail" />
-            </dd>
-          </>
-        );
-        return searchHref ? (
-          <Link
+        return (
+          <InfoCard
             key={`${chip.label}-${chip.value}`}
-            to={searchHref}
-            className={className}
-            aria-label={cardDetailChipSearchAriaLabel(chip)}
+            label={chip.label}
+            to={searchHref ?? undefined}
+            ariaLabel={searchHref ? cardDetailChipSearchAriaLabel(chip) : undefined}
+            className="flex-[1_1_120px]"
           >
-            {content}
-          </Link>
-        ) : (
-          <div key={`${chip.label}-${chip.value}`} className={className}>
-            {content}
-          </div>
+            <YgoCardIcon src={iconSrc} label={chip.value} tier="detail" />
+          </InfoCard>
         );
       })}
     </dl>
@@ -260,6 +243,15 @@ function CardDetailMarketPrices({
   );
 }
 
+const SET_COLUMNS: readonly TableColumn[] = [
+  { id: 'set', label: 'Set', locked: true },
+  { id: 'code', label: 'Code' },
+  { id: 'rarity', label: 'Rarity' },
+  { id: 'released', label: 'Released' },
+];
+
+const setLinkClassName = `min-w-0 truncate font-medium text-heading underline-offset-2 hover:underline ${focusRingClass}`;
+
 function CardDetailSets({
   card,
   setIndex,
@@ -270,8 +262,17 @@ function CardDetailSets({
   selectedArtId: number;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [columnVisibility, setColumnVisibility] = useTableColumnVisibility(
+    'card-sets',
+    SET_COLUMNS,
+  );
   const sortedSets = useMemo(() => sortCardDetailSets(card.sets, setIndex), [card.sets, setIndex]);
   const totalCount = sortedSets.length;
+  const showColumn = (id: string) =>
+    isTableColumnVisible(
+      SET_COLUMNS.find((column) => column.id === id) ?? SET_COLUMNS[0]!,
+      columnVisibility,
+    );
   if (totalCount === 0) return null;
 
   const visibleCount = cardDetailSetsVisibleCount(totalCount, expanded);
@@ -281,47 +282,76 @@ function CardDetailSets({
   const showArtMarks = hasCuratedSetArtPrintings(card.id);
 
   return (
-    <section className="flex flex-col gap-2" aria-labelledby="card-sets-heading">
+    <section className="flex min-w-0 flex-col gap-2" aria-labelledby="card-sets-heading">
       <SectionHeader id="card-sets-heading">{cardDetailSetsHeadingCount(totalCount)}</SectionHeader>
-      <div className="overflow-hidden rounded-md border border-border bg-surface text-sm">
-        <ul className="m-0 list-none p-0">
-          {visibleSets.map((entry, index) => {
-            const releaseDate = cardDetailSetRowReleaseDate(entry.setName, setIndex);
-            const usesThisArt =
-              showArtMarks && isSetRowMarkedForSelectedArt(card.id, selectedArtId, entry.setCode);
-            return (
-              <li
-                key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}
-                className={index > 0 ? 'border-t border-border' : undefined}
-              >
-                <LinkedRow
-                  to={buildCardDetailSetSearchHref(entry.setName)}
-                  label={`Search for cards in ${entry.setName}`}
-                >
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate font-medium text-heading">{entry.setName}</span>
-                    <span className="text-xs text-text-2">
-                      {cardDetailSetRowCodeRarity(entry.setCode, entry.setRarity)}
+      <TableToolbar
+        columns={SET_COLUMNS}
+        visibility={columnVisibility}
+        onVisibilityChange={setColumnVisibility}
+      />
+      <div className="min-w-0 overflow-x-auto rounded-md border border-border bg-surface text-sm">
+        <table className="min-w-full border-collapse text-left">
+          <thead className="bg-surface-2 text-text-2">
+            <tr>
+              <th scope="col" className="px-3 py-2 font-medium">
+                Set
+              </th>
+              {showColumn('code') ? (
+                <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
+                  Code
+                </th>
+              ) : null}
+              {showColumn('rarity') ? (
+                <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
+                  Rarity
+                </th>
+              ) : null}
+              {showColumn('released') ? (
+                <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
+                  Released
+                </th>
+              ) : null}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {visibleSets.map((entry) => {
+              const releaseDate = cardDetailSetRowReleaseDate(entry.setName, setIndex);
+              const usesThisArt =
+                showArtMarks && isSetRowMarkedForSelectedArt(card.id, selectedArtId, entry.setCode);
+              return (
+                <tr key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}>
+                  <td className="px-3 py-2">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Link
+                        to={buildCardDetailSetSearchHref(entry.setName)}
+                        aria-label={`Search for cards in ${entry.setName}`}
+                        className={setLinkClassName}
+                      >
+                        {entry.setName}
+                      </Link>
+                      {usesThisArt ? (
+                        <span className="shrink-0 rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 text-2xs font-medium uppercase tracking-wide text-text-2">
+                          This art
+                        </span>
+                      ) : null}
                     </span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1.5">
-                    {usesThisArt ? (
-                      <span className="rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 text-2xs font-medium uppercase tracking-wide text-text-2">
-                        This art
-                      </span>
-                    ) : null}
-                    {releaseDate ? (
-                      <span className="text-xs text-text-2 tabular-nums">{releaseDate}</span>
-                    ) : null}
-                    <span aria-hidden="true" className="text-xs leading-none text-text-2">
-                      ↗
-                    </span>
-                  </span>
-                </LinkedRow>
-              </li>
-            );
-          })}
-        </ul>
+                  </td>
+                  {showColumn('code') ? (
+                    <td className="whitespace-nowrap px-3 py-2 text-text-2">{entry.setCode}</td>
+                  ) : null}
+                  {showColumn('rarity') ? (
+                    <td className="whitespace-nowrap px-3 py-2 text-text-2">{entry.setRarity}</td>
+                  ) : null}
+                  {showColumn('released') ? (
+                    <td className="whitespace-nowrap px-3 py-2 text-text-2 tabular-nums">
+                      {releaseDate ?? '—'}
+                    </td>
+                  ) : null}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
       {expandLabel && !expanded ? (
         <button
@@ -354,52 +384,6 @@ function DetailMessage({ title, children }: { title: string; children: string })
   );
 }
 
-const backLinkClassName =
-  'w-fit text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong';
-
-function BackToSearchControl({
-  searchQuery,
-  formatParam,
-}: {
-  searchQuery: string | null;
-  formatParam: string | null;
-}) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const linkState = location.state as CardDetailLinkState | null;
-  const fromSearch = linkState?.fromSearch === true;
-  const returnFormatId = linkState?.returnFormatId;
-
-  if (fromSearch) {
-    return (
-      <button type="button" onClick={() => navigate(-1)} className={backLinkClassName}>
-        ← Back to Search
-      </button>
-    );
-  }
-
-  if (returnFormatId) {
-    const formatName = getFormatById(returnFormatId)?.name ?? 'format';
-    return (
-      <Link to={`/formats/${returnFormatId}`} className={backLinkClassName}>
-        ← Back to {formatName}
-      </Link>
-    );
-  }
-
-  const params = new URLSearchParams();
-  if (searchQuery && searchQuery.length > 0) {
-    params.set('q', searchQuery);
-  }
-  const backHref = buildSearchPathWithFormat(formatParam, params.toString());
-
-  return (
-    <Link to={backHref} className={backLinkClassName}>
-      ← Back to Search
-    </Link>
-  );
-}
-
 export function CardDetailPage() {
   const { id: idParam } = useParams();
   const [searchParams] = useSearchParams();
@@ -407,7 +391,6 @@ export function CardDetailPage() {
   const { state } = useCardCatalog();
 
   const routeId = Number.parseInt(idParam ?? '', 10);
-  const searchQuery = searchParams.get('q');
   const resolvedFormat = useMemo(
     () =>
       resolveFormatPreference({
@@ -461,25 +444,17 @@ export function CardDetailPage() {
   }
 
   return (
-    <CardDetailReadyView
-      key={routeId}
-      state={state}
-      routeId={routeId}
-      searchQuery={searchQuery}
-      formatParam={formatParam}
-    />
+    <CardDetailReadyView key={routeId} state={state} routeId={routeId} formatParam={formatParam} />
   );
 }
 
 function CardDetailReadyView({
   state,
   routeId,
-  searchQuery,
   formatParam,
 }: {
   state: Extract<CatalogState, { status: 'ready' }>;
   routeId: number;
-  searchQuery: string | null;
   formatParam: string | null;
 }) {
   const navigate = useNavigate();
@@ -550,7 +525,6 @@ function CardDetailReadyView({
         <DetailMessage title="Card not found">
           No card in the published dataset matches that passcode.
         </DetailMessage>
-        <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
       </div>
     );
   }
@@ -577,7 +551,6 @@ function CardDetailReadyView({
 
   return (
     <PageContainer className="flex flex-col gap-6">
-      <BackToSearchControl searchQuery={searchQuery} formatParam={formatParam} />
       {/* Width fits the viewport height, leaves a gutter, and still yields to the info column. */}
       <div className="flex w-full min-w-0 flex-col gap-6 md:flex-row md:items-start md:gap-12">
         <div className="w-full min-w-0 md:sticky md:top-4 md:w-[min(42rem,calc((100dvh-10rem)*421/614),calc(100%-25rem))] md:shrink-0">

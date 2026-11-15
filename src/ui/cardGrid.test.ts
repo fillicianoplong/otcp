@@ -19,4 +19,11 @@ describe('cardGridClassName', () => {
     expect(className).toContain('grid-cols-4');
     expect(className).toContain('lg:grid-cols-10');
   });
+
+  it('uses four columns on a phone format grid and ten on desktop', () => {
+    const className = cardGridClassName('banlist');
+    expect(className).toContain('grid-cols-4');
+    expect(className).toContain('lg:grid-cols-10');
+    expect(className).toContain('gap-tile');
+  });
 });

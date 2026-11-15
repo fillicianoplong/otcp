@@ -1,115 +1,120 @@
-import type { ReactNode } from 'react';
-import { Link } from 'react-router';
-
+import { buildCardDetailSetSearchHref } from '../catalog/cardDetailSets.ts';
+import { searchWithFormatPath, type FormatId } from './formatCatalog.ts';
+import { InfoCard } from '../ui/InfoCard.tsx';
 import type { FormatDetailFacts, FormatSourceLink } from './formatDetailFacts.ts';
 
-const DETAILS_BOX_CLASS =
-  'min-w-0 w-full rounded-md border border-border bg-surface p-3 text-text-2';
+/** Two cards per row on a phone. Desktop fits as many equal-height cards as the row allows. */
+const FACTS_GRID_CLASS =
+  'grid grid-cols-2 items-stretch gap-2 md:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]';
 
-const CONTENT_WIDTH_CLASS = 'max-w-[70ch]';
+/** Ban list is the full first phone row, then one column on desktop. */
+const BAN_LIST_CARD_CLASS = 'col-span-2 md:col-span-1';
 
-const WRAP_CLASS = 'min-w-0 break-words';
-
-const VALUE_CLASS = `text-sm leading-snug text-heading ${WRAP_CLASS}`;
-
-const ROW_CLASS = `border-b border-border py-2 last:border-b-0 ${WRAP_CLASS}`;
-
-const LABEL_CLASS = `text-xs leading-snug text-text-2 ${WRAP_CLASS}`;
-
-function SpecRow({ label, children }: { label: string; children: ReactNode }) {
+function FormatFactCard({
+  label,
+  to,
+  className,
+  children,
+}: {
+  label: string;
+  to: string;
+  className?: string;
+  children: string;
+}) {
   return (
-    <div className={ROW_CLASS}>
-      <dt className={LABEL_CLASS}>{label}</dt>
-      <dd className={`mt-0.5 ${VALUE_CLASS}`}>{children}</dd>
-    </div>
+    <InfoCard label={label} to={to} className={className} singleLine>
+      {children}
+    </InfoCard>
   );
 }
 
-function SourceLinksStacked({ links }: { links: readonly FormatSourceLink[] }) {
+export function FormatDetailFactsBlock({
+  facts,
+  formatId,
+}: {
+  facts: FormatDetailFacts;
+  formatId: FormatId;
+}) {
+  const { banList, cardPool, genesysDetail } = facts;
+  const poolHref = searchWithFormatPath(formatId);
+  const banListName = genesysDetail?.banListName ?? banList?.listName;
+
   return (
-    <ul className={`flex flex-col gap-0 leading-snug ${WRAP_CLASS}`}>
-      {links.map((link) => (
-        <li key={link.href} className="min-w-0">
+    <aside className="min-w-0 w-full" aria-label="Format details">
+      <dl className={FACTS_GRID_CLASS}>
+        {banListName ? (
+          <FormatFactCard label="Ban list" to={poolHref} className={BAN_LIST_CARD_CLASS}>
+            {banListName}
+          </FormatFactCard>
+        ) : null}
+        {banList?.effectiveDate ? (
+          <FormatFactCard label="Effective" to={poolHref}>
+            {banList.effectiveDate}
+          </FormatFactCard>
+        ) : null}
+        {cardPool ? (
+          <FormatFactCard label="Cards released by" to={poolHref}>
+            {cardPool.cardsReleasedBy}
+          </FormatFactCard>
+        ) : null}
+        {cardPool ? (
+          <FormatFactCard
+            label="Latest set"
+            to={
+              cardPool.latestSetQuery
+                ? buildCardDetailSetSearchHref(cardPool.latestSetQuery)
+                : poolHref
+            }
+          >
+            {cardPool.latestSet}
+          </FormatFactCard>
+        ) : null}
+        {cardPool?.notIncluded ? (
+          <FormatFactCard
+            label="Not included"
+            to={
+              cardPool.notIncludedQuery
+                ? buildCardDetailSetSearchHref(cardPool.notIncludedQuery)
+                : poolHref
+            }
+          >
+            {cardPool.notIncluded}
+          </FormatFactCard>
+        ) : null}
+        {genesysDetail ? (
+          <FormatFactCard label="Point cap" to={poolHref}>
+            {String(genesysDetail.pointCap)}
+          </FormatFactCard>
+        ) : null}
+        {genesysDetail ? (
+          <FormatFactCard label="Not included" to={poolHref}>
+            {genesysDetail.notIncluded}
+          </FormatFactCard>
+        ) : null}
+      </dl>
+    </aside>
+  );
+}
+
+export function FormatDetailSourcesFooter({ links }: { links: readonly FormatSourceLink[] }) {
+  if (links.length === 0) return null;
+
+  return (
+    <footer role="contentinfo" className="text-xs text-text-2">
+      <span>Sources: </span>
+      {links.map((link, index) => (
+        <span key={link.href}>
+          {index > 0 ? <span aria-hidden="true"> · </span> : null}
           <a
             href={link.href}
-            className={`${VALUE_CLASS} hover:underline hover:underline-offset-2`}
+            className="text-text-2 underline-offset-2 hover:text-heading hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
             rel="noopener noreferrer"
             target="_blank"
           >
             {link.label}
           </a>
-        </li>
+        </span>
       ))}
-    </ul>
-  );
-}
-
-export function FormatDetailFactsBlock({ facts }: { facts: FormatDetailFacts }) {
-  const { description, banList, cardPool, genesysDetail, sourceLinks } = facts;
-
-  return (
-    <aside className={DETAILS_BOX_CLASS} aria-label="Format details">
-      <div className={`${CONTENT_WIDTH_CLASS} ${WRAP_CLASS}`}>
-        {description ? (
-          <p className={`mb-3 text-sm leading-relaxed text-text-2 ${WRAP_CLASS}`}>{description}</p>
-        ) : null}
-        <dl className={WRAP_CLASS}>
-          {genesysDetail ? (
-            <>
-              <SpecRow label="Ban list">
-                <span>{genesysDetail.banListName}</span>
-              </SpecRow>
-              <SpecRow label="Point cap">
-                <span>{genesysDetail.pointCap}</span>
-              </SpecRow>
-              <SpecRow label="Not included">
-                <span>{genesysDetail.notIncluded}</span>
-              </SpecRow>
-            </>
-          ) : null}
-          {banList ? (
-            <>
-              {banList.effectiveDate ? (
-                <SpecRow label="Effective">
-                  <span className="tabular-nums">{banList.effectiveDate}</span>
-                </SpecRow>
-              ) : null}
-              <SpecRow label="Ban list">
-                {banList.historyPath ? (
-                  <Link
-                    to={banList.historyPath}
-                    className={`${VALUE_CLASS} hover:underline hover:underline-offset-2`}
-                  >
-                    {banList.listName}
-                  </Link>
-                ) : (
-                  <span>{banList.listName}</span>
-                )}
-              </SpecRow>
-            </>
-          ) : null}
-          {cardPool ? (
-            <>
-              <SpecRow label="Cards released by">
-                <span className="tabular-nums">{cardPool.cardsReleasedBy}</span>
-              </SpecRow>
-              <SpecRow label="Latest set">
-                <span>{cardPool.latestSet}</span>
-              </SpecRow>
-              {cardPool.notIncluded ? (
-                <SpecRow label="Not included">
-                  <span>{cardPool.notIncluded}</span>
-                </SpecRow>
-              ) : null}
-            </>
-          ) : null}
-          {sourceLinks.length > 0 ? (
-            <SpecRow label="Sources">
-              <SourceLinksStacked links={sourceLinks} />
-            </SpecRow>
-          ) : null}
-        </dl>
-      </div>
-    </aside>
+    </footer>
   );
 }

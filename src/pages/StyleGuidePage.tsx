@@ -3,6 +3,7 @@ import { useEffect, useId, useState } from 'react';
 import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
 import type { CatalogViewMode } from '../catalog/catalogViewMode.ts';
 import { Button } from '../ui/Button.tsx';
+import { CollapsibleSection } from '../ui/CollapsibleSection.tsx';
 import { CardGrid } from '../ui/CardGrid.tsx';
 import { CardTileFrame } from '../ui/CardTile.tsx';
 import { Chip } from '../ui/Chip.tsx';
@@ -13,8 +14,23 @@ import { Menu } from '../ui/Menu.tsx';
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
+import { TableToolbar } from '../ui/TableToolbar.tsx';
+import { SearchIcon, ToolbarIconButton } from '../ui/ToolbarIconButton.tsx';
 import { Toolbar } from '../ui/Toolbar.tsx';
-import { listRowLinkClass } from '../ui/classes.ts';
+import {
+  listRowLinkClass,
+  tableCellClass,
+  tableClass,
+  tableHeadCellClass,
+  tableHeadClass,
+  tableWrapClass,
+} from '../ui/classes.ts';
+import {
+  defaultTableColumnVisibility,
+  isTableColumnVisible,
+  type TableColumn,
+  type TableColumnVisibility,
+} from '../ui/tableColumns.ts';
 
 const TYPE_STEPS = [
   ['text-2xs', '2xs · 10px'],
@@ -60,6 +76,20 @@ const DEMO_OPTIONS: ComboboxOption[] = [
   { id: 'alpha', label: 'Alpha' },
   { id: 'beta', label: 'Beta' },
 ];
+
+const TABLE_COLUMNS: readonly TableColumn[] = [
+  { id: 'name', label: 'Name', locked: true },
+  { id: 'type', label: 'Type' },
+  { id: 'attribute', label: 'Attribute' },
+  { id: 'atk', label: 'ATK' },
+];
+
+const TABLE_CELLS: Record<string, string> = {
+  name: 'Dark Magician',
+  type: 'Normal Monster',
+  attribute: 'DARK',
+  atk: '2500',
+};
 
 function TokenSwatch({ name, label }: { name: string; label: string }) {
   return (
@@ -138,6 +168,9 @@ function DemoCombobox({ openByDefault }: { openByDefault: boolean }) {
 /** Hidden reference for the shared layout. Not linked from navigation. */
 export function StyleGuidePage() {
   const [viewMode, setViewMode] = useState<CatalogViewMode>('grid');
+  const [tableVisibility, setTableVisibility] = useState<TableColumnVisibility>(() =>
+    defaultTableColumnVisibility(TABLE_COLUMNS),
+  );
 
   useEffect(() => {
     const existing = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
@@ -245,6 +278,9 @@ export function StyleGuidePage() {
           <Button variant="quiet" aria-label="Quiet button">
             ⋯
           </Button>
+          <ToolbarIconButton label="Search card pool">
+            <SearchIcon />
+          </ToolbarIconButton>
         </div>
       </section>
 
@@ -292,7 +328,14 @@ export function StyleGuidePage() {
           search={
             <Input type="search" aria-label="Toolbar search" placeholder="Name or passcode" />
           }
-          actions={<CatalogViewToggle value={viewMode} onChange={setViewMode} />}
+          actions={
+            <>
+              <ToolbarIconButton label="Search card pool">
+                <SearchIcon />
+              </ToolbarIconButton>
+              <CatalogViewToggle value={viewMode} onChange={setViewMode} />
+            </>
+          }
         >
           <Button variant="toolbar">
             Filters
@@ -303,6 +346,55 @@ export function StyleGuidePage() {
           <Chip label="Spell" removeLabel="Remove Spell" />
           <p className="text-sm text-text-2">12 cards</p>
         </Toolbar>
+      </section>
+
+      <section className="flex flex-col gap-3" aria-labelledby="sg-collapse">
+        <SectionHeader id="sg-collapse" size="section">
+          Collapsible section
+        </SectionHeader>
+        <CollapsibleSection title="Forbidden" titleId="sg-forbidden" count="17 cards">
+          <p className="text-sm text-text-2">
+            The header keeps the name on the left and the count with a chevron on the right.
+            Sections start open.
+          </p>
+        </CollapsibleSection>
+      </section>
+
+      <section className="flex flex-col gap-3" aria-labelledby="sg-table">
+        <SectionHeader id="sg-table" size="section">
+          Table
+        </SectionHeader>
+        <TableToolbar
+          columns={TABLE_COLUMNS}
+          visibility={tableVisibility}
+          onVisibilityChange={setTableVisibility}
+        />
+        <div className={tableWrapClass}>
+          <table className={tableClass}>
+            <thead className={tableHeadClass}>
+              <tr>
+                {TABLE_COLUMNS.filter((column) =>
+                  isTableColumnVisible(column, tableVisibility),
+                ).map((column) => (
+                  <th key={column.id} scope="col" className={tableHeadCellClass}>
+                    {column.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {TABLE_COLUMNS.filter((column) =>
+                  isTableColumnVisible(column, tableVisibility),
+                ).map((column) => (
+                  <td key={column.id} className={tableCellClass}>
+                    {TABLE_CELLS[column.id]}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="sg-grids">

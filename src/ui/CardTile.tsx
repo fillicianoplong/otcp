@@ -14,7 +14,7 @@ type CardTileProps = {
 /** Catalog grid tile: a link around art, badges, and nothing else. */
 export function CardTile({ to, state, label, onClick, children }: CardTileProps) {
   return (
-    <li>
+    <li className="min-w-0">
       <Link
         to={to}
         state={state}
