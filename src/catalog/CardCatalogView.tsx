@@ -337,10 +337,10 @@ export function CardCatalogView({
       query: trimmedQuery,
       formatParam: formatParam ?? null,
       setIndex: state.status === 'ready' ? state.setIndex : undefined,
-      ...(resolvedViewMode === 'table' ? { tableSort } : {}),
+      tableSort,
     });
     return { visibleCards: result.visibleCards, matchCount: result.matchCount };
-  }, [catalogDerived, filterState, formatParam, resolvedViewMode, state, tableSort, trimmedQuery]);
+  }, [catalogDerived, filterState, formatParam, state, tableSort, trimmedQuery]);
 
   const { visibleCards, matchCount } = queryResult;
   const artCacheRevision = useCatalogArtIdWarm(state.status === 'ready' ? state.cards : null);

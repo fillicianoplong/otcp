@@ -49,6 +49,7 @@ import { Button } from '../ui/Button.tsx';
 import { Input } from '../ui/Input.tsx';
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
+import { SortSelect } from '../ui/SortSelect.tsx';
 import { Toolbar } from '../ui/Toolbar.tsx';
 import type { YugiohCard } from '../shared/schema/card.ts';
 
@@ -585,22 +586,17 @@ export function DeckEditorPage() {
           <Toolbar
             actions={
               <>
-                <div className="inline-flex h-control items-center rounded-md border border-border bg-surface focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-strong">
-                  <span className="pl-2 text-sm text-text-2" aria-hidden="true">
-                    Sort:
-                  </span>
-                  <select
-                    id="deck-zone-sort"
-                    aria-label="Sort deck"
-                    value={zoneSort}
-                    onChange={(event) => chooseZoneSort(event.target.value as DeckZoneSortMode)}
-                    className="h-control bg-transparent py-0 pr-1 pl-1 text-sm text-heading outline-none"
-                  >
-                    <option value="type">Type</option>
-                    <option value="name">Name</option>
-                    <option value="added">Added</option>
-                  </select>
-                </div>
+                <SortSelect
+                  id="deck-zone-sort"
+                  label="Sort deck"
+                  value={zoneSort}
+                  onChange={chooseZoneSort}
+                  options={[
+                    { value: 'type', label: 'Type' },
+                    { value: 'name', label: 'Name' },
+                    { value: 'added', label: 'Added' },
+                  ]}
+                />
                 <CardFinderViewToggle
                   value={zoneView}
                   onChange={chooseZoneView}

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { sortCatalogTableRows } from '../../src/catalog/catalogTableSort.ts';
+import {
+  compareCatalogCards,
+  sortCatalogEntries,
+  sortCatalogTableRows,
+} from '../../src/catalog/catalogTableSort.ts';
 import type { YugiohCard } from '../../src/shared/schema/card.ts';
 import monster from '../fixtures/schema/monster-normal.json';
 import spell from '../fixtures/schema/spell.json';
@@ -69,5 +73,103 @@ describe('catalogTableSort', () => {
     );
 
     expect(sorted.map((entry) => entry.name)).toEqual(['Low', 'High', 'Missing', 'Spell']);
+  });
+
+  it('orders cards that share a type A–Z by name', () => {
+    const zeta = card({ id: 1, name: 'Zeta', type: 'Effect Monster' });
+    const alpha = card({ id: 2, name: 'Alpha', type: 'Effect Monster' });
+    const spellCard = card({ id: 3, name: 'Spell', type: 'Spell Card' });
+
+    const sorted = sortCatalogTableRows(
+      [zeta, spellCard, alpha],
+      { column: 'cardType', direction: 'asc' },
+      null,
+    );
+
+    expect(sorted.map((entry) => entry.name)).toEqual(['Alpha', 'Zeta', 'Spell']);
+    expect(
+      compareCatalogCards(alpha, zeta, { column: 'cardType', direction: 'asc' }, null),
+    ).toBeLessThan(0);
+  });
+
+  it('keeps the name tiebreak A–Z when the primary sort is descending', () => {
+    const zeta = card({ id: 1, name: 'Zeta', atk: 2000 });
+    const alpha = card({ id: 2, name: 'Alpha', atk: 2000 });
+    const higher = card({ id: 3, name: 'Higher', atk: 3000 });
+
+    const sorted = sortCatalogTableRows(
+      [zeta, higher, alpha],
+      { column: 'atk', direction: 'desc' },
+      null,
+    );
+
+    expect(sorted.map((entry) => entry.name)).toEqual(['Higher', 'Alpha', 'Zeta']);
+    expect(
+      compareCatalogCards(zeta, alpha, { column: 'atk', direction: 'desc' }, null),
+    ).toBeGreaterThan(0);
+  });
+
+  it('sorts empty card types last in both directions and keeps the name tiebreak A–Z', () => {
+    const zeta = card({ id: 1, name: 'Zeta', type: 'Effect Monster' });
+    const alpha = card({ id: 2, name: 'Alpha', type: 'Effect Monster' });
+    const spellCard = card({ id: 4, name: 'Spell', type: 'Spell Card' });
+    const blank = card({ id: 3, name: 'Blank', type: '' });
+
+    const ascending = sortCatalogTableRows(
+      [blank, zeta, spellCard, alpha],
+      { column: 'cardType', direction: 'asc' },
+      null,
+    );
+    const descending = sortCatalogTableRows(
+      [blank, zeta, spellCard, alpha],
+      { column: 'cardType', direction: 'desc' },
+      null,
+    );
+
+    expect(ascending.map((entry) => entry.name)).toEqual(['Alpha', 'Zeta', 'Spell', 'Blank']);
+    expect(descending.map((entry) => entry.name)).toEqual(['Spell', 'Alpha', 'Zeta', 'Blank']);
+  });
+
+  it('sorts ban status with empty values last and names A–Z inside a status', () => {
+    const zeta = card({
+      id: 1,
+      name: 'Zeta',
+      banlistInfo: { banTcg: 'Limited' },
+    });
+    const alpha = card({
+      id: 2,
+      name: 'Alpha',
+      banlistInfo: { banTcg: 'Limited' },
+    });
+    const forbidden = card({
+      id: 4,
+      name: 'Forbidden',
+      banlistInfo: { banTcg: 'Forbidden' },
+    });
+    const unlimited = card({ id: 3, name: 'Unlimited' });
+
+    const ascending = sortCatalogEntries(
+      [unlimited, zeta, forbidden, alpha].map((entry) => ({ card: entry })),
+      { column: 'ban', direction: 'asc' },
+      'advanced',
+    );
+    const descending = sortCatalogTableRows(
+      [unlimited, zeta, forbidden, alpha],
+      { column: 'ban', direction: 'desc' },
+      'advanced',
+    );
+
+    expect(ascending.map((entry) => entry.card.name)).toEqual([
+      'Alpha',
+      'Zeta',
+      'Forbidden',
+      'Unlimited',
+    ]);
+    expect(descending.map((entry) => entry.name)).toEqual([
+      'Forbidden',
+      'Alpha',
+      'Zeta',
+      'Unlimited',
+    ]);
   });
 });

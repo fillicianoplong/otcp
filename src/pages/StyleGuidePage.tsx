@@ -1,6 +1,9 @@
 import { useEffect, useId, useState } from 'react';
 
+import { CatalogSortSelect } from '../catalog/CatalogSortSelect.tsx';
 import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
+import { DEFAULT_CATALOG_TABLE_SORT } from '../catalog/catalogTableSort.ts';
+import type { CatalogTableSortState } from '../catalog/catalogTableSort.ts';
 import type { CatalogViewMode } from '../catalog/catalogViewMode.ts';
 import { Button } from '../ui/Button.tsx';
 import { CollapsibleSection } from '../ui/CollapsibleSection.tsx';
@@ -171,6 +174,7 @@ export function StyleGuidePage() {
   const [tableVisibility, setTableVisibility] = useState<TableColumnVisibility>(() =>
     defaultTableColumnVisibility(TABLE_COLUMNS),
   );
+  const [demoSort, setDemoSort] = useState<CatalogTableSortState>(DEFAULT_CATALOG_TABLE_SORT);
 
   useEffect(() => {
     const existing = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
@@ -333,6 +337,16 @@ export function StyleGuidePage() {
               <ToolbarIconButton label="Search card pool">
                 <SearchIcon />
               </ToolbarIconButton>
+              {viewMode === 'table' ? (
+                <TableToolbar
+                  variant="inline"
+                  columns={TABLE_COLUMNS}
+                  visibility={tableVisibility}
+                  onVisibilityChange={setTableVisibility}
+                />
+              ) : (
+                <CatalogSortSelect sort={demoSort} onChange={setDemoSort} />
+              )}
               <CatalogViewToggle value={viewMode} onChange={setViewMode} />
             </>
           }

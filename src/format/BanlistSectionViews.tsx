@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 
 import { BanThumbMarker } from '../catalog/BanThumbMarker.tsx';
@@ -221,22 +221,23 @@ export function BanlistTableSection({
   headingIdPrefix = 'ban-table-section',
   columnVisibility = DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
   tableSort = DEFAULT_CATALOG_TABLE_SORT,
+  onTableSortChange,
 }: {
   section: FormatBanlistSection;
   formatParam?: FormatId;
   headingIdPrefix?: string;
   columnVisibility?: CatalogTableColumnVisibility;
   tableSort?: CatalogTableSortState;
+  onTableSortChange?: (next: CatalogTableSortState) => void;
 }) {
-  const [sort, setSort] = useState(tableSort);
   const sortedCards = useMemo(
     () =>
       sortCatalogTableRows(
         section.cards.map((entry) => entry.card),
-        sort,
+        tableSort,
         formatParam,
       ),
-    [formatParam, section.cards, sort],
+    [formatParam, section.cards, tableSort],
   );
   if (section.cards.length === 0) return null;
 
@@ -255,8 +256,8 @@ export function BanlistTableSection({
         searchQuery=""
         formatParam={formatParam}
         columnVisibility={columnVisibility}
-        sort={sort}
-        onSortChange={setSort}
+        sort={tableSort}
+        onSortChange={onTableSortChange ?? (() => {})}
         onBeforeNavigate={() => {}}
         linkState={linkState}
       />

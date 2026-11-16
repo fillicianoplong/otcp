@@ -75,6 +75,33 @@ function banSortValue(
   return BAN_SORT_RANK[status];
 }
 
+export function isDefaultCatalogTableSort(sort: CatalogTableSortState): boolean {
+  return (
+    sort.column === DEFAULT_CATALOG_TABLE_SORT.column &&
+    sort.direction === DEFAULT_CATALOG_TABLE_SORT.direction
+  );
+}
+
+/**
+ * Shared order for card grids and tables (Search, format detail, Lists, Collection).
+ * The selected column is the primary key. Card name A–Z breaks ties in both directions.
+ * Empty values sort last in both directions. The same name falls back to card id.
+ */
+export function compareCatalogCards(
+  a: YugiohCard,
+  b: YugiohCard,
+  sort: CatalogTableSortState,
+  formatParam: string | null | undefined,
+): number {
+  const primary = compareCatalogTableRows(a, b, sort, formatParam);
+  if (primary !== 0) return primary;
+  if (sort.column !== 'name') {
+    const byName = compareStrings(a.name, b.name, 'asc');
+    if (byName !== 0) return byName;
+  }
+  return a.id - b.id;
+}
+
 export function compareCatalogTableRows(
   a: YugiohCard,
   b: YugiohCard,
@@ -135,11 +162,17 @@ export function sortCatalogTableRows(
   formatParam: string | null | undefined,
 ): YugiohCard[] {
   const copy = cards.slice();
-  copy.sort((left, right) => {
-    const primary = compareCatalogTableRows(left, right, sort, formatParam);
-    if (primary !== 0) return primary;
-    return left.id - right.id;
-  });
+  copy.sort((left, right) => compareCatalogCards(left, right, sort, formatParam));
+  return copy;
+}
+
+export function sortCatalogEntries<T extends { readonly card: YugiohCard }>(
+  entries: readonly T[],
+  sort: CatalogTableSortState,
+  formatParam: string | null | undefined,
+): T[] {
+  const copy = entries.slice();
+  copy.sort((left, right) => compareCatalogCards(left.card, right.card, sort, formatParam));
   return copy;
 }
 
