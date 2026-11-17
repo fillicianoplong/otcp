@@ -19,6 +19,7 @@ import type { FormatId } from '../format/formatCatalog.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
 import { Button } from '../ui/Button.tsx';
+import { FiltersToolbarButton } from '../ui/FiltersToolbarButton.tsx';
 import { CardGrid } from '../ui/CardGrid.tsx';
 import { Input } from '../ui/Input.tsx';
 import { Toolbar } from '../ui/Toolbar.tsx';
@@ -261,13 +262,11 @@ export function CardFinder({
 
       <div className="flex flex-col gap-2">
         <Toolbar actions={viewToggle}>
-          <Button
-            variant="toolbar"
+          <FiltersToolbarButton
+            count={filterCount}
             aria-expanded={filtersOpen}
             onClick={() => setFiltersVisible(!filtersOpen)}
-          >
-            {`Filters · ${filterCount}`}
-          </Button>
+          />
         </Toolbar>
         {orderedCards.length > 0 ? (
           <p className="text-xs text-text-2">
@@ -279,7 +278,7 @@ export function CardFinder({
       </div>
 
       {filtersOpen && !filtersInSheet && catalogDerived ? (
-        <div className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-md border border-border p-2">
+        <div className="flex flex-col gap-2 rounded-md border border-border p-2">
           <Button className="self-start" onClick={() => commitFilters(clearAllFilters())}>
             Clear all
           </Button>

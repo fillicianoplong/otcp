@@ -1,11 +1,13 @@
 import { useEffect, useId, useState } from 'react';
 
-import { CatalogSortSelect } from '../catalog/CatalogSortSelect.tsx';
+import { CollapsibleFilterSection } from '../catalog/CollapsibleFilterSection.tsx';
+import { CatalogSortControls } from '../catalog/CatalogSortControls.tsx';
 import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
 import { DEFAULT_CATALOG_TABLE_SORT } from '../catalog/catalogTableSort.ts';
 import type { CatalogTableSortState } from '../catalog/catalogTableSort.ts';
 import type { CatalogViewMode } from '../catalog/catalogViewMode.ts';
 import { Button } from '../ui/Button.tsx';
+import { FiltersToolbarButton } from '../ui/FiltersToolbarButton.tsx';
 import { CollapsibleSection } from '../ui/CollapsibleSection.tsx';
 import { CardGrid } from '../ui/CardGrid.tsx';
 import { CardTileFrame } from '../ui/CardTile.tsx';
@@ -16,6 +18,7 @@ import { ListThumb } from '../ui/ListRow.tsx';
 import { Menu } from '../ui/Menu.tsx';
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
+import { SortSelect } from '../ui/SortSelect.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { SearchIcon, ToolbarIconButton } from '../ui/ToolbarIconButton.tsx';
@@ -168,13 +171,49 @@ function DemoCombobox({ openByDefault }: { openByDefault: boolean }) {
   );
 }
 
+function FilterSectionsDemo() {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({ type: true });
+  const [sort, setSort] = useState<CatalogTableSortState>(DEFAULT_CATALOG_TABLE_SORT);
+  const toggleSection = (id: string) => {
+    setCollapsed((current) => ({ ...current, [id]: current[id] === true ? false : true }));
+  };
+
+  return (
+    <div className="flex w-72 flex-col gap-3">
+      <SectionHeader>Filters</SectionHeader>
+      <CollapsibleFilterSection
+        title="Sort"
+        collapsed={collapsed.sort === true}
+        onToggleCollapse={() => toggleSection('sort')}
+        className="relative z-10 overflow-visible"
+      >
+        <CatalogSortControls sort={sort} onChange={setSort} />
+      </CollapsibleFilterSection>
+      <CollapsibleFilterSection
+        title="Format"
+        collapsed={collapsed.format === true}
+        onToggleCollapse={() => toggleSection('format')}
+      >
+        <p className="text-sm text-text">Advanced</p>
+      </CollapsibleFilterSection>
+      <CollapsibleFilterSection
+        title="Monster card type"
+        collapsed={collapsed.type === true}
+        onToggleCollapse={() => toggleSection('type')}
+      >
+        <p className="text-sm text-text">Effect, Normal, Tuner</p>
+      </CollapsibleFilterSection>
+    </div>
+  );
+}
+
 /** Hidden reference for the shared layout. Not linked from navigation. */
 export function StyleGuidePage() {
   const [viewMode, setViewMode] = useState<CatalogViewMode>('grid');
   const [tableVisibility, setTableVisibility] = useState<TableColumnVisibility>(() =>
     defaultTableColumnVisibility(TABLE_COLUMNS),
   );
-  const [demoSort, setDemoSort] = useState<CatalogTableSortState>(DEFAULT_CATALOG_TABLE_SORT);
+  const [deckSort, setDeckSort] = useState<'type' | 'name' | 'added'>('type');
 
   useEffect(() => {
     const existing = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
@@ -275,7 +314,8 @@ export function StyleGuidePage() {
           <Button disabled>Secondary disabled</Button>
           <Button variant="ghost">Ghost</Button>
           <Button variant="danger">Danger</Button>
-          <Button variant="toolbar">Filters</Button>
+          <FiltersToolbarButton />
+          <FiltersToolbarButton count={2} />
           <Button variant="icon" aria-label="Icon button">
             +
           </Button>
@@ -344,22 +384,27 @@ export function StyleGuidePage() {
                   visibility={tableVisibility}
                   onVisibilityChange={setTableVisibility}
                 />
-              ) : (
-                <CatalogSortSelect sort={demoSort} onChange={setDemoSort} />
-              )}
+              ) : null}
               <CatalogViewToggle value={viewMode} onChange={setViewMode} />
             </>
           }
         >
-          <Button variant="toolbar">
-            Filters
-            <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-surface-2 px-1.5 text-xs font-semibold tabular-nums">
-              2
-            </span>
-          </Button>
+          <FiltersToolbarButton count={2} />
           <Chip label="Spell" removeLabel="Remove Spell" />
           <p className="text-sm text-text-2">12 cards</p>
         </Toolbar>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-text-2">Deck editor</p>
+          <SortSelect
+            value={deckSort}
+            onChange={setDeckSort}
+            options={[
+              { value: 'type', label: 'Type' },
+              { value: 'name', label: 'Name' },
+              { value: 'added', label: 'Added' },
+            ]}
+          />
+        </div>
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="sg-collapse">
@@ -372,6 +417,13 @@ export function StyleGuidePage() {
             Sections start open.
           </p>
         </CollapsibleSection>
+      </section>
+
+      <section className="flex flex-col gap-3" aria-labelledby="sg-filters">
+        <SectionHeader id="sg-filters" size="section">
+          Filter sections
+        </SectionHeader>
+        <FilterSectionsDemo />
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="sg-table">

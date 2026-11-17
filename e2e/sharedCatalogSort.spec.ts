@@ -28,14 +28,19 @@ test.describe('Shared catalog sort', () => {
 
     await page.evaluate(() => window.scrollTo(0, 0));
     await expect(page.getByRole('button', { name: 'Columns' })).toBeVisible();
-    await expect(page.getByRole('combobox', { name: 'Sort' })).toHaveCount(0);
+    const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
+    await expect(sidebar.getByRole('combobox', { name: 'Field' })).toHaveValue('Ban');
+    await expect(sidebar.getByRole('button', { name: 'Ascending', exact: true })).toHaveAttribute(
+      'title',
+      'Ascending',
+    );
 
     await page.getByRole('button', { name: 'Grid view' }).click();
     await expect(page.getByRole('button', { name: 'Grid view' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await expect(page.getByRole('combobox', { name: 'Sort' })).toHaveValue('ban');
+    await expect(sidebar.getByRole('combobox', { name: 'Field' })).toHaveValue('Ban');
     await expect(page.getByRole('button', { name: 'Columns' })).toHaveCount(0);
     await expect(page).toHaveURL(/sort=ban/);
     await expect(page).toHaveURL(/format=advanced/);

@@ -23,6 +23,8 @@ import type {
 import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
 import { CollapsibleFilterSection, FORMAT_FILTER_SECTION_ID } from './CollapsibleFilterSection.tsx';
 import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
+import { CatalogSortControls } from './CatalogSortControls.tsx';
+import type { CatalogTableSortState } from './catalogTableSort.ts';
 import type { FormatId } from '../format/formatCatalog.ts';
 
 const LINK_ARROW_VALUES = [
@@ -204,6 +206,9 @@ type FacetFilterPanelProps = {
   onFormatChange?: (formatId: FormatId | null) => void;
   /** Search can return to every card. A deck always keeps a format. */
   formatAllowEmpty?: boolean;
+  /** Shared grid and table sort. Omitted on panels that do not sort the catalog. */
+  sort?: CatalogTableSortState;
+  onSortChange?: (next: CatalogTableSortState) => void;
 };
 
 export function FacetFilterPanel({
@@ -216,6 +221,8 @@ export function FacetFilterPanel({
   activeFormatId = null,
   onFormatChange,
   formatAllowEmpty = true,
+  sort,
+  onSortChange,
 }: FacetFilterPanelProps) {
   const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
   const countsByField = useMemo(() => {
@@ -251,53 +258,22 @@ export function FacetFilterPanel({
     return orderFacetDefinitionsForPanel(ordered);
   }, [activeFormatId, catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
 
-  const collapsibleSectionIds = useMemo(() => {
-    const ids: string[] = [];
-    if (onFormatChange) ids.push(FORMAT_FILTER_SECTION_ID);
-    for (const def of visibleDefinitions) ids.push(def.id);
-    return ids;
-  }, [onFormatChange, visibleDefinitions]);
-
-  const collapseAllSections = () => {
-    setCollapsedFields((current) => {
-      const next = { ...current };
-      for (const id of collapsibleSectionIds) next[id] = true;
-      return next;
-    });
-  };
-
-  const expandAllSections = () => {
-    setCollapsedFields((current) => {
-      const next = { ...current };
-      for (const id of collapsibleSectionIds) delete next[id];
-      return next;
-    });
-  };
-
   return (
     <div className={className}>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-3">
         <SectionHeader>Filters</SectionHeader>
-        {collapsibleSectionIds.length > 0 ? (
-          <div className="flex items-center gap-2 text-sm">
-            <button
-              type="button"
-              onClick={expandAllSections}
-              className="text-text underline decoration-border underline-offset-2 hover:text-heading"
-            >
-              Expand all
-            </button>
-            <button
-              type="button"
-              onClick={collapseAllSections}
-              className="text-text underline decoration-border underline-offset-2 hover:text-heading"
-            >
-              Collapse all
-            </button>
-          </div>
-        ) : null}
       </div>
       <div className="flex flex-col gap-3">
+        {sort && onSortChange ? (
+          <CollapsibleFilterSection
+            title="Sort"
+            collapsed={collapsedFields.sort ?? false}
+            onToggleCollapse={() => toggleField('sort')}
+            className="relative z-10 overflow-visible"
+          >
+            <CatalogSortControls sort={sort} onChange={onSortChange} />
+          </CollapsibleFilterSection>
+        ) : null}
         {onFormatChange ? (
           <CollapsibleFilterSection
             title="Format"
@@ -730,6 +706,8 @@ type PhoneFiltersSheetProps = {
   draftFormatId?: FormatId | null;
   onDraftFormatChange?: (formatId: FormatId | null) => void;
   formatAllowEmpty?: boolean;
+  draftSort?: CatalogTableSortState;
+  onDraftSortChange?: (next: CatalogTableSortState) => void;
 };
 
 export function PhoneFiltersSheet({
@@ -746,6 +724,8 @@ export function PhoneFiltersSheet({
   draftFormatId = null,
   onDraftFormatChange,
   formatAllowEmpty = true,
+  draftSort,
+  onDraftSortChange,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -798,6 +778,8 @@ export function PhoneFiltersSheet({
           activeFormatId={draftFormatId}
           onFormatChange={onDraftFormatChange}
           formatAllowEmpty={formatAllowEmpty}
+          sort={draftSort}
+          onSortChange={onDraftSortChange}
         />
       </div>
       <footer className="border-t border-border p-4">

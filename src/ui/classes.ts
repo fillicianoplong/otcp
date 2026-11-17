@@ -51,7 +51,7 @@ export const comboboxListClass =
   'absolute top-full right-0 left-0 z-20 mt-1 max-h-60 w-full max-w-full overflow-x-hidden overflow-y-auto overscroll-contain rounded-md border border-border bg-surface py-1 shadow-lg';
 
 export const menuPanelClass =
-  'absolute z-20 mt-1 min-w-[12rem] rounded-md border border-border bg-surface py-1 shadow-sm';
+  'absolute z-20 min-w-[12rem] rounded-md border border-border bg-surface py-1 shadow-sm';
 
 export const menuItemClass = `flex min-h-touch w-full items-center px-3 text-left text-sm font-medium text-heading hover:bg-surface-2 ${focusRingInsetClass} disabled:cursor-not-allowed disabled:opacity-50`;
 

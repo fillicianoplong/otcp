@@ -588,7 +588,6 @@ export function DeckEditorPage() {
               <>
                 <SortSelect
                   id="deck-zone-sort"
-                  label="Sort deck"
                   value={zoneSort}
                   onChange={chooseZoneSort}
                   options={[
@@ -658,9 +657,7 @@ export function DeckEditorPage() {
           }
         >
           {desktop ? (
-            <div className="sticky top-16 flex max-h-[calc(100dvh-5rem)] min-h-0 flex-col overflow-y-auto rounded-md border border-border bg-surface p-3">
-              {finder}
-            </div>
+            <div className="rounded-md border border-border bg-surface p-3">{finder}</div>
           ) : null}
           <DeckZoneList
             formatId={draft.formatId}

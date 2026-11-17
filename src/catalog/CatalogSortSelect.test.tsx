@@ -13,21 +13,27 @@ afterEach(() => {
 });
 
 describe('CatalogSortSelect', () => {
-  it('lists sortable columns and toggles direction inside an h-control', async () => {
+  it('shows the field name, lists fields, and toggles direction from the arrow', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    const { container } = render(
-      <CatalogSortSelect sort={{ column: 'name', direction: 'asc' }} onChange={onChange} />,
-    );
+    render(<CatalogSortSelect sort={{ column: 'name', direction: 'asc' }} onChange={onChange} />);
 
-    expect(container.querySelector('.h-control')).toBeTruthy();
-    expect(screen.getByText('Sort:')).toBeTruthy();
-    const select = screen.getByRole('combobox', { name: 'Sort' });
-    expect(select).toHaveValue('name');
-    expect(screen.getByRole('option', { name: 'Ban' })).toBeTruthy();
-    expect(screen.getByRole('option', { name: 'ATK' })).toBeTruthy();
+    const field = screen.getByRole('button', { name: 'Name' });
+    expect(field.className).toContain('h-full');
+    expect(field.closest('div')?.className).toContain('h-control');
+    expect(field.closest('div')?.className).toContain('rounded-md');
+    expect(screen.queryByText(/sort/i)).toBeNull();
 
-    await user.selectOptions(select, 'ban');
+    await user.click(field);
+    const menu = screen.getByRole('menu');
+    expect(menu.className).toContain('w-max');
+    expect(menu.className).toContain('min-w-max');
+    expect(menu.className).not.toMatch(/min-w-\[/);
+    const item = screen.getByRole('menuitemradio', { name: 'Name' });
+    expect(item).toHaveAttribute('aria-checked', 'true');
+    expect(item.className).toContain('py-1.5');
+    expect(item.className).not.toContain('min-h-touch');
+    await user.click(screen.getByRole('menuitemradio', { name: 'Ban' }));
     expect(onChange).toHaveBeenCalledWith({ column: 'ban', direction: 'asc' });
 
     await user.click(screen.getByRole('button', { name: 'Ascending' }));

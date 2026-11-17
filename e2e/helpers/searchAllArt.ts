@@ -9,6 +9,19 @@ export function searchPath(query = ''): string {
 }
 
 /**
+ * The filter column scrolls with the page, so the document bottom can sit far
+ * below the result list. Bring the list's load-more marker into view instead.
+ */
+async function scrollResultsToLoadMore(page: Page): Promise<void> {
+  const sentinel = page.locator('div.h-8[aria-hidden="true"]').last();
+  if ((await sentinel.count()) > 0) {
+    await sentinel.scrollIntoViewIfNeeded().catch(() => undefined);
+    return;
+  }
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+}
+
+/**
  * E2e preview uses VITE_CATALOG_GRID_PAGE_SIZE=1. Desktop tiles are tall, so a
  * card past the first row is not mounted until the grid is scrolled.
  */
@@ -17,8 +30,12 @@ export async function scrollUntilVisible(page: Page, locator: Locator): Promise<
     .poll(
       async () => {
         if (await locator.isVisible().catch(() => false)) return true;
-        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-        return locator.isVisible().catch(() => false);
+        if ((await locator.count()) > 0) {
+          await locator.scrollIntoViewIfNeeded();
+          return locator.isVisible().catch(() => false);
+        }
+        await scrollResultsToLoadMore(page);
+        return false;
       },
       { timeout: 15_000 },
     )
@@ -31,7 +48,9 @@ export async function ensureGridTileCount(page: Page, minTiles: number): Promise
   await expect
     .poll(
       async () => {
-        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        const count = await grid.locator('> li').count();
+        if (count >= minTiles) return count;
+        await scrollResultsToLoadMore(page);
         return grid.locator('> li').count();
       },
       { timeout: 15_000 },

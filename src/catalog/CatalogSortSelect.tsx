@@ -17,7 +17,6 @@ export function CatalogSortSelect({
 }) {
   return (
     <SortSelect<CatalogTableSortColumnId>
-      label="Sort"
       value={sort.column}
       options={SORT_OPTIONS}
       onChange={(column) => onChange({ column, direction: sort.direction })}
