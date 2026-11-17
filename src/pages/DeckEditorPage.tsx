@@ -585,27 +585,26 @@ export function DeckEditorPage() {
           </form>
           <Toolbar
             actions={
-              <>
-                <SortSelect
-                  id="deck-zone-sort"
-                  value={zoneSort}
-                  onChange={chooseZoneSort}
-                  options={[
-                    { value: 'type', label: 'Type' },
-                    { value: 'name', label: 'Name' },
-                    { value: 'added', label: 'Added' },
-                  ]}
-                />
-                <CardFinderViewToggle
-                  value={zoneView}
-                  onChange={chooseZoneView}
-                  groupLabel="Deck view"
-                  listLabel="Deck list view"
-                  gridLabel="Deck grid view"
-                />
-              </>
+              <CardFinderViewToggle
+                value={zoneView}
+                onChange={chooseZoneView}
+                groupLabel="Deck view"
+                listLabel="Deck list view"
+                gridLabel="Deck grid view"
+              />
             }
-          />
+          >
+            <SortSelect
+              id="deck-zone-sort"
+              value={zoneSort}
+              onChange={chooseZoneSort}
+              options={[
+                { value: 'type', label: 'Type' },
+                { value: 'name', label: 'Name' },
+                { value: 'added', label: 'Added' },
+              ]}
+            />
+          </Toolbar>
         </div>
 
         {isGenesysFormat(draft.formatId) && genesysStatus ? (

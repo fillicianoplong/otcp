@@ -20,7 +20,6 @@ export { FiltersToolbarButton } from './FiltersToolbarButton.tsx';
 export { FilterIcon, SearchIcon, ToolbarIconButton } from './ToolbarIconButton.tsx';
 export { ColumnHeader } from './ColumnHeader.tsx';
 export { ColumnTable } from './ColumnTable.tsx';
-export { TableToolbar } from './TableToolbar.tsx';
 export {
   canMoveTableColumn,
   columnMenuButtonLabel,

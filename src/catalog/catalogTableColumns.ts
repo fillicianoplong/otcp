@@ -146,7 +146,7 @@ export function catalogTablePriceSortValue(card: YugiohCard): number | undefined
   return value;
 }
 
-/** Optional Search / format-detail columns for the shared table toolbar. */
+/** Optional Search and format-detail columns the header menu can show. */
 export const CATALOG_TABLE_TOOLBAR_COLUMNS = CATALOG_TABLE_OPTIONAL_COLUMN_DEFS.map((column) => ({
   id: column.id,
   label: column.label,
@@ -167,7 +167,7 @@ export function catalogTableVisibilityFromRecord(
 
 const OPTIONAL_COLUMN_ID_SET = new Set<string>(CATALOG_TABLE_OPTIONAL_COLUMN_IDS);
 
-/** Saved order for the columns the Columns picker can show. Locked columns are ignored. */
+/** Saved order for the columns the header menu can show. Locked columns are ignored. */
 export function normalizeCatalogTableColumnOrder(
   order: readonly unknown[] | null | undefined,
 ): CatalogTableOptionalColumnId[] {

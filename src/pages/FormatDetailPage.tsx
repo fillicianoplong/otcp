@@ -17,7 +17,6 @@ import { useMinViewportWidth } from '../hooks/useMinViewportWidth.ts';
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { SearchIcon, ToolbarIconButton } from '../ui/ToolbarIconButton.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
-import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { Toolbar } from '../ui/Toolbar.tsx';
 import { useTableColumnSetup } from '../ui/useTableColumnVisibility.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
@@ -283,6 +282,7 @@ export function FormatDetailPage() {
   return (
     <PageContainer className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
+        <PageTitle>{format.name}</PageTitle>
         <Toolbar
           actions={
             <>
@@ -295,21 +295,11 @@ export function FormatDetailPage() {
               >
                 <SearchIcon />
               </ToolbarIconButton>
-              <CatalogSortSelect sort={tableSort} onChange={setTableSort} />
-              {effectiveViewMode === 'table' ? (
-                <TableToolbar
-                  variant="inline"
-                  columns={CATALOG_TABLE_TOOLBAR_COLUMNS}
-                  visibility={columnVisibility}
-                  order={columnOrder}
-                  onVisibilityChange={setColumnVisibility}
-                />
-              ) : null}
               <CatalogViewToggle value={effectiveViewMode} onChange={setViewMode} />
             </>
           }
         >
-          <PageTitle>{format.name}</PageTitle>
+          <CatalogSortSelect sort={tableSort} onChange={setTableSort} />
         </Toolbar>
         {detailFacts ? <FormatDetailFactsBlock facts={detailFacts} formatId={formatId} /> : null}
       </div>

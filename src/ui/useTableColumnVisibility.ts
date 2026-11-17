@@ -28,8 +28,7 @@ function fallbackSetup(columns: readonly TableColumn[]): TableColumnSetup {
 
 /**
  * Older saves were a flat map of column id to boolean. I still read those.
- * New saves store visibility and order together so the Columns picker and the
- * header menu share one setup.
+ * New saves store visibility and order together so every header menu shares one setup.
  */
 export function readStoredTableColumnSetup(
   tableId: string,

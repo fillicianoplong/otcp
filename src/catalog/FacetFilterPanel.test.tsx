@@ -4,11 +4,10 @@
 /// <reference types="@testing-library/jest-dom" />
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import sampleDataset from '../../public/data/datasets/sample-dev.json';
 import type { YugiohCard } from '../shared/schema/card.ts';
-import { DEFAULT_CATALOG_TABLE_SORT } from './catalogTableSort.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from './FacetFilterPanel.tsx';
 import {
   CORE_FACET_DEFINITIONS,
@@ -148,12 +147,10 @@ describe('FacetFilterPanel section chrome', () => {
   });
 });
 
-describe('FacetFilterPanel sort section', () => {
-  it('puts Sort above Format and keeps the field and direction in one row', async () => {
-    const user = userEvent.setup();
+describe('FacetFilterPanel sections', () => {
+  it('keeps Game first and leaves sort out of the panel', () => {
     const engine = new FilterEngine(sampleCards);
     const groupCounts = engine.recount(emptyFilterState(), { formatParam: 'advanced' });
-    const onSortChange = vi.fn();
     const { container } = render(
       <FacetFilterPanel
         filterState={emptyFilterState()}
@@ -162,29 +159,14 @@ describe('FacetFilterPanel sort section', () => {
         onChange={() => {}}
         activeFormatId="advanced"
         onFormatChange={() => {}}
-        sort={DEFAULT_CATALOG_TABLE_SORT}
-        onSortChange={onSortChange}
       />,
     );
 
     const titles = filterPanelSectionTitles(container);
     expect(titles[0]).toBe('Game');
-    expect(titles[1]).toBe('Sort');
-    expect(titles.indexOf('Format')).toBeGreaterThan(titles.indexOf('Sort'));
-
-    const sortSection = screen.getByRole('button', { name: 'Sort' }).closest('section');
-    expect(sortSection?.className).toContain('rounded-lg');
-    const panel = within(sortSection!);
-    expect(panel.getByRole('combobox', { name: 'Field' })).toHaveValue('Name');
-    const direction = panel.getByRole('button', { name: 'Ascending' });
-    expect(direction).toHaveAttribute('title', 'Ascending');
-    expect(direction.className).toContain('h-touch');
-    expect(direction.className).toContain('rounded-md');
-    await user.click(panel.getByRole('button', { name: 'Show fields' }));
-    await user.click(panel.getByRole('option', { name: 'ATK' }));
-    expect(onSortChange).toHaveBeenCalledWith({ column: 'atk', direction: 'asc' });
-    await user.click(direction);
-    expect(onSortChange).toHaveBeenCalledWith({ column: 'name', direction: 'desc' });
+    expect(titles).not.toContain('Sort');
+    expect(titles.indexOf('Format')).toBeGreaterThan(0);
+    expect(screen.queryByRole('combobox', { name: 'Field' })).toBeNull();
   });
 });
 

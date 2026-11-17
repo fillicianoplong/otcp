@@ -3,7 +3,6 @@ import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { ColumnHeader } from '../ui/ColumnHeader.tsx';
-import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { orderedVisibleTableColumns, type TableColumn } from '../ui/tableColumns.ts';
 import { useTableColumnSetup } from '../ui/useTableColumnVisibility.ts';
 
@@ -55,12 +54,6 @@ export function AboutPage() {
             Third-party open-source libraries shipped with this app and their licenses.
           </p>
         </div>
-        <TableToolbar
-          columns={NOTICE_COLUMNS}
-          visibility={columnVisibility}
-          order={columnOrder}
-          onVisibilityChange={setColumnVisibility}
-        />
         <div className="min-w-0 overflow-x-auto rounded-md border border-border">
           <table className="min-w-full border-collapse text-left text-sm text-text">
             <thead className="border-b border-border bg-surface-2 text-heading">

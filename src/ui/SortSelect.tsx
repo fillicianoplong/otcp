@@ -1,12 +1,9 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 
-import { focusRingInsetClass } from './classes.ts';
+import { focusRingClass, focusRingInsetClass } from './classes.ts';
 import { placeAnchoredMenu, readMenuGap } from './menuPosition.ts';
 
-const sortMenuPanelClass =
-  'absolute right-0 z-20 flex w-max min-w-max flex-col rounded-md border border-border bg-surface py-1 shadow-sm';
-
-const sortMenuItemClass = `flex items-center gap-2 whitespace-nowrap px-3 py-1.5 text-left text-sm text-heading hover:bg-surface-2 ${focusRingInsetClass}`;
+const sortMenuItemClass = `flex w-full items-center gap-2 whitespace-nowrap px-control-x py-1.5 text-left text-sm text-heading hover:bg-surface-2 ${focusRingInsetClass} disabled:cursor-not-allowed disabled:opacity-50`;
 
 export type SortSelectOption<T extends string> = {
   value: T;
@@ -23,12 +20,13 @@ function focusMenuItem(menu: HTMLElement, delta: number) {
   items[next]?.focus();
 }
 
-function DirectionArrow({ direction }: { direction: 'asc' | 'desc' }) {
+/** Same stroke as the column-header and toolbar icons. */
+function DirectionIcon({ direction }: { direction: 'asc' | 'desc' }) {
   const ascending = direction === 'asc';
   return (
-    <svg aria-hidden viewBox="0 0 16 16" className="h-4 w-4" fill="none">
+    <svg aria-hidden viewBox="0 0 16 16" className="h-4 w-4 shrink-0" fill="none">
       <path
-        d={ascending ? 'M8 12.5V3.5M4.5 7 8 3.5 11.5 7' : 'M8 3.5v9M4.5 9 8 12.5 11.5 9'}
+        d={ascending ? 'M8 13V3.5M4.5 7 8 3.5 11.5 7' : 'M8 3v9.5M4.5 9 8 12.5 11.5 9'}
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
@@ -38,7 +36,72 @@ function DirectionArrow({ direction }: { direction: 'asc' | 'desc' }) {
   );
 }
 
-/** Narrow field menu with a direction arrow. The closed label is the field name. */
+function directionMark(direction: 'asc' | 'desc'): string {
+  return direction === 'asc' ? '↑' : '↓';
+}
+
+function CheckMark() {
+  return (
+    <svg viewBox="0 0 12 12" className="size-3" fill="none" aria-hidden="true">
+      <path
+        d="M2 6.5 4.5 9 10 3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Same stroke as the section chevron and the other toolbar icons. */
+function ChevronDownIcon() {
+  return (
+    <svg aria-hidden viewBox="0 0 16 16" className="h-4 w-4 shrink-0 text-text-2" fill="none">
+      <path
+        d="M4 6.5 8 10.5 12 6.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MenuWidthRow({ label }: { label: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      data-sort-sizer=""
+      className="invisible col-start-1 row-start-1 flex items-center gap-2 whitespace-nowrap"
+    >
+      {label}
+      <span className="inline-block size-4 shrink-0" />
+    </span>
+  );
+}
+
+function TriggerWidthRow({ label, withDirection }: { label: string; withDirection: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      data-sort-sizer=""
+      className="invisible col-start-1 row-start-1 flex items-center gap-1 whitespace-nowrap"
+    >
+      <span className="flex items-center gap-1">
+        {label}
+        {withDirection ? <span className="inline-block h-4 w-4 shrink-0" /> : null}
+      </span>
+      <span className="inline-block h-4 w-4 shrink-0" />
+    </span>
+  );
+}
+
+/**
+ * One dropdown for the field and, when a direction is set, Ascending or Descending.
+ * The closed control is as wide as the longest option, so the width stays put.
+ */
 export function SortSelect<T extends string>({
   id,
   value,
@@ -48,7 +111,6 @@ export function SortSelect<T extends string>({
   onDirectionChange,
 }: {
   id?: string;
-  label?: string;
   value: T;
   options: readonly SortSelectOption<T>[];
   onChange: (value: T) => void;
@@ -58,8 +120,15 @@ export function SortSelect<T extends string>({
   const menuId = useId().replace(/:/g, '');
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const fieldLabel = options.find((option) => option.value === value)?.label ?? String(value);
+  const showDirection = direction != null && onDirectionChange != null;
+  const closedLabel = showDirection ? `${fieldLabel} ${directionMark(direction)}` : fieldLabel;
+  const menuLabels = [
+    ...options.map((option) => option.label),
+    ...(showDirection ? ['Ascending', 'Descending'] : []),
+  ];
 
   useEffect(() => {
     if (!open) return undefined;
@@ -67,7 +136,10 @@ export function SortSelect<T extends string>({
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
     };
     document.addEventListener('mousedown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
@@ -77,29 +149,40 @@ export function SortSelect<T extends string>({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    menuRef.current?.querySelector<HTMLElement>('[data-sort-field][aria-checked="true"]')?.focus();
+  }, [open]);
+
   useLayoutEffect(() => {
     if (!open) return undefined;
     const place = () => {
-      const root = rootRef.current;
+      const button = buttonRef.current;
       const menu = menuRef.current;
-      if (!root || !menu) return;
+      if (!button || !menu) return;
       const gap = readMenuGap();
+      const width = button.offsetWidth;
+      menu.style.position = 'fixed';
+      menu.style.boxSizing = 'border-box';
+      menu.style.width = `${width}px`;
+      menu.style.minWidth = `${width}px`;
+      menu.style.maxWidth = `${width}px`;
       menu.style.maxHeight = 'none';
       const anchor = placeAnchoredMenu(
-        root.getBoundingClientRect(),
-        { width: menu.offsetWidth, height: menu.offsetHeight },
+        button.getBoundingClientRect(),
+        { width, height: menu.scrollHeight },
         { width: window.innerWidth, height: window.innerHeight },
         gap,
-        'end',
+        'start',
       );
-      menu.style.position = 'fixed';
       menu.style.transition = 'none';
       menu.style.top = `${anchor.top}px`;
       menu.style.left = `${anchor.left}px`;
       menu.style.right = 'auto';
       menu.style.margin = '0';
       menu.style.maxHeight = `${anchor.maxHeight}px`;
-      menu.style.overflowY = menu.scrollHeight > anchor.maxHeight ? 'auto' : 'visible';
+      menu.style.overflowY = menu.scrollHeight > anchor.maxHeight ? 'auto' : 'hidden';
+      menu.style.overflowX = 'hidden';
     };
     place();
     window.addEventListener('resize', place);
@@ -108,41 +191,46 @@ export function SortSelect<T extends string>({
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
     };
-  }, [open, options, value]);
+  }, [open, options, value, direction]);
 
   return (
-    <div
-      ref={rootRef}
-      className="inline-flex h-control shrink-0 items-center rounded-md border border-border bg-surface text-sm text-heading focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-strong"
-    >
+    <div ref={rootRef} className="relative inline-flex shrink-0">
       <button
+        ref={buttonRef}
         id={id}
         type="button"
+        aria-label={closedLabel}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen((current) => !current)}
-        className="h-full max-w-[7.5rem] truncate bg-transparent px-2 text-left text-sm text-heading"
+        className={`inline-grid h-control items-center rounded-md border border-border bg-surface px-control-x text-left text-sm text-heading hover:border-border-strong ${focusRingClass}`}
       >
-        {fieldLabel}
+        {menuLabels.map((label) => (
+          <MenuWidthRow key={label} label={label} />
+        ))}
+        {options.map((option) => (
+          <TriggerWidthRow
+            key={`trigger-${option.label}`}
+            label={option.label}
+            withDirection={showDirection}
+          />
+        ))}
+        <span className="col-start-1 row-start-1 flex w-full items-center justify-between gap-1">
+          <span className="flex items-center gap-1">
+            <span>{fieldLabel}</span>
+            {showDirection ? <DirectionIcon direction={direction} /> : null}
+          </span>
+          <ChevronDownIcon />
+        </span>
       </button>
-      {direction != null && onDirectionChange ? (
-        <button
-          type="button"
-          aria-label={direction === 'asc' ? 'Ascending' : 'Descending'}
-          onClick={() => onDirectionChange(direction === 'asc' ? 'desc' : 'asc')}
-          className="inline-flex h-full w-7 shrink-0 items-center justify-center border-l border-border text-text-2 hover:text-heading"
-        >
-          <DirectionArrow direction={direction} />
-        </button>
-      ) : null}
       {open ? (
         <div
           ref={menuRef}
           id={menuId}
           role="menu"
-          aria-label={fieldLabel}
-          className={sortMenuPanelClass}
+          aria-label={closedLabel}
+          className="absolute z-20 flex min-w-0 flex-col rounded-md border border-border bg-surface py-1 shadow-sm"
           onKeyDown={(event) => {
             const menu = menuRef.current;
             if (!menu) return;
@@ -162,6 +250,7 @@ export function SortSelect<T extends string>({
                 key={option.value}
                 type="button"
                 role="menuitemradio"
+                data-sort-field=""
                 aria-checked={checked}
                 className={sortMenuItemClass}
                 onClick={() => {
@@ -169,23 +258,47 @@ export function SortSelect<T extends string>({
                   onChange(option.value);
                 }}
               >
-                <span aria-hidden="true" className="inline-flex w-4 shrink-0">
-                  {checked ? (
-                    <svg viewBox="0 0 12 12" className="size-3" fill="none">
-                      <path
-                        d="M2 6.5 4.5 9 10 3"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : null}
+                <span className="min-w-0 flex-1 text-left">{option.label}</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-flex size-4 shrink-0 items-center justify-end"
+                >
+                  {checked ? <CheckMark /> : null}
                 </span>
-                {option.label}
               </button>
             );
           })}
+          {showDirection ? (
+            <>
+              <div role="separator" className="my-1 h-px bg-border" />
+              {(['asc', 'desc'] as const).map((next) => {
+                const checked = direction === next;
+                const label = next === 'asc' ? 'Ascending' : 'Descending';
+                return (
+                  <button
+                    key={next}
+                    type="button"
+                    role="menuitemradio"
+                    data-sort-direction=""
+                    aria-checked={checked}
+                    className={sortMenuItemClass}
+                    onClick={() => {
+                      setOpen(false);
+                      onDirectionChange(next);
+                    }}
+                  >
+                    <span className="min-w-0 flex-1 text-left">{label}</span>
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex size-4 shrink-0 items-center justify-end"
+                    >
+                      {checked ? <CheckMark /> : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </>
+          ) : null}
         </div>
       ) : null}
     </div>

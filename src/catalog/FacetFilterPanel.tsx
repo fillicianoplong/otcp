@@ -28,8 +28,6 @@ import {
 } from './CollapsibleFilterSection.tsx';
 import { GameFilterGroup } from './GameFilterGroup.tsx';
 import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
-import { CatalogSortControls } from './CatalogSortControls.tsx';
-import type { CatalogTableSortState } from './catalogTableSort.ts';
 import type { FormatDefinition, FormatId } from '../format/formatCatalog.ts';
 
 const LINK_ARROW_VALUES = [
@@ -215,9 +213,6 @@ type FacetFilterPanelProps = {
   onFormatChange?: (formatId: FormatId | null) => void;
   /** Search can return to every card. A deck always keeps a format. */
   formatAllowEmpty?: boolean;
-  /** Shared grid and table sort. Omitted on panels that do not sort the catalog. */
-  sort?: CatalogTableSortState;
-  onSortChange?: (next: CatalogTableSortState) => void;
   /** Selected game. Defaults to Yu-Gi-Oh!. */
   gameId?: GameId;
   onGameChange?: (gameId: GameId) => void;
@@ -235,8 +230,6 @@ export function FacetFilterPanel({
   activeFormatId = null,
   onFormatChange,
   formatAllowEmpty = true,
-  sort,
-  onSortChange,
   gameId,
   onGameChange,
   games = listGames(),
@@ -299,16 +292,6 @@ export function FacetFilterPanel({
               value={game.id}
               onChange={(nextId) => onGameChange?.(nextId)}
             />
-          </CollapsibleFilterSection>
-        ) : null}
-        {sort && onSortChange ? (
-          <CollapsibleFilterSection
-            title="Sort"
-            collapsed={collapsedFields.sort ?? false}
-            onToggleCollapse={() => toggleField('sort')}
-            className="relative z-10 overflow-visible"
-          >
-            <CatalogSortControls sort={sort} onChange={onSortChange} />
           </CollapsibleFilterSection>
         ) : null}
         {onFormatChange ? (
@@ -744,8 +727,6 @@ type PhoneFiltersSheetProps = {
   draftFormatId?: FormatId | null;
   onDraftFormatChange?: (formatId: FormatId | null) => void;
   formatAllowEmpty?: boolean;
-  draftSort?: CatalogTableSortState;
-  onDraftSortChange?: (next: CatalogTableSortState) => void;
   draftGameId?: GameId;
   onDraftGameChange?: (gameId: GameId) => void;
   games?: readonly GameDefinition[];
@@ -765,8 +746,6 @@ export function PhoneFiltersSheet({
   draftFormatId = null,
   onDraftFormatChange,
   formatAllowEmpty = true,
-  draftSort,
-  onDraftSortChange,
   draftGameId,
   onDraftGameChange,
   games,
@@ -822,8 +801,6 @@ export function PhoneFiltersSheet({
           activeFormatId={draftFormatId}
           onFormatChange={onDraftFormatChange}
           formatAllowEmpty={formatAllowEmpty}
-          sort={draftSort}
-          onSortChange={onDraftSortChange}
           gameId={draftGameId}
           onGameChange={onDraftGameChange}
           games={games}

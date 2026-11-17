@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { countListedFilters } from '../catalog/activeFilterCount.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
@@ -188,6 +188,13 @@ export function CardFinder({
   };
 
   const viewToggle = <CardFinderViewToggle value={viewMode} onChange={chooseView} />;
+  const searchId = useId().replace(/:/g, '');
+  const resultCount =
+    orderedCards.length === 0
+      ? null
+      : orderedCards.length > visibleCards.length
+        ? `Showing ${visibleCards.length} of ${orderedCards.length}`
+        : `${orderedCards.length} ${orderedCards.length === 1 ? 'card' : 'cards'}`;
 
   let body: ReactNode;
   if (catalogState.status === 'loading') {
@@ -277,33 +284,32 @@ export function CardFinder({
         dropActive ? 'ring-2 ring-border-strong' : ''
       }`}
     >
-      <label className="flex flex-col gap-1 text-sm text-text">
-        <span>Search cards</span>
-        <Input
-          field="inset"
-          type="search"
-          value={query}
-          autoFocus={autoFocusSearch}
-          placeholder="Name or passcode"
-          onChange={(event) => onQueryChange(event.target.value)}
+      <div className="flex flex-col gap-1">
+        <label htmlFor={searchId} className="text-sm text-text">
+          Search cards
+        </label>
+        <Toolbar
+          search={
+            <Input
+              id={searchId}
+              field="compact"
+              type="search"
+              value={query}
+              autoFocus={autoFocusSearch}
+              placeholder="Name or passcode"
+              onChange={(event) => onQueryChange(event.target.value)}
+            />
+          }
+          filters={
+            <FiltersToolbarButton
+              count={filterCount}
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersVisible(!filtersOpen)}
+            />
+          }
+          count={resultCount}
+          actions={viewToggle}
         />
-      </label>
-
-      <div className="flex flex-col gap-2">
-        <Toolbar actions={viewToggle}>
-          <FiltersToolbarButton
-            count={filterCount}
-            aria-expanded={filtersOpen}
-            onClick={() => setFiltersVisible(!filtersOpen)}
-          />
-        </Toolbar>
-        {orderedCards.length > 0 ? (
-          <p className="text-xs text-text-2">
-            {orderedCards.length > visibleCards.length
-              ? `Showing ${visibleCards.length} of ${orderedCards.length}`
-              : `${orderedCards.length} ${orderedCards.length === 1 ? 'card' : 'cards'}`}
-          </p>
-        ) : null}
       </div>
 
       {filtersOpen && !filtersInSheet && catalogDerived ? (

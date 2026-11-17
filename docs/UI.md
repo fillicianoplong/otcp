@@ -55,7 +55,7 @@ Phone navigation (UI-D4): **Hamburger drawer** for Search, Formats, Decks, Colle
 
 View modes (UI-D5, UI-D9): desktop **search, Lists, and Collection** offer **List / Grid / Table**; under about **640 CSS px** Table is hidden and the user chooses List or Grid (no sticky-column horizontal table scroll). Phone: List and Grid only.
 
-Lists and Collection tables (UI-D10): defaults **Name, Qty, Set, Rarity, Purchase price, Market price** (Collection also **Condition**); add any other stored API/printing/price field from a header context menu or keyboard **Columns** control; sort, per-column filter, drag-reorder, resize. The **full setup** (visible columns, order, widths, sort, active filters) is remembered and restored next open, per table (search if customized, each List, Collection); signed-in sync via profile, localStorage when signed out.
+Lists and Collection tables (UI-D10): defaults **Name, Qty, Set, Rarity, Purchase price, Market price** (Collection also **Condition**); add, hide, and move columns from each column's header menu; sort, per-column filter, drag-reorder, resize. The **full setup** (visible columns, order, widths, sort, active filters) is remembered and restored next open, per table (search if customized, each List, Collection); signed-in sync via profile, localStorage when signed out.
 
 Value summary (UI-D11): Collection, Lists, and Decks show **Current**, **Paid**, **Profit/loss**, and a priced count. Purchase and Market columns are **per-unit**. Current = Σ(market × qty) over all rows; Paid = Σ(purchase × qty) over priced rows; P/L = Σ(market × qty) over those priced rows − Paid (may be negative). Condition / EU / 1st / faded are user attributes; API market price is not auto-adjusted.
 
@@ -226,7 +226,7 @@ Shape concepts sheet (historical): `icons-concepts-sheet.png`. Individuals: `ico
 | UI-D7 | Approve UI 1.0 as Approved | **APPROVED** 2025-12-27 |
 | UI-D8 | CardFinder in deck/list/collection editors; remove Builder nav | **APPROVED / FOLDED** 2025-12-27 — SRS FR-22/67/71 + screen map / appendix; Arch AppShell/DeckBuilder |
 | UI-D9 | Desktop **search, Lists, and Collection** keep **Table** as third view (List / Grid / Table on desktop ≥~640; List / Grid on phone) | **APPROVED** 2025-12-27; extended 2025-12-27 (REC-WL-01) — matches FR-06 / FR-60 |
-| UI-D10 | Customizable Lists/Collection tables (defaults + header menu + Columns; sort/filter/reorder/resize; **full setup restored on reopen** per table, synced when signed in) | **APPROVED** 2025-12-27 — FR-72..75 |
+| UI-D10 | Customizable Lists/Collection tables (defaults + header menu; sort/filter/reorder/resize; **full setup restored on reopen** per table, synced when signed in) | **APPROVED** 2025-12-27 — FR-72..75 |
 | UI-D11 | Value summary on Collection, Lists, Decks: per-unit Purchase/Market; Current=Σ(mkt×qty); Paid=Σ(purch×qty) priced; P/L=priced current−Paid; condition/variants | **APPROVED** 2025-12-27 — FR-76..78 |
 | UI-P1 | Link marker row size (currently 16 CSS px shared height) | **Deferred polish** — not a v1 blocker; revisit after first implementation pass |
 

@@ -1,15 +1,18 @@
 import { expect, test, type Page } from '@playwright/test';
 
 async function hideColumn(page: Page, label: string) {
-  await page.getByRole('button', { name: 'Columns' }).click();
-  await page.getByRole('menuitemcheckbox', { name: label, exact: true }).click();
+  const header = page.getByRole('columnheader', { name: label, exact: true }).first();
+  await header.hover();
+  await header.getByRole('button', { name: `${label} column menu` }).click();
+  await page.getByRole('menuitem', { name: 'Hide column' }).click();
 }
 
 test.describe('Table column pickers', () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test('Search table hides a column from the shared picker', async ({ page }) => {
+  test('Search table hides a column from the header menu', async ({ page }) => {
     await page.goto('/otcp/search?view=table');
+    await expect(page.getByRole('button', { name: 'Columns' })).toHaveCount(0);
     await expect(page.getByRole('columnheader', { name: 'ATK' })).toBeVisible();
     await hideColumn(page, 'ATK');
     await expect(page.getByRole('columnheader', { name: 'ATK' })).toHaveCount(0);
@@ -19,18 +22,20 @@ test.describe('Table column pickers', () => {
   test('format detail table hides a column', async ({ page }) => {
     await page.goto('/otcp/formats/goat');
     await page.getByRole('button', { name: 'Table view' }).click();
+    const sortBox = await page.getByRole('button', { name: 'Name ↑' }).boundingBox();
     const poolBox = await page.getByRole('button', { name: 'Search card pool' }).boundingBox();
-    const columnsBox = await page.getByRole('button', { name: 'Columns' }).boundingBox();
     const toggleBox = await page.getByRole('button', { name: 'Table view' }).boundingBox();
+    expect(sortBox).not.toBeNull();
     expect(poolBox).not.toBeNull();
-    expect(columnsBox).not.toBeNull();
     expect(toggleBox).not.toBeNull();
-    expect(Math.abs(poolBox!.height - columnsBox!.height)).toBeLessThan(1);
-    expect(Math.abs(poolBox!.height - toggleBox!.height)).toBeLessThan(1);
+    expect(Math.abs(sortBox!.height - 32)).toBeLessThan(1);
+    expect(Math.abs(poolBox!.height - sortBox!.height)).toBeLessThan(1);
+    expect(Math.abs(toggleBox!.height - sortBox!.height)).toBeLessThan(1);
     expect(Math.abs(poolBox!.width - toggleBox!.width)).toBeLessThan(1);
-    expect(Math.abs(poolBox!.y - columnsBox!.y)).toBeLessThan(1);
-    expect(poolBox!.x).toBeLessThan(columnsBox!.x);
-    expect(columnsBox!.x).toBeLessThan(toggleBox!.x);
+    expect(Math.abs(sortBox!.y - toggleBox!.y)).toBeLessThan(1);
+    expect(sortBox!.x).toBeLessThan(poolBox!.x);
+    expect(poolBox!.x).toBeLessThan(toggleBox!.x);
+    await expect(page.getByRole('button', { name: 'Columns' })).toHaveCount(0);
     await expect(page.getByRole('columnheader', { name: 'Card type' }).first()).toBeVisible();
     await hideColumn(page, 'Card type');
     await expect(page.getByRole('columnheader', { name: 'Card type' })).toHaveCount(0);
@@ -38,10 +43,14 @@ test.describe('Table column pickers', () => {
 
   test('Formats table hides List date and keeps Format', async ({ page }) => {
     await page.goto('/otcp/formats');
+    await expect(page.getByRole('button', { name: 'Columns' })).toHaveCount(0);
     await expect(page.getByRole('columnheader', { name: 'List date' })).toBeVisible();
-    await page.getByRole('button', { name: 'Columns' }).click();
-    await expect(page.getByRole('menuitemcheckbox', { name: 'Format' })).toHaveCount(0);
-    await page.getByRole('menuitemcheckbox', { name: 'List date' }).click();
+    const format = page.getByRole('columnheader', { name: 'Format', exact: true });
+    await format.hover();
+    await format.getByRole('button', { name: 'Format column menu' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Hide column' })).toBeDisabled();
+    await page.keyboard.press('Escape');
+    await hideColumn(page, 'List date');
     await expect(page.getByRole('columnheader', { name: 'List date' })).toHaveCount(0);
     await expect(page.getByRole('columnheader', { name: 'Format' })).toBeVisible();
     await page.reload();
@@ -90,9 +99,12 @@ test.describe('Table column pickers', () => {
     await expect(page.getByRole('button', { name: 'ATK, sorted descending' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Grid view' }).click();
-    const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
-    await expect(sidebar.getByRole('combobox', { name: 'Field' })).toHaveValue('ATK');
-    await expect(sidebar.getByRole('button', { name: 'Descending', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ATK ↓' })).toBeVisible();
+    await expect(
+      page
+        .getByRole('complementary', { name: 'Filter sidebar' })
+        .getByRole('button', { name: 'Sort' }),
+    ).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Table view' }).click();
     const cardType = page.getByRole('columnheader', { name: 'Card type', exact: true });

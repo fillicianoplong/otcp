@@ -27,20 +27,18 @@ test.describe('Shared catalog sort', () => {
       .toContain('Raigeki');
 
     await page.evaluate(() => window.scrollTo(0, 0));
-    await expect(page.getByRole('button', { name: 'Columns' })).toBeVisible();
+    const sortButton = page.getByRole('button', { name: 'Ban ↑' });
+    await expect(sortButton).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Columns' })).toHaveCount(0);
     const sidebar = page.getByRole('complementary', { name: 'Filter sidebar' });
-    await expect(sidebar.getByRole('combobox', { name: 'Field' })).toHaveValue('Ban');
-    await expect(sidebar.getByRole('button', { name: 'Ascending', exact: true })).toHaveAttribute(
-      'title',
-      'Ascending',
-    );
+    await expect(sidebar.getByRole('button', { name: 'Sort' })).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Grid view' }).click();
     await expect(page.getByRole('button', { name: 'Grid view' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await expect(sidebar.getByRole('combobox', { name: 'Field' })).toHaveValue('Ban');
+    await expect(page.getByRole('button', { name: 'Ban ↑' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Columns' })).toHaveCount(0);
     await expect(page).toHaveURL(/sort=ban/);
     await expect(page).toHaveURL(/format=advanced/);

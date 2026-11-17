@@ -4,7 +4,6 @@ import { Link } from 'react-router';
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
 import { ColumnHeader } from '../ui/ColumnHeader.tsx';
-import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { orderedVisibleTableColumns, type TableColumn } from '../ui/tableColumns.ts';
 import { useTableColumnSetup } from '../ui/useTableColumnVisibility.ts';
 
@@ -141,13 +140,6 @@ export function FormatsPage() {
           to open banlist details and search the matching card pool.
         </p>
       </div>
-
-      <TableToolbar
-        columns={FORMATS_COLUMNS}
-        visibility={columnVisibility}
-        order={columnOrder}
-        onVisibilityChange={setColumnVisibility}
-      />
 
       <div className="min-w-0 overflow-x-auto rounded-md border border-border">
         <table className="min-w-full border-collapse text-left text-sm">

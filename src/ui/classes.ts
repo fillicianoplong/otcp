@@ -8,7 +8,7 @@ export const focusRingInsetClass =
 
 const toolbarControlChrome = `h-control shrink-0 items-center justify-center border border-border bg-surface text-sm hover:border-border-strong hover:text-heading focus-visible:z-[1] ${focusRingClass} disabled:cursor-not-allowed disabled:opacity-50`;
 
-/** Labeled compact control (Filters, Columns). Same chrome as a toolbar icon button. */
+/** Labeled compact control. Same chrome as a toolbar icon button. */
 export const toolbarButtonClass = `inline-flex ${toolbarControlChrome} gap-1 rounded-md px-control-x font-medium text-heading`;
 
 /** Square icon control, the same size as one view-toggle segment. */
@@ -55,7 +55,7 @@ export const menuPanelClass =
 
 export const menuItemClass = `flex min-h-touch w-full items-center px-3 text-left text-sm font-medium text-heading hover:bg-surface-2 ${focusRingInsetClass} disabled:cursor-not-allowed disabled:opacity-50`;
 
-/** Same row height as the Columns picker. Column header menus use this too. */
+/** Dense menu row. Column header menus use this. */
 export const menuDenseItemClass = `flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-sm text-text hover:bg-surface-2 ${focusRingInsetClass} disabled:cursor-not-allowed disabled:opacity-50`;
 
 export const cardTileLinkClass = `block rounded-sm transition-transform hover:-translate-y-0.5 ${focusRingClass}`;

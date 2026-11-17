@@ -3,7 +3,7 @@ import { useEffect, useId, useState } from 'react';
 import { CollapsibleFilterSection } from '../catalog/CollapsibleFilterSection.tsx';
 import { GameFilterGroup } from '../catalog/GameFilterGroup.tsx';
 import { listGames, DEFAULT_GAME_ID } from '../games/registry.ts';
-import { CatalogSortControls } from '../catalog/CatalogSortControls.tsx';
+import { CatalogSortSelect } from '../catalog/CatalogSortSelect.tsx';
 import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
 import { DEFAULT_CATALOG_TABLE_SORT } from '../catalog/catalogTableSort.ts';
 import type { CatalogTableSortState } from '../catalog/catalogTableSort.ts';
@@ -23,7 +23,6 @@ import { PageTitle } from '../ui/PageTitle.tsx';
 import { SortSelect } from '../ui/SortSelect.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { ColumnHeader } from '../ui/ColumnHeader.tsx';
-import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { SearchIcon, ToolbarIconButton } from '../ui/ToolbarIconButton.tsx';
 import { Toolbar } from '../ui/Toolbar.tsx';
 import {
@@ -177,7 +176,6 @@ function DemoCombobox({ openByDefault }: { openByDefault: boolean }) {
 
 function FilterSectionsDemo() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({ type: true });
-  const [sort, setSort] = useState<CatalogTableSortState>(DEFAULT_CATALOG_TABLE_SORT);
   const [gameId, setGameId] = useState(DEFAULT_GAME_ID);
   const toggleSection = (id: string) => {
     setCollapsed((current) => ({ ...current, [id]: current[id] === true ? false : true }));
@@ -193,14 +191,6 @@ function FilterSectionsDemo() {
         className="relative z-20 overflow-visible"
       >
         <GameFilterGroup games={listGames()} value={gameId} onChange={setGameId} />
-      </CollapsibleFilterSection>
-      <CollapsibleFilterSection
-        title="Sort"
-        collapsed={collapsed.sort === true}
-        onToggleCollapse={() => toggleSection('sort')}
-        className="relative z-10 overflow-visible"
-      >
-        <CatalogSortControls sort={sort} onChange={setSort} />
       </CollapsibleFilterSection>
       <CollapsibleFilterSection
         title="Format"
@@ -226,6 +216,7 @@ export function StyleGuidePage() {
   const [tableVisibility, setTableVisibility] = useState<TableColumnVisibility>(() =>
     defaultTableColumnVisibility(TABLE_COLUMNS),
   );
+  const [catalogSort, setCatalogSort] = useState<CatalogTableSortState>(DEFAULT_CATALOG_TABLE_SORT);
   const [deckSort, setDeckSort] = useState<'type' | 'name' | 'added'>('type');
   const [tableOrder, setTableOrder] = useState<readonly string[]>(() =>
     normalizeTableColumnOrder(TABLE_COLUMNS, null),
@@ -388,32 +379,34 @@ export function StyleGuidePage() {
         <SectionHeader id="sg-toolbar" size="section">
           Toolbar
         </SectionHeader>
-        <Toolbar
-          search={
-            <Input type="search" aria-label="Toolbar search" placeholder="Name or passcode" />
-          }
-          actions={
-            <>
-              <ToolbarIconButton label="Search card pool">
-                <SearchIcon />
-              </ToolbarIconButton>
-              {viewMode === 'table' ? (
-                <TableToolbar
-                  variant="inline"
-                  columns={TABLE_COLUMNS}
-                  visibility={tableVisibility}
-                  order={tableOrder}
-                  onVisibilityChange={setTableVisibility}
-                />
-              ) : null}
-              <CatalogViewToggle value={viewMode} onChange={setViewMode} />
-            </>
-          }
-        >
-          <FiltersToolbarButton count={2} />
-          <Chip label="Spell" removeLabel="Remove Spell" />
-          <p className="text-sm text-text-2">12 cards</p>
-        </Toolbar>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="sg-toolbar-search" className="text-sm font-medium text-heading">
+            Find a card
+          </label>
+          <Toolbar
+            search={
+              <Input
+                id="sg-toolbar-search"
+                field="compact"
+                type="search"
+                placeholder="Name or passcode"
+              />
+            }
+            filters={<FiltersToolbarButton count={2} />}
+            count="12,431 cards"
+            actions={
+              <>
+                <ToolbarIconButton label="Search card pool">
+                  <SearchIcon />
+                </ToolbarIconButton>
+                <CatalogViewToggle value={viewMode} onChange={setViewMode} />
+              </>
+            }
+          >
+            <CatalogSortSelect sort={catalogSort} onChange={setCatalogSort} />
+          </Toolbar>
+        </div>
+        <Chip label="Spell" removeLabel="Remove Spell" />
         <div className="flex flex-col gap-2">
           <p className="text-sm text-text-2">Deck editor</p>
           <SortSelect
@@ -451,12 +444,6 @@ export function StyleGuidePage() {
         <SectionHeader id="sg-table" size="section">
           Table
         </SectionHeader>
-        <TableToolbar
-          columns={TABLE_COLUMNS}
-          visibility={tableVisibility}
-          order={tableOrder}
-          onVisibilityChange={setTableVisibility}
-        />
         <div className={tableWrapClass}>
           <table className={tableClass}>
             <thead className={tableHeadClass}>

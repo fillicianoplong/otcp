@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { ColumnHeader } from './ColumnHeader.tsx';
-import { TableToolbar } from './TableToolbar.tsx';
 import {
   columnMenuButtonLabel,
   defaultTableColumnVisibility,
@@ -37,12 +36,6 @@ function Harness() {
 
   return (
     <>
-      <TableToolbar
-        columns={COLUMNS}
-        visibility={visibility}
-        order={order}
-        onVisibilityChange={setVisibility}
-      />
       <table>
         <thead>
           <tr>
@@ -106,25 +99,21 @@ describe('ColumnHeader', () => {
     expect(screen.getByRole('button', { name: 'ATK, sorted descending' })).toBeTruthy();
   });
 
-  it('hides a column and shows it again from Add column', async () => {
+  it('hides a column and shows it again from the header menu', async () => {
     const user = userEvent.setup();
     render(<Harness />);
+
+    expect(screen.queryByRole('button', { name: 'Columns' })).toBeNull();
 
     await user.click(screen.getByRole('button', { name: columnMenuButtonLabel('ATK') }));
     await user.click(screen.getByRole('menuitem', { name: 'Hide column' }));
     expect(screen.queryByRole('columnheader', { name: 'ATK' })).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'Columns' }));
-    expect(screen.getByRole('menuitemcheckbox', { name: 'ATK' })).toHaveAttribute(
-      'aria-checked',
-      'false',
-    );
-    await user.keyboard('{Escape}');
-
     await user.click(screen.getByRole('button', { name: columnMenuButtonLabel('Name') }));
     await user.click(screen.getByRole('menuitem', { name: 'Add column' }));
     await user.click(screen.getByRole('menuitem', { name: 'ATK' }));
     expect(screen.getByRole('columnheader', { name: 'ATK' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Columns' })).toBeNull();
   });
 
   it('moves a column and refuses to move the pinned one', async () => {

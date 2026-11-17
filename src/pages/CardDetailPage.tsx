@@ -57,7 +57,6 @@ import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { ColumnHeader } from '../ui/ColumnHeader.tsx';
-import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { orderedVisibleTableColumns, type TableColumn } from '../ui/tableColumns.ts';
 import { useTableColumnSetup } from '../ui/useTableColumnVisibility.ts';
 import { focusRingClass } from '../ui/classes.ts';
@@ -283,12 +282,6 @@ function CardDetailSets({
   return (
     <section className="flex min-w-0 flex-col gap-2" aria-labelledby="card-sets-heading">
       <SectionHeader id="card-sets-heading">{cardDetailSetsHeadingCount(totalCount)}</SectionHeader>
-      <TableToolbar
-        columns={SET_COLUMNS}
-        visibility={columnVisibility}
-        order={columnOrder}
-        onVisibilityChange={setColumnVisibility}
-      />
       <div className="min-w-0 overflow-x-auto rounded-md border border-border bg-surface text-sm">
         <table className="min-w-full border-collapse text-left">
           <thead className="bg-surface-2 text-text-2">

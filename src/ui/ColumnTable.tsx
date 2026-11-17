@@ -6,11 +6,10 @@ import {
   tableHeadClass,
   tableWrapClass,
 } from './classes.ts';
-import { TableToolbar } from './TableToolbar.tsx';
 import { orderedVisibleTableColumns, type TableColumn } from './tableColumns.ts';
 import { useTableColumnSetup } from './useTableColumnVisibility.ts';
 
-/** A table with the shared column picker and an empty body. */
+/** A table with header menus for its columns and an empty body. */
 export function ColumnTable({
   tableId,
   label,
@@ -27,12 +26,6 @@ export function ColumnTable({
 
   return (
     <div className="flex flex-col gap-2">
-      <TableToolbar
-        columns={columns}
-        visibility={visibility}
-        order={order}
-        onVisibilityChange={setVisibility}
-      />
       <div className={tableWrapClass}>
         <table aria-label={label} className={tableClass}>
           <thead className={tableHeadClass}>

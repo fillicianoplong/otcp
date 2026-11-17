@@ -171,7 +171,6 @@ describe('game registry', () => {
         filterState: SAVED_DARK_FILTER,
         formatSelected: true,
         gameId: 'yugioh',
-        sortCustom: false,
       }),
     ).toBe(2);
     expect(
@@ -179,15 +178,6 @@ describe('game registry', () => {
         filterState: SAVED_DARK_FILTER,
         formatSelected: true,
         gameId: 'demo',
-        sortCustom: false,
-      }),
-    ).toBe(3);
-    expect(
-      countListedFilters({
-        filterState: SAVED_DARK_FILTER,
-        formatSelected: true,
-        gameId: 'yugioh',
-        sortCustom: true,
       }),
     ).toBe(3);
   });
