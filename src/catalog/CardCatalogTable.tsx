@@ -1,7 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import type { YugiohCard } from '../shared/schema/card.ts';
+import { ColumnHeader } from '../ui/ColumnHeader.tsx';
+import { orderedVisibleTableColumns, type TableColumn } from '../ui/tableColumns.ts';
 import {
   banMarkerForStatus,
   isFormatBanContextActive,
@@ -18,15 +20,17 @@ import {
   catalogTableLevelCell,
   catalogTablePriceCell,
   catalogTableRaceOrPropertyCell,
-  catalogTableColumnLabel,
+  catalogTableVisibilityFromRecord,
   CATALOG_TABLE_NAME_COLUMN,
   CATALOG_TABLE_BAN_COLUMN,
+  CATALOG_TABLE_OPTIONAL_COLUMN_DEFS,
   CATALOG_TABLE_OPTIONAL_COLUMN_IDS,
+  CATALOG_TABLE_SORTABLE_COLUMN_DEFS,
   type CatalogTableColumnVisibility,
   type CatalogTableOptionalColumnId,
   type CatalogTableSortColumnId,
 } from './catalogTableColumns.ts';
-import { type CatalogTableSortState, toggleCatalogTableSort } from './catalogTableSort.ts';
+import { type CatalogTableSortState } from './catalogTableSort.ts';
 import {
   gridHasMore,
   initialGridVisibleCount,
@@ -85,21 +89,6 @@ function TableBanCell({
   );
 }
 
-function SortIndicator({ active, direction }: { active: boolean; direction: 'asc' | 'desc' }) {
-  if (!active) {
-    return (
-      <span aria-hidden className="ml-1 text-text-2 opacity-60">
-        ↕
-      </span>
-    );
-  }
-  return (
-    <span aria-hidden className="ml-1 text-heading">
-      {direction === 'asc' ? '↑' : '↓'}
-    </span>
-  );
-}
-
 function cellForOptionalColumn(columnId: CatalogTableOptionalColumnId, card: YugiohCard): string {
   switch (columnId) {
     case 'cardType':
@@ -123,40 +112,43 @@ function cellForOptionalColumn(columnId: CatalogTableOptionalColumnId, card: Yug
   }
 }
 
-function sortHeaderAriaLabel(label: string, active: boolean, direction: 'asc' | 'desc'): string {
-  if (!active) return `Sort by ${label}`;
-  return `${label}, sorted ${direction === 'asc' ? 'ascending' : 'descending'}`;
+const CATALOG_SORT_COLUMN_IDS = new Set<string>(
+  CATALOG_TABLE_SORTABLE_COLUMN_DEFS.map((column) => column.id),
+);
+
+function isCatalogSortColumn(id: string): id is CatalogTableSortColumnId {
+  return CATALOG_SORT_COLUMN_IDS.has(id);
 }
 
-function SortableHeader({
-  columnId,
-  label,
-  sort,
-  onSort,
-  className = '',
-}: {
-  columnId: CatalogTableSortColumnId;
-  label: string;
-  sort: CatalogTableSortState;
-  onSort: (column: CatalogTableSortColumnId) => void;
-  className?: string;
-}) {
-  const active = sort.column === columnId;
-  const ariaSort = active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none';
+function isOptionalColumn(id: string): id is CatalogTableOptionalColumnId {
+  return (CATALOG_TABLE_OPTIONAL_COLUMN_IDS as readonly string[]).includes(id);
+}
 
-  return (
-    <th scope="col" aria-sort={ariaSort} aria-label={label} className={className}>
-      <button
-        type="button"
-        onClick={() => onSort(columnId)}
-        aria-label={sortHeaderAriaLabel(label, active, sort.direction)}
-        className="inline-flex min-h-9 w-full items-center px-2 text-left text-xs font-semibold text-text-2 hover:text-heading focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
-      >
-        {label}
-        <SortIndicator active={active} direction={sort.direction} />
-      </button>
-    </th>
-  );
+function buildCatalogHeaderColumns(showBan: boolean): TableColumn[] {
+  return [
+    {
+      id: CATALOG_TABLE_NAME_COLUMN.id,
+      label: CATALOG_TABLE_NAME_COLUMN.label,
+      locked: true,
+      sortable: true,
+    },
+    ...CATALOG_TABLE_OPTIONAL_COLUMN_DEFS.map((column) => ({
+      id: column.id,
+      label: column.label,
+      defaultVisible: column.defaultVisible,
+      sortable: true,
+    })),
+    ...(showBan
+      ? [
+          {
+            id: CATALOG_TABLE_BAN_COLUMN.id,
+            label: CATALOG_TABLE_BAN_COLUMN.label,
+            locked: true,
+            sortable: true,
+          },
+        ]
+      : []),
+  ];
 }
 
 export function CardCatalogTable({
@@ -165,8 +157,11 @@ export function CardCatalogTable({
   searchQuery,
   formatParam,
   columnVisibility,
+  columnOrder,
   sort,
   onSortChange,
+  onColumnVisibilityChange,
+  onColumnOrderChange,
   initialVisibleCount,
   restoreScrollY,
   onBeforeNavigate,
@@ -177,8 +172,11 @@ export function CardCatalogTable({
   searchQuery: string;
   formatParam?: string | null;
   columnVisibility: CatalogTableColumnVisibility;
+  columnOrder?: readonly string[] | null;
   sort: CatalogTableSortState;
   onSortChange: (next: CatalogTableSortState) => void;
+  onColumnVisibilityChange?: (next: CatalogTableColumnVisibility) => void;
+  onColumnOrderChange?: (next: readonly string[]) => void;
   initialVisibleCount?: number;
   restoreScrollY?: number | null;
   onBeforeNavigate: (loadedCount: number) => void;
@@ -217,13 +215,8 @@ export function CardCatalogTable({
 
   const renderedCards = sliceGridCards(visibleCards, visibleCount);
   const showBanColumn = isFormatBanContextActive(formatParam);
-  const visibleOptionalColumns = CATALOG_TABLE_OPTIONAL_COLUMN_IDS.filter(
-    (columnId) => columnVisibility[columnId],
-  );
-
-  const handleSort = (column: CatalogTableSortColumnId) => {
-    onSortChange(toggleCatalogTableSort(sort, column));
-  };
+  const headerColumns = useMemo(() => buildCatalogHeaderColumns(showBanColumn), [showBanColumn]);
+  const shown = orderedVisibleTableColumns(headerColumns, columnVisibility, columnOrder);
 
   const openDetail = (card: YugiohCard) => {
     onBeforeNavigate(visibleCount);
@@ -240,32 +233,32 @@ export function CardCatalogTable({
         <table className="min-w-full border-collapse text-sm">
           <thead className="sticky top-0 z-[1] border-b border-border bg-surface">
             <tr>
-              <SortableHeader
-                columnId={CATALOG_TABLE_NAME_COLUMN.id}
-                label={CATALOG_TABLE_NAME_COLUMN.label}
-                sort={sort}
-                onSort={handleSort}
-                className="min-w-[12rem]"
-              />
-              {visibleOptionalColumns.map((columnId) => (
-                <SortableHeader
-                  key={columnId}
-                  columnId={columnId}
-                  label={catalogTableColumnLabel(columnId)}
-                  sort={sort}
-                  onSort={handleSort}
-                  className="whitespace-nowrap"
+              {shown.map((column) => (
+                <ColumnHeader
+                  key={column.id}
+                  column={column}
+                  columns={headerColumns}
+                  visibility={columnVisibility}
+                  order={columnOrder}
+                  onVisibilityChange={(next) =>
+                    onColumnVisibilityChange?.(catalogTableVisibilityFromRecord(next))
+                  }
+                  onOrderChange={(next) => onColumnOrderChange?.(next)}
+                  sort={{ columnId: sort.column, direction: sort.direction }}
+                  onSortChange={(next) => {
+                    if (!isCatalogSortColumn(next.columnId)) return;
+                    onSortChange({ column: next.columnId, direction: next.direction });
+                  }}
+                  className={
+                    column.id === 'name'
+                      ? 'min-w-[12rem]'
+                      : column.id === 'ban'
+                        ? 'min-w-[6rem]'
+                        : undefined
+                  }
+                  labelClassName="text-xs font-semibold"
                 />
               ))}
-              {showBanColumn ? (
-                <SortableHeader
-                  columnId={CATALOG_TABLE_BAN_COLUMN.id}
-                  label={CATALOG_TABLE_BAN_COLUMN.label}
-                  sort={sort}
-                  onSort={handleSort}
-                  className="w-14"
-                />
-              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -282,32 +275,41 @@ export function CardCatalogTable({
                 }}
                 className="cursor-pointer border-b border-border last:border-b-0 hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-strong"
               >
-                <td className="max-w-[16rem] px-2 py-1.5">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <TableRowThumbnail card={card} />
-                    <span className="truncate font-medium text-heading">{card.name}</span>
-                  </div>
-                </td>
-                {visibleOptionalColumns.map((columnId) => (
-                  <td
-                    key={columnId}
-                    className={`whitespace-nowrap px-2 py-1.5 text-text-2 ${
-                      columnId === 'atk' ||
-                      columnId === 'def' ||
-                      columnId === 'level' ||
-                      columnId === 'price'
-                        ? 'tabular-nums'
-                        : ''
-                    }`}
-                  >
-                    {cellForOptionalColumn(columnId, card)}
-                  </td>
-                ))}
-                {showBanColumn ? (
-                  <td className="px-2 py-1.5">
-                    <TableBanCell card={card} formatParam={formatParam} />
-                  </td>
-                ) : null}
+                {shown.map((column) => {
+                  if (column.id === 'name') {
+                    return (
+                      <td key={column.id} className="max-w-[16rem] px-2 py-1.5">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <TableRowThumbnail card={card} />
+                          <span className="truncate font-medium text-heading">{card.name}</span>
+                        </div>
+                      </td>
+                    );
+                  }
+                  if (column.id === 'ban') {
+                    return (
+                      <td key={column.id} className="px-2 py-1.5">
+                        <TableBanCell card={card} formatParam={formatParam} />
+                      </td>
+                    );
+                  }
+                  if (!isOptionalColumn(column.id)) return null;
+                  return (
+                    <td
+                      key={column.id}
+                      className={`whitespace-nowrap px-2 py-1.5 text-text-2 ${
+                        column.id === 'atk' ||
+                        column.id === 'def' ||
+                        column.id === 'level' ||
+                        column.id === 'price'
+                          ? 'tabular-nums'
+                          : ''
+                      }`}
+                    >
+                      {cellForOptionalColumn(column.id, card)}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

@@ -56,9 +56,10 @@ import { InfoCard } from '../ui/InfoCard.tsx';
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
+import { ColumnHeader } from '../ui/ColumnHeader.tsx';
 import { TableToolbar } from '../ui/TableToolbar.tsx';
-import { isTableColumnVisible, type TableColumn } from '../ui/tableColumns.ts';
-import { useTableColumnVisibility } from '../ui/useTableColumnVisibility.ts';
+import { orderedVisibleTableColumns, type TableColumn } from '../ui/tableColumns.ts';
+import { useTableColumnSetup } from '../ui/useTableColumnVisibility.ts';
 import { focusRingClass } from '../ui/classes.ts';
 import { buildStoreSearchUrl, STORE_LINK_LABELS } from '../prices/storeLinks.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
@@ -262,17 +263,15 @@ function CardDetailSets({
   selectedArtId: number;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [columnVisibility, setColumnVisibility] = useTableColumnVisibility(
-    'card-sets',
-    SET_COLUMNS,
-  );
+  const {
+    visibility: columnVisibility,
+    order: columnOrder,
+    setVisibility: setColumnVisibility,
+    setOrder: setColumnOrder,
+  } = useTableColumnSetup('card-sets', SET_COLUMNS);
   const sortedSets = useMemo(() => sortCardDetailSets(card.sets, setIndex), [card.sets, setIndex]);
   const totalCount = sortedSets.length;
-  const showColumn = (id: string) =>
-    isTableColumnVisible(
-      SET_COLUMNS.find((column) => column.id === id) ?? SET_COLUMNS[0]!,
-      columnVisibility,
-    );
+  const shownColumns = orderedVisibleTableColumns(SET_COLUMNS, columnVisibility, columnOrder);
   if (totalCount === 0) return null;
 
   const visibleCount = cardDetailSetsVisibleCount(totalCount, expanded);
@@ -287,30 +286,24 @@ function CardDetailSets({
       <TableToolbar
         columns={SET_COLUMNS}
         visibility={columnVisibility}
+        order={columnOrder}
         onVisibilityChange={setColumnVisibility}
       />
       <div className="min-w-0 overflow-x-auto rounded-md border border-border bg-surface text-sm">
         <table className="min-w-full border-collapse text-left">
           <thead className="bg-surface-2 text-text-2">
             <tr>
-              <th scope="col" className="px-3 py-2 font-medium">
-                Set
-              </th>
-              {showColumn('code') ? (
-                <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
-                  Code
-                </th>
-              ) : null}
-              {showColumn('rarity') ? (
-                <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
-                  Rarity
-                </th>
-              ) : null}
-              {showColumn('released') ? (
-                <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
-                  Released
-                </th>
-              ) : null}
+              {shownColumns.map((column) => (
+                <ColumnHeader
+                  key={column.id}
+                  column={column}
+                  columns={SET_COLUMNS}
+                  visibility={columnVisibility}
+                  order={columnOrder}
+                  onVisibilityChange={setColumnVisibility}
+                  onOrderChange={setColumnOrder}
+                />
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -320,33 +313,50 @@ function CardDetailSets({
                 showArtMarks && isSetRowMarkedForSelectedArt(card.id, selectedArtId, entry.setCode);
               return (
                 <tr key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}>
-                  <td className="px-3 py-2">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <Link
-                        to={buildCardDetailSetSearchHref(entry.setName)}
-                        aria-label={`Search for cards in ${entry.setName}`}
-                        className={setLinkClassName}
+                  {shownColumns.map((column) => {
+                    if (column.id === 'set') {
+                      return (
+                        <td key={column.id} className="px-3 py-2">
+                          <span className="flex min-w-0 items-center gap-2">
+                            <Link
+                              to={buildCardDetailSetSearchHref(entry.setName)}
+                              aria-label={`Search for cards in ${entry.setName}`}
+                              className={setLinkClassName}
+                            >
+                              {entry.setName}
+                            </Link>
+                            {usesThisArt ? (
+                              <span className="shrink-0 rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 text-2xs font-medium uppercase tracking-wide text-text-2">
+                                This art
+                              </span>
+                            ) : null}
+                          </span>
+                        </td>
+                      );
+                    }
+                    if (column.id === 'code') {
+                      return (
+                        <td key={column.id} className="whitespace-nowrap px-3 py-2 text-text-2">
+                          {entry.setCode}
+                        </td>
+                      );
+                    }
+                    if (column.id === 'rarity') {
+                      return (
+                        <td key={column.id} className="whitespace-nowrap px-3 py-2 text-text-2">
+                          {entry.setRarity}
+                        </td>
+                      );
+                    }
+                    return (
+                      <td
+                        key={column.id}
+                        className="whitespace-nowrap px-3 py-2 text-text-2 tabular-nums"
                       >
-                        {entry.setName}
-                      </Link>
-                      {usesThisArt ? (
-                        <span className="shrink-0 rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 text-2xs font-medium uppercase tracking-wide text-text-2">
-                          This art
-                        </span>
-                      ) : null}
-                    </span>
-                  </td>
-                  {showColumn('code') ? (
-                    <td className="whitespace-nowrap px-3 py-2 text-text-2">{entry.setCode}</td>
-                  ) : null}
-                  {showColumn('rarity') ? (
-                    <td className="whitespace-nowrap px-3 py-2 text-text-2">{entry.setRarity}</td>
-                  ) : null}
-                  {showColumn('released') ? (
-                    <td className="whitespace-nowrap px-3 py-2 text-text-2 tabular-nums">
-                      {releaseDate ?? '—'}
-                    </td>
-                  ) : null}
+                        {releaseDate ?? '—'}
+                      </td>
+                    );
+                  })}
                 </tr>
               );
             })}

@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canMoveTableColumn,
   defaultTableColumnVisibility,
   isTableColumnVisible,
+  moveTableColumn,
+  normalizeTableColumnOrder,
+  orderedVisibleTableColumns,
+  setTableColumnVisible,
   tableColumnVisibilityFromRecord,
   visibleTableColumns,
   type TableColumn,
@@ -38,5 +43,31 @@ describe('tableColumns', () => {
     expect(visibility.note).toBe(true);
     expect(visibility).not.toHaveProperty('extra');
     expect(isTableColumnVisible(COLUMNS[0]!, visibility)).toBe(true);
+  });
+
+  it('keeps a locked column in place and moves the others', () => {
+    const visibility = defaultTableColumnVisibility(COLUMNS);
+    expect(normalizeTableColumnOrder(COLUMNS, ['note', 'qty', 'name'])).toEqual([
+      'name',
+      'note',
+      'qty',
+    ]);
+    expect(canMoveTableColumn(COLUMNS, visibility, null, 'name', 1)).toBe(false);
+    expect(canMoveTableColumn(COLUMNS, visibility, null, 'qty', -1)).toBe(false);
+    expect(canMoveTableColumn(COLUMNS, visibility, null, 'qty', 1)).toBe(false);
+    expect(setTableColumnVisible(COLUMNS, visibility, 'name', false).qty).toBe(true);
+    expect(
+      isTableColumnVisible(COLUMNS[0]!, setTableColumnVisible(COLUMNS, visibility, 'name', false)),
+    ).toBe(true);
+
+    const withNote = setTableColumnVisible(COLUMNS, visibility, 'note', true);
+    expect(orderedVisibleTableColumns(COLUMNS, withNote, null).map((column) => column.id)).toEqual([
+      'name',
+      'qty',
+      'note',
+    ]);
+    expect(moveTableColumn(COLUMNS, withNote, null, 'note', -1)).toEqual(['name', 'note', 'qty']);
+    expect(canMoveTableColumn(COLUMNS, withNote, ['name', 'note', 'qty'], 'note', 1)).toBe(true);
+    expect(canMoveTableColumn(COLUMNS, withNote, ['name', 'note', 'qty'], 'qty', 1)).toBe(false);
   });
 });

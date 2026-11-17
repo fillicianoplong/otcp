@@ -273,8 +273,11 @@ export function CardCatalogView({
   formatParam = null,
   tableAvailable = true,
   tableColumnVisibility = DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
+  tableColumnOrder,
   tableSort = DEFAULT_CATALOG_TABLE_SORT,
   onTableSortChange,
+  onTableColumnVisibilityChange,
+  onTableColumnOrderChange,
 }: {
   headingId?: string;
   searchQuery?: string;
@@ -284,8 +287,11 @@ export function CardCatalogView({
   formatParam?: string | null;
   tableAvailable?: boolean;
   tableColumnVisibility?: CatalogTableColumnVisibility;
+  tableColumnOrder?: readonly string[] | null;
   tableSort?: CatalogTableSortState;
   onTableSortChange?: (next: CatalogTableSortState) => void;
+  onTableColumnVisibilityChange?: (next: CatalogTableColumnVisibility) => void;
+  onTableColumnOrderChange?: (next: readonly string[]) => void;
 }) {
   const { state, retry } = useCardCatalog();
   const trimmedQuery = searchQuery.trim();
@@ -438,8 +444,11 @@ export function CardCatalogView({
           searchQuery={trimmedQuery}
           formatParam={formatParam}
           columnVisibility={tableColumnVisibility}
+          columnOrder={tableColumnOrder}
           sort={tableSort}
           onSortChange={handleTableSortChange}
+          onColumnVisibilityChange={onTableColumnVisibilityChange}
+          onColumnOrderChange={onTableColumnOrderChange}
           initialVisibleCount={scrollRestore?.loadedCount}
           restoreScrollY={scrollRestore?.scrollY ?? null}
           onBeforeNavigate={persistScrollRestore}

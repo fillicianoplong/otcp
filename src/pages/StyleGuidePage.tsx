@@ -20,6 +20,7 @@ import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
 import { SortSelect } from '../ui/SortSelect.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
+import { ColumnHeader } from '../ui/ColumnHeader.tsx';
 import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { SearchIcon, ToolbarIconButton } from '../ui/ToolbarIconButton.tsx';
 import { Toolbar } from '../ui/Toolbar.tsx';
@@ -27,13 +28,14 @@ import {
   listRowLinkClass,
   tableCellClass,
   tableClass,
-  tableHeadCellClass,
   tableHeadClass,
   tableWrapClass,
 } from '../ui/classes.ts';
 import {
   defaultTableColumnVisibility,
-  isTableColumnVisible,
+  normalizeTableColumnOrder,
+  orderedVisibleTableColumns,
+  type ColumnSortState,
   type TableColumn,
   type TableColumnVisibility,
 } from '../ui/tableColumns.ts';
@@ -84,10 +86,10 @@ const DEMO_OPTIONS: ComboboxOption[] = [
 ];
 
 const TABLE_COLUMNS: readonly TableColumn[] = [
-  { id: 'name', label: 'Name', locked: true },
-  { id: 'type', label: 'Type' },
-  { id: 'attribute', label: 'Attribute' },
-  { id: 'atk', label: 'ATK' },
+  { id: 'name', label: 'Name', locked: true, sortable: true },
+  { id: 'type', label: 'Type', sortable: true },
+  { id: 'attribute', label: 'Attribute', sortable: true },
+  { id: 'atk', label: 'ATK', sortable: true },
 ];
 
 const TABLE_CELLS: Record<string, string> = {
@@ -214,6 +216,13 @@ export function StyleGuidePage() {
     defaultTableColumnVisibility(TABLE_COLUMNS),
   );
   const [deckSort, setDeckSort] = useState<'type' | 'name' | 'added'>('type');
+  const [tableOrder, setTableOrder] = useState<readonly string[]>(() =>
+    normalizeTableColumnOrder(TABLE_COLUMNS, null),
+  );
+  const [tableSort, setTableSort] = useState<ColumnSortState>({
+    columnId: 'name',
+    direction: 'asc',
+  });
 
   useEffect(() => {
     const existing = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
@@ -382,6 +391,7 @@ export function StyleGuidePage() {
                   variant="inline"
                   columns={TABLE_COLUMNS}
                   visibility={tableVisibility}
+                  order={tableOrder}
                   onVisibilityChange={setTableVisibility}
                 />
               ) : null}
@@ -433,30 +443,39 @@ export function StyleGuidePage() {
         <TableToolbar
           columns={TABLE_COLUMNS}
           visibility={tableVisibility}
+          order={tableOrder}
           onVisibilityChange={setTableVisibility}
         />
         <div className={tableWrapClass}>
           <table className={tableClass}>
             <thead className={tableHeadClass}>
               <tr>
-                {TABLE_COLUMNS.filter((column) =>
-                  isTableColumnVisible(column, tableVisibility),
-                ).map((column) => (
-                  <th key={column.id} scope="col" className={tableHeadCellClass}>
-                    {column.label}
-                  </th>
-                ))}
+                {orderedVisibleTableColumns(TABLE_COLUMNS, tableVisibility, tableOrder).map(
+                  (column) => (
+                    <ColumnHeader
+                      key={column.id}
+                      column={column}
+                      columns={TABLE_COLUMNS}
+                      visibility={tableVisibility}
+                      order={tableOrder}
+                      onVisibilityChange={setTableVisibility}
+                      onOrderChange={setTableOrder}
+                      sort={tableSort}
+                      onSortChange={setTableSort}
+                    />
+                  ),
+                )}
               </tr>
             </thead>
             <tbody>
               <tr>
-                {TABLE_COLUMNS.filter((column) =>
-                  isTableColumnVisible(column, tableVisibility),
-                ).map((column) => (
-                  <td key={column.id} className={tableCellClass}>
-                    {TABLE_CELLS[column.id]}
-                  </td>
-                ))}
+                {orderedVisibleTableColumns(TABLE_COLUMNS, tableVisibility, tableOrder).map(
+                  (column) => (
+                    <td key={column.id} className={tableCellClass}>
+                      {TABLE_CELLS[column.id]}
+                    </td>
+                  ),
+                )}
               </tr>
             </tbody>
           </table>

@@ -19,7 +19,7 @@ import { SearchIcon, ToolbarIconButton } from '../ui/ToolbarIconButton.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
 import { TableToolbar } from '../ui/TableToolbar.tsx';
 import { Toolbar } from '../ui/Toolbar.tsx';
-import { useTableColumnVisibility } from '../ui/useTableColumnVisibility.ts';
+import { useTableColumnSetup } from '../ui/useTableColumnVisibility.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import {
   BanlistGridSection,
@@ -92,15 +92,21 @@ function FormatBanlistSections({
   formatId,
   viewMode,
   columnVisibility,
+  columnOrder,
   tableSort,
   onTableSortChange,
+  onColumnVisibilityChange,
+  onColumnOrderChange,
 }: {
   sections: FormatBanlistSection[];
   formatId: FormatId;
   viewMode: CatalogViewMode;
   columnVisibility: ReturnType<typeof catalogTableVisibilityFromRecord>;
+  columnOrder: readonly string[];
   tableSort: CatalogTableSortState;
   onTableSortChange: (next: CatalogTableSortState) => void;
+  onColumnVisibilityChange: (next: ReturnType<typeof catalogTableVisibilityFromRecord>) => void;
+  onColumnOrderChange: (next: readonly string[]) => void;
 }) {
   return (
     <>
@@ -115,8 +121,11 @@ function FormatBanlistSections({
               section={section}
               formatParam={formatId}
               columnVisibility={columnVisibility}
+              columnOrder={columnOrder}
               tableSort={tableSort}
               onTableSortChange={onTableSortChange}
+              onColumnVisibilityChange={onColumnVisibilityChange}
+              onColumnOrderChange={onColumnOrderChange}
             />
           );
         }
@@ -138,10 +147,12 @@ export function FormatDetailPage() {
   const effectiveViewMode = effectiveCatalogViewMode(viewMode, {
     tableAvailable: tableViewportOk,
   });
-  const [columnVisibility, setColumnVisibility] = useTableColumnVisibility(
-    'format-detail',
-    CATALOG_TABLE_TOOLBAR_COLUMNS,
-  );
+  const {
+    visibility: columnVisibility,
+    order: columnOrder,
+    setVisibility: setColumnVisibility,
+    setOrder: setColumnOrder,
+  } = useTableColumnSetup('format-detail', CATALOG_TABLE_TOOLBAR_COLUMNS);
   const catalogColumnVisibility = catalogTableVisibilityFromRecord(columnVisibility);
   const tableSort = useMemo(
     () => readCatalogTableSortFromParams(searchParams) ?? DEFAULT_CATALOG_TABLE_SORT,
@@ -290,6 +301,7 @@ export function FormatDetailPage() {
                   variant="inline"
                   columns={CATALOG_TABLE_TOOLBAR_COLUMNS}
                   visibility={columnVisibility}
+                  order={columnOrder}
                   onVisibilityChange={setColumnVisibility}
                 />
               ) : null}
@@ -308,8 +320,11 @@ export function FormatDetailPage() {
           formatId={formatId}
           viewMode={effectiveViewMode}
           columnVisibility={catalogColumnVisibility}
+          columnOrder={columnOrder}
           tableSort={tableSort}
           onTableSortChange={setTableSort}
+          onColumnVisibilityChange={setColumnVisibility}
+          onColumnOrderChange={setColumnOrder}
         />
         {poolAsSection ? (
           <FormatBanlistSections
@@ -317,8 +332,11 @@ export function FormatDetailPage() {
             formatId={formatId}
             viewMode={effectiveViewMode}
             columnVisibility={catalogColumnVisibility}
+            columnOrder={columnOrder}
             tableSort={tableSort}
             onTableSortChange={setTableSort}
+            onColumnVisibilityChange={setColumnVisibility}
+            onColumnOrderChange={setColumnOrder}
           />
         ) : null}
       </div>

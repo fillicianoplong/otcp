@@ -55,6 +55,9 @@ export const menuPanelClass =
 
 export const menuItemClass = `flex min-h-touch w-full items-center px-3 text-left text-sm font-medium text-heading hover:bg-surface-2 ${focusRingInsetClass} disabled:cursor-not-allowed disabled:opacity-50`;
 
+/** Same row height as the Columns picker. Column header menus use this too. */
+export const menuDenseItemClass = `flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-sm text-text hover:bg-surface-2 ${focusRingInsetClass} disabled:cursor-not-allowed disabled:opacity-50`;
+
 export const cardTileLinkClass = `block rounded-sm transition-transform hover:-translate-y-0.5 ${focusRingClass}`;
 
 export const cardTileFrameClass = 'relative w-full overflow-hidden leading-none';

@@ -28,11 +28,18 @@ type MenuProps = {
   children?: ReactNode;
 };
 
-const MENU_ITEM_SELECTOR =
-  '[role="menuitem"]:not([disabled]), [role="menuitemradio"]:not([disabled])';
+const MENU_ITEM_SELECTOR = [
+  '[role="menuitem"]:not([disabled])',
+  '[role="menuitemradio"]:not([disabled])',
+  '[role="menuitemcheckbox"]:not([disabled])',
+].join(', ');
+
+function menuItems(menu: HTMLElement): HTMLElement[] {
+  return [...menu.querySelectorAll<HTMLElement>(MENU_ITEM_SELECTOR)];
+}
 
 function focusMenuItem(menu: HTMLElement, delta: number) {
-  const items = [...menu.querySelectorAll<HTMLElement>(MENU_ITEM_SELECTOR)];
+  const items = menuItems(menu);
   if (items.length === 0) return;
   const current = items.indexOf(document.activeElement as HTMLElement);
   const next = current === -1 ? 0 : (current + delta + items.length) % items.length;
@@ -52,14 +59,22 @@ export function Menu({
 }: MenuProps) {
   const menuId = useId().replace(/:/g, '');
   const [open, setOpen] = useState(false);
+  const [focusEdge, setFocusEdge] = useState<'first' | 'last' | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const openMenu = (edge: 'first' | 'last' | null) => {
+    setFocusEdge(edge);
+    setOpen(true);
+  };
+
   useEffect(() => {
     if (!open) return undefined;
     const onPointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -76,9 +91,13 @@ export function Menu({
   }, [open]);
 
   useEffect(() => {
-    if (!open || !focusFirstItem) return;
-    menuRef.current?.querySelector<HTMLElement>(MENU_ITEM_SELECTOR)?.focus();
-  }, [focusFirstItem, open]);
+    if (!open || !focusEdge) return;
+    const menu = menuRef.current;
+    if (!menu) return;
+    const entries = menuItems(menu);
+    const target = focusEdge === 'last' ? entries[entries.length - 1] : entries[0];
+    target?.focus();
+  }, [focusEdge, open]);
 
   useLayoutEffect(() => {
     if (!open) return undefined;
@@ -105,13 +124,18 @@ export function Menu({
       menu.style.overflowY = menu.scrollHeight > anchor.maxHeight ? 'auto' : 'visible';
     };
     place();
+    const menu = menuRef.current;
+    const observer =
+      menu && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null;
+    if (menu) observer?.observe(menu);
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, true);
     return () => {
+      observer?.disconnect();
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
     };
-  }, [align, open, items, children]);
+  }, [align, children, items, open]);
 
   const alignClass = align === 'end' ? 'right-0' : 'left-0';
 
@@ -125,7 +149,26 @@ export function Menu({
         aria-haspopup="menu"
         aria-label={triggerAriaLabel}
         title={triggerAriaLabel}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          if (open) {
+            setOpen(false);
+            return;
+          }
+          openMenu(focusFirstItem ? 'first' : null);
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+          event.preventDefault();
+          const edge = event.key === 'ArrowUp' ? 'last' : 'first';
+          if (!open) {
+            openMenu(edge);
+            return;
+          }
+          const menu = menuRef.current;
+          if (!menu) return;
+          const entries = menuItems(menu);
+          (edge === 'last' ? entries[entries.length - 1] : entries[0])?.focus();
+        }}
         className={triggerClassName}
       >
         {trigger}
@@ -137,6 +180,16 @@ export function Menu({
           role="menu"
           aria-label={label}
           className={`${menuPanelClass} ${alignClass}`}
+          onClick={(event) => {
+            const item = (event.target as HTMLElement).closest<HTMLElement>(
+              '[role="menuitem"], [role="menuitemradio"]',
+            );
+            if (!item || item.hasAttribute('data-menu-stay') || item.hasAttribute('disabled')) {
+              return;
+            }
+            setOpen(false);
+            buttonRef.current?.focus();
+          }}
           onKeyDown={(event) => {
             const menu = menuRef.current;
             if (!menu) return;
@@ -148,10 +201,10 @@ export function Menu({
               focusMenuItem(menu, -1);
             } else if (event.key === 'Home') {
               event.preventDefault();
-              menu.querySelector<HTMLElement>(MENU_ITEM_SELECTOR)?.focus();
+              menuItems(menu)[0]?.focus();
             } else if (event.key === 'End') {
               event.preventDefault();
-              const entries = menu.querySelectorAll<HTMLElement>(MENU_ITEM_SELECTOR);
+              const entries = menuItems(menu);
               entries[entries.length - 1]?.focus();
             } else if (event.key === 'Tab') {
               setOpen(false);

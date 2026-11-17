@@ -1,5 +1,6 @@
 import {
   DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
+  normalizeCatalogTableColumnOrder,
   type CatalogTableColumnVisibility,
   type CatalogTableOptionalColumnId,
 } from './catalogTableColumns.ts';
@@ -17,6 +18,8 @@ export const CATALOG_TABLE_PREFS_STORAGE_KEY_SEARCH = 'otcp:table-prefs:search';
 export type SearchTablePrefsSnapshot = {
   visibility: CatalogTableColumnVisibility;
   sort: CatalogTableSortState;
+  /** Optional-column ids. Missing on saves from before the header menu. */
+  order: CatalogTableOptionalColumnId[];
 };
 
 const OPTIONAL_COLUMN_IDS = new Set<CatalogTableOptionalColumnId>(
@@ -76,7 +79,11 @@ export function parseSearchTablePrefsSnapshot(raw: unknown): SearchTablePrefsSna
   const visibility = parseVisibility(record.visibility);
   const sort = parseSort(record.sort);
   if (!visibility || !sort) return null;
-  return { visibility, sort };
+  // Older saves have no order. I fill the default so they still load.
+  const order = normalizeCatalogTableColumnOrder(
+    Array.isArray(record.order) ? record.order : undefined,
+  );
+  return { visibility, sort, order };
 }
 
 export function readSearchTablePrefsFromLocalStorage(): SearchTablePrefsSnapshot | null {
@@ -97,5 +104,6 @@ export function defaultSearchTablePrefsSnapshot(): SearchTablePrefsSnapshot {
   return {
     visibility: { ...DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY },
     sort: { ...DEFAULT_CATALOG_TABLE_SORT },
+    order: normalizeCatalogTableColumnOrder(null),
   };
 }

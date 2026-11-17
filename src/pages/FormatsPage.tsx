@@ -3,9 +3,10 @@ import { Link } from 'react-router';
 
 import { PageContainer } from '../ui/PageContainer.tsx';
 import { PageTitle } from '../ui/PageTitle.tsx';
+import { ColumnHeader } from '../ui/ColumnHeader.tsx';
 import { TableToolbar } from '../ui/TableToolbar.tsx';
-import { isTableColumnVisible, type TableColumn } from '../ui/tableColumns.ts';
-import { useTableColumnVisibility } from '../ui/useTableColumnVisibility.ts';
+import { orderedVisibleTableColumns, type TableColumn } from '../ui/tableColumns.ts';
+import { useTableColumnSetup } from '../ui/useTableColumnVisibility.ts';
 
 import {
   formatBanlistEffectiveDate,
@@ -123,15 +124,13 @@ function FormatRowCell({
 
 export function FormatsPage() {
   const formats = listFormatsNewestFirst();
-  const [columnVisibility, setColumnVisibility] = useTableColumnVisibility(
-    'formats',
-    FORMATS_COLUMNS,
-  );
-  const showColumn = (id: string) =>
-    isTableColumnVisible(
-      FORMATS_COLUMNS.find((column) => column.id === id) ?? FORMATS_COLUMNS[0]!,
-      columnVisibility,
-    );
+  const {
+    visibility: columnVisibility,
+    order: columnOrder,
+    setVisibility: setColumnVisibility,
+    setOrder: setColumnOrder,
+  } = useTableColumnSetup('formats', FORMATS_COLUMNS);
+  const shownColumns = orderedVisibleTableColumns(FORMATS_COLUMNS, columnVisibility, columnOrder);
 
   return (
     <PageContainer className="flex flex-col gap-6">
@@ -146,6 +145,7 @@ export function FormatsPage() {
       <TableToolbar
         columns={FORMATS_COLUMNS}
         visibility={columnVisibility}
+        order={columnOrder}
         onVisibilityChange={setColumnVisibility}
       />
 
@@ -153,34 +153,24 @@ export function FormatsPage() {
         <table className="min-w-full border-collapse text-left text-sm">
           <thead className="bg-surface-2 text-text-2">
             <tr>
-              <th scope="col" className="px-3 py-2 font-medium">
-                Format
-              </th>
-              {showColumn('listDate') ? (
-                <th scope="col" className="px-3 py-2 font-medium whitespace-nowrap">
-                  List date
-                </th>
-              ) : null}
-              {showColumn('poolThrough') ? (
-                <th scope="col" className="py-2 pr-3 pl-1 font-medium whitespace-nowrap">
-                  Pool through
-                </th>
-              ) : null}
-              {showColumn('forbidden') ? (
-                <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
-                  Forbidden
-                </th>
-              ) : null}
-              {showColumn('limited') ? (
-                <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
-                  Limited
-                </th>
-              ) : null}
-              {showColumn('semiLimited') ? (
-                <th scope="col" className="hidden px-3 py-2 font-medium lg:table-cell">
-                  Semi-Limited
-                </th>
-              ) : null}
+              {shownColumns.map((column) => (
+                <ColumnHeader
+                  key={column.id}
+                  column={column}
+                  columns={FORMATS_COLUMNS}
+                  visibility={columnVisibility}
+                  order={columnOrder}
+                  onVisibilityChange={setColumnVisibility}
+                  onOrderChange={setColumnOrder}
+                  className={
+                    column.id === 'forbidden' ||
+                    column.id === 'limited' ||
+                    column.id === 'semiLimited'
+                      ? 'hidden lg:table-cell'
+                      : undefined
+                  }
+                />
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border bg-surface">
@@ -195,64 +185,69 @@ export function FormatsPage() {
 
               return (
                 <tr key={format.id} className={formatsDataRowClassName}>
-                  <FormatRowCell formatId={format.id} primary className="px-3 py-2">
-                    {format.name}
-                  </FormatRowCell>
-                  {showColumn('listDate') ? (
-                    <FormatRowCell
-                      formatId={format.id}
-                      className="px-3 py-2 pr-1 tabular-nums text-text whitespace-nowrap"
-                    >
-                      {listDate || '—'}
-                    </FormatRowCell>
-                  ) : null}
-                  {showColumn('poolThrough') ? (
-                    <FormatRowCell
-                      formatId={format.id}
-                      className="py-2 pr-3 pl-1 tabular-nums text-text-2 whitespace-nowrap"
-                    >
-                      {poolThrough || '—'}
-                    </FormatRowCell>
-                  ) : null}
-                  {showColumn('forbidden') ? (
-                    <FormatRowCell
-                      formatId={format.id}
-                      className="hidden px-3 py-2 text-xs lg:table-cell"
-                    >
-                      {stats ? (
-                        <BanlistCountCell total={stats.forbidden} delta={stats.deltaForbidden} />
-                      ) : (
-                        '—'
-                      )}
-                    </FormatRowCell>
-                  ) : null}
-                  {showColumn('limited') ? (
-                    <FormatRowCell
-                      formatId={format.id}
-                      className="hidden px-3 py-2 text-xs lg:table-cell"
-                    >
-                      {stats ? (
-                        <BanlistCountCell total={stats.limited} delta={stats.deltaLimited} />
-                      ) : (
-                        '—'
-                      )}
-                    </FormatRowCell>
-                  ) : null}
-                  {showColumn('semiLimited') ? (
-                    <FormatRowCell
-                      formatId={format.id}
-                      className="hidden px-3 py-2 text-xs lg:table-cell"
-                    >
-                      {stats ? (
-                        <BanlistCountCell
-                          total={stats.semiLimited}
-                          delta={stats.deltaSemiLimited}
-                        />
-                      ) : (
-                        '—'
-                      )}
-                    </FormatRowCell>
-                  ) : null}
+                  {shownColumns.map((column) => {
+                    if (column.id === 'name') {
+                      return (
+                        <FormatRowCell
+                          key={column.id}
+                          formatId={format.id}
+                          primary
+                          className="px-3 py-2"
+                        >
+                          {format.name}
+                        </FormatRowCell>
+                      );
+                    }
+                    if (column.id === 'listDate') {
+                      return (
+                        <FormatRowCell
+                          key={column.id}
+                          formatId={format.id}
+                          className="px-3 py-2 pr-1 tabular-nums text-text whitespace-nowrap"
+                        >
+                          {listDate || '—'}
+                        </FormatRowCell>
+                      );
+                    }
+                    if (column.id === 'poolThrough') {
+                      return (
+                        <FormatRowCell
+                          key={column.id}
+                          formatId={format.id}
+                          className="py-2 pr-3 pl-1 tabular-nums text-text-2 whitespace-nowrap"
+                        >
+                          {poolThrough || '—'}
+                        </FormatRowCell>
+                      );
+                    }
+                    const count =
+                      column.id === 'forbidden'
+                        ? stats && (
+                            <BanlistCountCell
+                              total={stats.forbidden}
+                              delta={stats.deltaForbidden}
+                            />
+                          )
+                        : column.id === 'limited'
+                          ? stats && (
+                              <BanlistCountCell total={stats.limited} delta={stats.deltaLimited} />
+                            )
+                          : stats && (
+                              <BanlistCountCell
+                                total={stats.semiLimited}
+                                delta={stats.deltaSemiLimited}
+                              />
+                            );
+                    return (
+                      <FormatRowCell
+                        key={column.id}
+                        formatId={format.id}
+                        className="hidden px-3 py-2 text-xs lg:table-cell"
+                      >
+                        {count || '—'}
+                      </FormatRowCell>
+                    );
+                  })}
                 </tr>
               );
             })}

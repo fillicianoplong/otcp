@@ -220,15 +220,21 @@ export function BanlistTableSection({
   formatParam,
   headingIdPrefix = 'ban-table-section',
   columnVisibility = DEFAULT_CATALOG_TABLE_COLUMN_VISIBILITY,
+  columnOrder,
   tableSort = DEFAULT_CATALOG_TABLE_SORT,
   onTableSortChange,
+  onColumnVisibilityChange,
+  onColumnOrderChange,
 }: {
   section: FormatBanlistSection;
   formatParam?: FormatId;
   headingIdPrefix?: string;
   columnVisibility?: CatalogTableColumnVisibility;
+  columnOrder?: readonly string[] | null;
   tableSort?: CatalogTableSortState;
   onTableSortChange?: (next: CatalogTableSortState) => void;
+  onColumnVisibilityChange?: (next: CatalogTableColumnVisibility) => void;
+  onColumnOrderChange?: (next: readonly string[]) => void;
 }) {
   const sortedCards = useMemo(
     () =>
@@ -256,8 +262,11 @@ export function BanlistTableSection({
         searchQuery=""
         formatParam={formatParam}
         columnVisibility={columnVisibility}
+        columnOrder={columnOrder}
         sort={tableSort}
         onSortChange={onTableSortChange ?? (() => {})}
+        onColumnVisibilityChange={onColumnVisibilityChange}
+        onColumnOrderChange={onColumnOrderChange}
         onBeforeNavigate={() => {}}
         linkState={linkState}
       />

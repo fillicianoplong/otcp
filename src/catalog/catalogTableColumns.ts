@@ -164,3 +164,28 @@ export function catalogTableVisibilityFromRecord(
   }
   return visibility;
 }
+
+const OPTIONAL_COLUMN_ID_SET = new Set<string>(CATALOG_TABLE_OPTIONAL_COLUMN_IDS);
+
+/** Saved order for the columns the Columns picker can show. Locked columns are ignored. */
+export function normalizeCatalogTableColumnOrder(
+  order: readonly unknown[] | null | undefined,
+): CatalogTableOptionalColumnId[] {
+  const seen = new Set<string>();
+  const next: CatalogTableOptionalColumnId[] = [];
+  for (const entry of order ?? []) {
+    if (typeof entry !== 'string' || !OPTIONAL_COLUMN_ID_SET.has(entry) || seen.has(entry)) {
+      continue;
+    }
+    next.push(entry as CatalogTableOptionalColumnId);
+    seen.add(entry);
+  }
+  for (const id of CATALOG_TABLE_OPTIONAL_COLUMN_IDS) {
+    if (!seen.has(id)) next.push(id);
+  }
+  return next;
+}
+
+export function defaultCatalogTableColumnOrder(): CatalogTableOptionalColumnId[] {
+  return [...CATALOG_TABLE_OPTIONAL_COLUMN_IDS];
+}

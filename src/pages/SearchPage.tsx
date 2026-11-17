@@ -59,7 +59,9 @@ import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import {
   CATALOG_TABLE_TOOLBAR_COLUMNS,
   catalogTableVisibilityFromRecord,
+  normalizeCatalogTableColumnOrder,
   type CatalogTableColumnVisibility,
+  type CatalogTableOptionalColumnId,
 } from '../catalog/catalogTableColumns.ts';
 import {
   readCatalogTableSortFromParams,
@@ -128,6 +130,9 @@ export function SearchPage() {
   const [tableColumnVisibility, setTableColumnVisibility] = useState<CatalogTableColumnVisibility>(
     () => readSearchTablePrefsForUi().visibility,
   );
+  const [tableColumnOrder, setTableColumnOrder] = useState<CatalogTableOptionalColumnId[]>(
+    () => readSearchTablePrefsForUi().order,
+  );
   const [storedTableSort, setStoredTableSort] = useState<CatalogTableSortState>(
     () => readSearchTablePrefsForUi().sort,
   );
@@ -152,6 +157,7 @@ export function SearchPage() {
     const snapshot = readSearchTablePrefsForUi();
     queueMicrotask(() => {
       setTableColumnVisibility(snapshot.visibility);
+      setTableColumnOrder(snapshot.order);
       setStoredTableSort(snapshot.sort);
     });
   }, [profilePreferenceRevision]);
@@ -159,15 +165,32 @@ export function SearchPage() {
   const handleTableColumnVisibilityChange = useCallback(
     (next: CatalogTableColumnVisibility) => {
       setTableColumnVisibility(next);
-      persistSearchTablePreferences({ visibility: next, sort: tableSort });
+      persistSearchTablePreferences({ visibility: next, sort: tableSort, order: tableColumnOrder });
     },
-    [tableSort],
+    [tableColumnOrder, tableSort],
+  );
+
+  const handleTableColumnOrderChange = useCallback(
+    (next: readonly string[]) => {
+      const order = normalizeCatalogTableColumnOrder(next);
+      setTableColumnOrder(order);
+      persistSearchTablePreferences({
+        visibility: tableColumnVisibility,
+        sort: tableSort,
+        order,
+      });
+    },
+    [tableColumnVisibility, tableSort],
   );
 
   const handleTableSortChange = useCallback(
     (next: CatalogTableSortState) => {
       setStoredTableSort(next);
-      persistSearchTablePreferences({ visibility: tableColumnVisibility, sort: next });
+      persistSearchTablePreferences({
+        visibility: tableColumnVisibility,
+        sort: next,
+        order: tableColumnOrder,
+      });
       const params = new URLSearchParams(searchParams);
       writeCatalogTableSortToParams(params, next);
       const search = params.toString();
@@ -177,7 +200,14 @@ export function SearchPage() {
         { replace: true, state: withoutSearchScrollRestore(location.state) },
       );
     },
-    [location.pathname, location.state, navigate, searchParams, tableColumnVisibility],
+    [
+      location.pathname,
+      location.state,
+      navigate,
+      searchParams,
+      tableColumnOrder,
+      tableColumnVisibility,
+    ],
   );
 
   useEffect(() => {
@@ -303,7 +333,11 @@ export function SearchPage() {
       filterStateRef.current = resolved;
       persistFormatPreference(formatId);
       setStoredTableSort(sort);
-      persistSearchTablePreferences({ visibility: tableColumnVisibility, sort });
+      persistSearchTablePreferences({
+        visibility: tableColumnVisibility,
+        sort,
+        order: tableColumnOrder,
+      });
       const params = new URLSearchParams(searchParams);
       writeFilterStateToParams(params, resolved);
       applyFormatToSearchParams(params, formatId);
@@ -321,6 +355,7 @@ export function SearchPage() {
       navigate,
       persistFormatPreference,
       searchParams,
+      tableColumnOrder,
       tableColumnVisibility,
     ],
   );
@@ -434,6 +469,7 @@ export function SearchPage() {
                     variant="inline"
                     columns={CATALOG_TABLE_TOOLBAR_COLUMNS}
                     visibility={tableColumnVisibility}
+                    order={tableColumnOrder}
                     onVisibilityChange={(next) =>
                       handleTableColumnVisibilityChange(catalogTableVisibilityFromRecord(next))
                     }
@@ -472,8 +508,11 @@ export function SearchPage() {
             formatParam={formatParam}
             tableAvailable={tableViewportOk}
             tableColumnVisibility={tableColumnVisibility}
+            tableColumnOrder={tableColumnOrder}
             tableSort={tableSort}
             onTableSortChange={handleTableSortChange}
+            onTableColumnVisibilityChange={handleTableColumnVisibilityChange}
+            onTableColumnOrderChange={handleTableColumnOrderChange}
           />
         </div>
       </div>

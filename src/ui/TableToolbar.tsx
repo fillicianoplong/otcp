@@ -1,42 +1,32 @@
 import type { ReactNode } from 'react';
 
 import { Menu } from './Menu.tsx';
-import { toolbarButtonClass } from './classes.ts';
+import { menuDenseItemClass, toolbarButtonClass } from './classes.ts';
 import {
-  defaultTableColumnVisibility,
   isTableColumnVisible,
+  normalizeTableColumnOrder,
+  setTableColumnVisible,
   type TableColumn,
   type TableColumnVisibility,
 } from './tableColumns.ts';
-
-function toggleTableColumn(
-  columns: readonly TableColumn[],
-  visibility: Readonly<Partial<TableColumnVisibility>>,
-  id: string,
-): TableColumnVisibility {
-  const next = defaultTableColumnVisibility(columns);
-  for (const column of columns) {
-    if (column.locked) continue;
-    next[column.id] = isTableColumnVisible(column, visibility);
-  }
-  const column = columns.find((entry) => entry.id === id);
-  if (!column || column.locked) return next;
-  next[id] = !isTableColumnVisible(column, visibility);
-  return next;
-}
 
 function ColumnPicker({
   label,
   columns,
   visibility,
+  order,
   onVisibilityChange,
 }: {
   label: string;
   columns: readonly TableColumn[];
   visibility: Readonly<Partial<TableColumnVisibility>>;
+  order?: readonly string[] | null;
   onVisibilityChange: (next: TableColumnVisibility) => void;
 }) {
-  const optional = columns.filter((column) => !column.locked);
+  const byId = new Map(columns.map((column) => [column.id, column]));
+  const optional = normalizeTableColumnOrder(columns, order)
+    .map((id) => byId.get(id))
+    .filter((column): column is TableColumn => column != null && !column.locked);
   return (
     <Menu
       label={label}
@@ -56,13 +46,22 @@ function ColumnPicker({
           role="menuitemcheckbox"
           aria-checked={isTableColumnVisible(column, visibility)}
           aria-label={column.label}
-          className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-surface-2"
+          className={menuDenseItemClass}
         >
           <input
             type="checkbox"
             className="size-4 shrink-0 accent-[var(--color-accent)]"
             checked={isTableColumnVisible(column, visibility)}
-            onChange={() => onVisibilityChange(toggleTableColumn(columns, visibility, column.id))}
+            onChange={() =>
+              onVisibilityChange(
+                setTableColumnVisible(
+                  columns,
+                  visibility,
+                  column.id,
+                  !isTableColumnVisible(column, visibility),
+                ),
+              )
+            }
           />
           {column.label}
         </label>
@@ -79,6 +78,7 @@ export function TableToolbar({
   columns,
   visibility,
   onVisibilityChange,
+  order,
   label = 'Table columns',
   variant = 'bar',
   children,
@@ -88,6 +88,7 @@ export function TableToolbar({
   columns: readonly TableColumn[];
   visibility: Readonly<Partial<TableColumnVisibility>>;
   onVisibilityChange: (next: TableColumnVisibility) => void;
+  order?: readonly string[] | null;
   label?: string;
   variant?: 'bar' | 'inline';
   children?: ReactNode;
@@ -99,6 +100,7 @@ export function TableToolbar({
       label={label}
       columns={columns}
       visibility={visibility}
+      order={order}
       onVisibilityChange={onVisibilityChange}
     />
   );

@@ -81,6 +81,7 @@ describe('profileViewPreferences', () => {
         price: false,
       },
       sort: { column: 'name', direction: 'asc' },
+      order: ['cardType', 'attribute', 'type', 'level', 'atk', 'def', 'archetype', 'price'],
     });
 
     const merged = mergeProfilePreferencesOnSignIn({
@@ -97,6 +98,7 @@ describe('profileViewPreferences', () => {
           price: false,
         },
         sort: { column: 'name', direction: 'asc' },
+        order: ['cardType', 'attribute', 'type', 'level', 'atk', 'def', 'archetype', 'price'],
       },
       profile: { card_view_pref: null, table_column_prefs: null },
     });
@@ -200,6 +202,7 @@ describe('profileViewPreferences', () => {
         price: false,
       },
       sort: { column: 'atk', direction: 'desc' },
+      order: ['cardType', 'attribute', 'type', 'level', 'atk', 'def', 'archetype', 'price'],
     });
 
     scheduleProfilePreferenceSync();
