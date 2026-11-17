@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
+import { countListedFilters } from '../catalog/activeFilterCount.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
@@ -10,8 +11,10 @@ import {
   type FilterState,
   type FilterStateUpdater,
 } from '../catalog/filterEngine.ts';
-import { countActiveFacetSelections } from '../catalog/filterUrlState.ts';
 import { clearAllFilters } from '../catalog/filterSelection.ts';
+import { filterStateForGame, formatIdForGame } from '../games/gameSelection.ts';
+import { DEFAULT_GAME_ID, resolveGame } from '../games/registry.ts';
+import type { GameId } from '../games/types.ts';
 import { DeckArtTile } from '../deckEditor/DeckArtTile.tsx';
 import { LIBRARY_GRID_COLUMNS, libraryGridColumnCount } from './libraryGrid.ts';
 import { writeDraggedCardId } from '../deckEditor/deckPlacement.ts';
@@ -74,6 +77,8 @@ export function CardFinder({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
   const [phoneDraftFormatId, setPhoneDraftFormatId] = useState<FormatId>(formatId);
+  const [gameId, setGameId] = useState<GameId>(DEFAULT_GAME_ID);
+  const [phoneDraftGameId, setPhoneDraftGameId] = useState<GameId>(DEFAULT_GAME_ID);
   const [visibleLimit, setVisibleLimit] = useState(RESULT_PAGE_SIZE);
   const [viewMode, setViewMode] = useState<CardFinderViewMode>(() => readCardFinderViewMode());
   const [gridColumns, setGridColumns] = useState(preferredColumns);
@@ -137,11 +142,34 @@ export function CardFinder({
     return () => observer.disconnect();
   }, [preferredColumns, viewMode, visibleCards.length]);
 
-  const activeFilters = countActiveFacetSelections(filterState);
-  const filterCount = activeFilters + 1;
+  const filterCount = countListedFilters({
+    filterState,
+    formatSelected: true,
+    gameId,
+  });
 
   const commitFilters = (updater: FilterStateUpdater) => {
     onFilterStateChange(resolveFilterStateUpdater(updater, filterState));
+  };
+
+  const applyGame = (nextGameId: GameId, draft: boolean) => {
+    const game = resolveGame(nextGameId);
+    if (draft) {
+      setPhoneDraftGameId(game.id);
+      setPhoneDraft((previous) => filterStateForGame(previous, game));
+      setPhoneDraftFormatId((previous) => {
+        const kept = formatIdForGame(previous, game);
+        return kept ?? game.listFormatsNewestFirst()[0]?.id ?? previous;
+      });
+      return;
+    }
+    setGameId(game.id);
+    onFilterStateChange(filterStateForGame(filterState, game));
+    const kept = formatIdForGame(formatId, game);
+    if (!kept) {
+      const first = game.listFormatsNewestFirst()[0];
+      if (first) onFormatChange(first.id);
+    }
   };
 
   const setFiltersVisible = (open: boolean) => {
@@ -150,6 +178,7 @@ export function CardFinder({
     if (open && filtersInSheet) {
       setPhoneDraft(filterState);
       setPhoneDraftFormatId(formatId);
+      setPhoneDraftGameId(gameId);
     }
   };
 
@@ -293,6 +322,8 @@ export function CardFinder({
               if (nextFormatId) onFormatChange(nextFormatId);
             }}
             formatAllowEmpty={false}
+            gameId={gameId}
+            onGameChange={(nextGameId) => applyGame(nextGameId, false)}
           />
         </div>
       ) : null}
@@ -310,11 +341,13 @@ export function CardFinder({
           onApply={() => {
             onFilterStateChange(phoneDraft);
             if (phoneDraftFormatId !== formatId) onFormatChange(phoneDraftFormatId);
+            setGameId(phoneDraftGameId);
             setFiltersVisible(false);
           }}
           onReset={() => {
             setPhoneDraft(emptyFilterState());
             setPhoneDraftFormatId(formatId);
+            setPhoneDraftGameId(DEFAULT_GAME_ID);
           }}
           resultCount={phoneDraftResult?.matchCount ?? 0}
           draftGroupCounts={phoneDraftResult?.facetGroupCounts ?? []}
@@ -325,6 +358,8 @@ export function CardFinder({
             if (nextFormatId) setPhoneDraftFormatId(nextFormatId);
           }}
           formatAllowEmpty={false}
+          draftGameId={phoneDraftGameId}
+          onDraftGameChange={(nextGameId) => applyGame(nextGameId, true)}
         />
       ) : null}
     </div>

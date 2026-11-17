@@ -27,6 +27,7 @@ import {
   writeFormatPreference,
 } from '../format/formatPreference.ts';
 import type { FormatId } from '../format/formatCatalog.ts';
+import { countListedFilters } from '../catalog/activeFilterCount.ts';
 import { FacetFilterPanel, PhoneFiltersSheet } from '../catalog/FacetFilterPanel.tsx';
 import { FilterChips } from '../catalog/FilterChips.tsx';
 import { FiltersToolbarButton } from '../ui/FiltersToolbarButton.tsx';
@@ -48,11 +49,18 @@ import { ALL_ARTWORKS_QUERY_KEY } from '../catalog/allArtworksPreference.ts';
 import { expandCardsToArtTiles, catalogResultCount } from '../catalog/cardArt.ts';
 import { useCatalogArtIdWarm } from '../catalog/useCatalogArtIdWarm.ts';
 import {
-  countActiveFacetSelections,
   filterStateToChips,
   readFilterStateFromParams,
   writeFilterStateToParams,
 } from '../catalog/filterUrlState.ts';
+import {
+  filterStateForGame,
+  formatIdForGame,
+  readGameIdFromParams,
+  writeGameIdToParams,
+} from '../games/gameSelection.ts';
+import { DEFAULT_GAME_ID, resolveGame } from '../games/registry.ts';
+import type { GameId } from '../games/types.ts';
 import { clearBanStatusSelection } from '../catalog/filterSelection.ts';
 import { withoutSearchScrollRestore } from '../catalog/searchScrollRestore.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
@@ -115,6 +123,7 @@ export function SearchPage() {
   );
   const activeFormatId = resolvedFormat.formatId;
   const formatParam = activeFormatId;
+  const activeGameId = useMemo(() => readGameIdFromParams(searchParams), [searchParams]);
   const filterStateRef = useRef(filterState);
   useEffect(() => {
     filterStateRef.current = filterState;
@@ -123,6 +132,7 @@ export function SearchPage() {
   const [phoneFiltersOpen, setPhoneFiltersOpen] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState<FilterState>(filterState);
   const [phoneDraftFormatId, setPhoneDraftFormatId] = useState<FormatId | null>(activeFormatId);
+  const [phoneDraftGameId, setPhoneDraftGameId] = useState<GameId>(activeGameId);
   const [phoneDraftSort, setPhoneDraftSort] = useState<CatalogTableSortState>(
     DEFAULT_CATALOG_TABLE_SORT,
   );
@@ -301,10 +311,12 @@ export function SearchPage() {
     return catalogResultCount(expandCardsToArtTiles(draftVisibleCardsForArt));
   }, [artCacheRevision, catalogDerived, draftVisibleCardsForArt]);
 
-  const activeFilterCount =
-    countActiveFacetSelections(filterState) +
-    (activeFormatId ? 1 : 0) +
-    (isDefaultCatalogTableSort(tableSort) ? 0 : 1);
+  const activeFilterCount = countListedFilters({
+    filterState,
+    formatSelected: Boolean(activeFormatId),
+    gameId: activeGameId,
+    sortCustom: !isDefaultCatalogTableSort(tableSort),
+  });
   const chips = useMemo(() => filterStateToChips(filterState), [filterState]);
 
   const commitFilterState = useCallback(
@@ -328,10 +340,18 @@ export function SearchPage() {
   }, []);
 
   const commitPhoneFilters = useCallback(
-    (nextFilterState: FilterState, formatId: FormatId | null, sort: CatalogTableSortState) => {
-      const resolved = formatId ? nextFilterState : clearBanStatusSelection(nextFilterState);
+    (
+      nextFilterState: FilterState,
+      formatId: FormatId | null,
+      sort: CatalogTableSortState,
+      nextGameId: GameId,
+    ) => {
+      const game = resolveGame(nextGameId);
+      const scoped = filterStateForGame(nextFilterState, game);
+      const nextFormat = formatIdForGame(formatId, game);
+      const resolved = nextFormat ? scoped : clearBanStatusSelection(scoped);
       filterStateRef.current = resolved;
-      persistFormatPreference(formatId);
+      persistFormatPreference(nextFormat);
       setStoredTableSort(sort);
       persistSearchTablePreferences({
         visibility: tableColumnVisibility,
@@ -340,7 +360,8 @@ export function SearchPage() {
       });
       const params = new URLSearchParams(searchParams);
       writeFilterStateToParams(params, resolved);
-      applyFormatToSearchParams(params, formatId);
+      applyFormatToSearchParams(params, nextFormat);
+      writeGameIdToParams(params, game.id);
       params.delete(ALL_ARTWORKS_QUERY_KEY);
       writeCatalogTableSortToParams(params, sort);
       const search = params.toString();
@@ -376,6 +397,37 @@ export function SearchPage() {
       );
     },
     [location.pathname, location.state, navigate, searchParams],
+  );
+
+  const setActiveGame = useCallback(
+    (nextGameId: GameId) => {
+      const game = resolveGame(nextGameId);
+      const params = new URLSearchParams(searchParams);
+      writeGameIdToParams(params, game.id);
+      const scoped = filterStateForGame(filterStateRef.current, game);
+      const nextFormat = formatIdForGame(activeFormatId, game);
+      const resolved = nextFormat ? scoped : clearBanStatusSelection(scoped);
+      filterStateRef.current = resolved;
+      writeFilterStateToParams(params, resolved);
+      if (nextFormat !== activeFormatId) {
+        persistFormatPreference(nextFormat);
+        applyFormatToSearchParams(params, nextFormat);
+      }
+      const search = params.toString();
+      if (search === searchParams.toString()) return;
+      navigate(
+        { pathname: location.pathname, search: search ? `?${search}` : '' },
+        { replace: true, state: withoutSearchScrollRestore(location.state) },
+      );
+    },
+    [
+      activeFormatId,
+      location.pathname,
+      location.state,
+      navigate,
+      persistFormatPreference,
+      searchParams,
+    ],
   );
 
   const setActiveFormat = useCallback(
@@ -422,6 +474,7 @@ export function SearchPage() {
   const openPhoneFilters = () => {
     setPhoneDraft(filterState);
     setPhoneDraftFormatId(activeFormatId);
+    setPhoneDraftGameId(activeGameId);
     setPhoneDraftSort(tableSort);
     setPhoneFiltersOpen(true);
   };
@@ -456,6 +509,8 @@ export function SearchPage() {
               onFormatChange={setActiveFormat}
               sort={tableSort}
               onSortChange={handleTableSortChange}
+              gameId={activeGameId}
+              onGameChange={setActiveGame}
             />
           </aside>
         ) : null}
@@ -526,10 +581,11 @@ export function SearchPage() {
           onReset={() => {
             setPhoneDraft(emptyFilterState());
             setPhoneDraftFormatId(null);
+            setPhoneDraftGameId(DEFAULT_GAME_ID);
             setPhoneDraftSort(DEFAULT_CATALOG_TABLE_SORT);
           }}
           onApply={() => {
-            commitPhoneFilters(phoneDraft, phoneDraftFormatId, phoneDraftSort);
+            commitPhoneFilters(phoneDraft, phoneDraftFormatId, phoneDraftSort, phoneDraftGameId);
             setPhoneFiltersOpen(false);
           }}
           resultCount={draftVisibleTileCount}
@@ -545,6 +601,13 @@ export function SearchPage() {
           }}
           draftSort={phoneDraftSort}
           onDraftSortChange={setPhoneDraftSort}
+          draftGameId={phoneDraftGameId}
+          onDraftGameChange={(nextGameId) => {
+            const game = resolveGame(nextGameId);
+            setPhoneDraftGameId(game.id);
+            setPhoneDraft((prev) => filterStateForGame(prev, game));
+            setPhoneDraftFormatId((prev) => formatIdForGame(prev, game));
+          }}
         />
       ) : null}
     </PageContainer>

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+export const GAME_FILTER_SECTION_ID = 'game';
 export const FORMAT_FILTER_SECTION_ID = 'format';
 
 export function CollapsibleFilterSection({

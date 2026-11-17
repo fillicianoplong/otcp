@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 
 import { Combobox, type ComboboxOption } from '../ui/Combobox.tsx';
-import { listFormatsNewestFirst, type FormatId } from './formatCatalog.ts';
+import { listFormatsNewestFirst, type FormatDefinition, type FormatId } from './formatCatalog.ts';
 import { formatOptionMatchesQuery } from './formatFilterSearch.ts';
 
 const ALL_FORMATS_LABEL = 'All formats';
@@ -16,6 +16,11 @@ type FormatFilterGroupProps = {
   allowEmpty?: boolean;
   /** When set, the built-in label is omitted and this id names the combobox. */
   labelledBy?: string;
+  /**
+   * Formats for the selected game. Defaults to the Yu-Gi-Oh! catalog so existing
+   * callers keep the same list.
+   */
+  formats?: readonly FormatDefinition[];
 };
 
 type FormatOption = {
@@ -44,6 +49,7 @@ export function FormatFilterGroup({
   onChange,
   allowEmpty = true,
   labelledBy,
+  formats: formatsProp,
 }: FormatFilterGroupProps) {
   const rawId = useId().replace(/:/g, '');
   const inputId = `${rawId}-format`;
@@ -54,7 +60,7 @@ export function FormatFilterGroup({
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const formats = useMemo(() => listFormatsNewestFirst(), []);
+  const formats = useMemo(() => formatsProp ?? listFormatsNewestFirst(), [formatsProp]);
   const options = useMemo<FormatOption[]>(() => {
     const named = formats.map((format) => ({ id: format.id, name: format.name }));
     return allowEmpty ? [{ id: null, name: ALL_FORMATS_LABEL }, ...named] : named;

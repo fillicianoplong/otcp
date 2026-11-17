@@ -1,6 +1,8 @@
 import { useEffect, useId, useState } from 'react';
 
 import { CollapsibleFilterSection } from '../catalog/CollapsibleFilterSection.tsx';
+import { GameFilterGroup } from '../catalog/GameFilterGroup.tsx';
+import { listGames, DEFAULT_GAME_ID } from '../games/registry.ts';
 import { CatalogSortControls } from '../catalog/CatalogSortControls.tsx';
 import { CatalogViewToggle } from '../catalog/CatalogViewToggle.tsx';
 import { DEFAULT_CATALOG_TABLE_SORT } from '../catalog/catalogTableSort.ts';
@@ -176,6 +178,7 @@ function DemoCombobox({ openByDefault }: { openByDefault: boolean }) {
 function FilterSectionsDemo() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({ type: true });
   const [sort, setSort] = useState<CatalogTableSortState>(DEFAULT_CATALOG_TABLE_SORT);
+  const [gameId, setGameId] = useState(DEFAULT_GAME_ID);
   const toggleSection = (id: string) => {
     setCollapsed((current) => ({ ...current, [id]: current[id] === true ? false : true }));
   };
@@ -183,6 +186,14 @@ function FilterSectionsDemo() {
   return (
     <div className="flex w-72 flex-col gap-3">
       <SectionHeader>Filters</SectionHeader>
+      <CollapsibleFilterSection
+        title="Game"
+        collapsed={collapsed.game === true}
+        onToggleCollapse={() => toggleSection('game')}
+        className="relative z-20 overflow-visible"
+      >
+        <GameFilterGroup games={listGames()} value={gameId} onChange={setGameId} />
+      </CollapsibleFilterSection>
       <CollapsibleFilterSection
         title="Sort"
         collapsed={collapsed.sort === true}

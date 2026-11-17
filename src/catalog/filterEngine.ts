@@ -1,7 +1,6 @@
+import { resolveGame } from '../games/registry.ts';
+import type { GameDefinition } from '../games/types.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
-import { isKnownFormatId } from '../format/formatCatalog.ts';
-import { resolveFormatBanStatus } from '../format/formatBanStatus.ts';
-import { normalizeYugiohCardLevelRankLink } from '../shared/schema/normalizeMonsterLevelRankLink.ts';
 import {
   andInPlace,
   andPopcount,
@@ -11,12 +10,7 @@ import {
   setBit,
   wordCount,
 } from '../search/bitset.ts';
-import {
-  FACET_FIELDS,
-  type FacetDefinition,
-  type FacetFieldId,
-  facetDefinitionsForGame,
-} from './facets.ts';
+import { type FacetDefinition, type FacetFieldId } from './facets.ts';
 
 export const FILTER_STATE_VERSION = 1 as const;
 
@@ -85,109 +79,18 @@ type IndexedField = {
   excludeOn: boolean;
 };
 
-const STAT_BUCKETS: readonly { id: string; matches: (n: number) => boolean }[] = [
-  { id: '?', matches: (n) => n < 0 },
-  { id: '0', matches: (n) => n === 0 },
-  { id: '1-1000', matches: (n) => n >= 1 && n <= 1000 },
-  { id: '1001-2000', matches: (n) => n >= 1001 && n <= 2000 },
-  { id: '2001-3000', matches: (n) => n >= 2001 && n <= 3000 },
-  { id: '3001+', matches: (n) => n >= 3001 },
-];
-
-function statBucket(n: number): string {
-  for (const bucket of STAT_BUCKETS) {
-    if (bucket.matches(n)) return bucket.id;
-  }
-  return '3001+';
-}
-
-function typeTokens(type: string): readonly string[] {
-  return type.split(/\s+/).filter((part) => part.length > 0);
-}
-
-/** Monster card type facet values (excludes Spell/Trap/Skill and the Monster suffix). */
-function monsterFrameFacetValues(card: YugiohCard): readonly string[] {
-  if (card.type.includes('Spell') || card.type.includes('Trap')) return [];
-  if (card.type.includes('Skill')) return [];
-  return typeTokens(card.type).filter((part) => part !== 'Monster');
-}
-
-function levelFacetValues(card: YugiohCard): readonly string[] {
-  const metric = cardLevelMetric(card);
-  return metric != null ? [String(metric)] : [];
-}
-
-function banStatusFacetValue(card: YugiohCard, formatParam: string): string {
-  return resolveFormatBanStatus(card, formatParam) ?? 'Unlimited';
-}
-
 export function filterStateForFormatContext(
   state: FilterState,
   formatParam: string | null | undefined,
+  isKnownFormat: (id: string | null | undefined) => boolean = resolveGame(undefined)
+    .isKnownFormatId,
 ): FilterState {
-  if (formatParam && isKnownFormatId(formatParam)) return state;
+  if (formatParam && isKnownFormat(formatParam)) return state;
   if (!state.facets.banStatus) return state;
   const facets = { ...state.facets };
   delete facets.banStatus;
   return { version: state.version, facets };
 }
-
-function hasHostedImage(card: YugiohCard): string {
-  const small = card.images.small;
-  if (!small || small.includes('placeholder')) return 'no';
-  return 'yes';
-}
-
-type FieldIndexer = {
-  id: FacetFieldId;
-  valuesForRow: (card: YugiohCard) => readonly string[];
-};
-
-function setNamesForCard(card: YugiohCard): readonly string[] {
-  if ('setNames' in card && Array.isArray(card.setNames)) {
-    return card.setNames as readonly string[];
-  }
-  const names = new Set<string>();
-  for (const entry of card.sets) {
-    const name = entry.setName?.trim();
-    if (name) names.add(name);
-  }
-  return [...names];
-}
-
-function raritiesForCard(card: YugiohCard): readonly string[] {
-  if ('rarities' in card && Array.isArray(card.rarities)) {
-    return card.rarities as readonly string[];
-  }
-  return card.sets.map((set) => set.setRarity);
-}
-
-const FIELD_INDEXERS: readonly FieldIndexer[] = [
-  { id: 'cardType', valuesForRow: (card) => (card.type ? [card.type] : []) },
-  {
-    id: 'set',
-    valuesForRow: (card) => setNamesForCard(card),
-  },
-  { id: 'rarity', valuesForRow: (card) => raritiesForCard(card) },
-  { id: 'hasImage', valuesForRow: (card) => [hasHostedImage(card)] },
-  { id: 'monsterFrame', valuesForRow: (card) => monsterFrameFacetValues(card) },
-  { id: 'attribute', valuesForRow: (card) => (card.attribute ? [card.attribute] : []) },
-  { id: 'race', valuesForRow: (card) => (card.race ? [card.race] : []) },
-  { id: 'archetype', valuesForRow: (card) => (card.archetype ? [card.archetype] : []) },
-  { id: 'level', valuesForRow: (card) => levelFacetValues(card) },
-  {
-    id: 'atk',
-    valuesForRow: (card) => (typeof card.atk === 'number' ? [statBucket(card.atk)] : []),
-  },
-  {
-    id: 'def',
-    valuesForRow: (card) => (typeof card.def === 'number' ? [statBucket(card.def)] : []),
-  },
-  {
-    id: 'linkMarker',
-    valuesForRow: (card) => card.linkMarkers ?? [],
-  },
-];
 
 export function emptyFilterState(): FilterState {
   return { version: FILTER_STATE_VERSION, facets: {} };
@@ -242,6 +145,7 @@ export function normalizeFilterState(state: FilterState): FilterState {
 export class FilterEngine {
   readonly count: number;
   readonly definitions: readonly FacetDefinition[];
+  readonly game: GameDefinition;
 
   private readonly ids: Uint32Array;
   private readonly rowById: Map<number, number>;
@@ -253,12 +157,13 @@ export class FilterEngine {
   private readonly cardsByRow: YugiohCard[];
   private readonly formatBanFields = new Map<string, IndexedField>();
 
-  constructor(cards: readonly YugiohCard[]) {
-    const definitions = facetDefinitionsForGame('yugioh');
+  constructor(cards: readonly YugiohCard[], game: GameDefinition = resolveGame(undefined)) {
+    this.game = game;
+    const definitions = game.facetDefinitions;
     this.definitions = definitions;
 
     const ordered = cards
-      .map(normalizeYugiohCardLevelRankLink)
+      .map((card) => game.prepareCard(card))
       .slice()
       .sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id);
     const count = ordered.length;
@@ -274,7 +179,7 @@ export class FilterEngine {
 
     const defById = new Map(definitions.map((def) => [def.id, def]));
     const tables = new Map<FacetFieldId, Map<string, Uint32Array>>();
-    for (const field of FACET_FIELDS) tables.set(field, new Map());
+    for (const indexer of game.fieldIndexers) tables.set(indexer.id, new Map());
 
     const add = (fieldId: FacetFieldId, value: string, row: number) => {
       const table = tables.get(fieldId);
@@ -291,40 +196,36 @@ export class FilterEngine {
       const card = ordered[row];
       this.ids[row] = card.id;
       this.rowById.set(card.id, row);
-      for (const indexer of FIELD_INDEXERS) {
+      for (const indexer of game.fieldIndexers) {
         if (!defById.has(indexer.id)) continue;
         for (const value of indexer.valuesForRow(card)) add(indexer.id, value, row);
       }
     }
 
-    this.fields = FIELD_INDEXERS.filter((indexer) => defById.has(indexer.id)).map((indexer) => {
-      const table = tables.get(indexer.id) ?? new Map<string, Uint32Array>();
-      const values = [...table.keys()].sort((a, b) => {
-        if (indexer.id === 'level') {
-          return Number(a) - Number(b) || a.localeCompare(b);
-        }
-        return a.localeCompare(b);
+    this.fields = game.fieldIndexers
+      .filter((indexer) => defById.has(indexer.id))
+      .map((indexer) => {
+        const table = tables.get(indexer.id) ?? new Map<string, Uint32Array>();
+        const values = [...table.keys()].sort((a, b) =>
+          indexer.compareValues ? indexer.compareValues(a, b) : a.localeCompare(b),
+        );
+        return {
+          id: indexer.id,
+          definition: defById.get(indexer.id)!,
+          values,
+          bitsets: values.map((value) => table.get(value) ?? new Uint32Array(words)),
+          valueIndex: new Map(values.map((value, index) => [value, index])),
+          unionScratch: new Uint32Array(words),
+          unionOn: false,
+          excludeUnionScratch: new Uint32Array(words),
+          excludeOn: false,
+        };
       });
-      return {
-        id: indexer.id,
-        definition: defById.get(indexer.id)!,
-        values,
-        bitsets: values.map((value) => table.get(value) ?? new Uint32Array(words)),
-        valueIndex: new Map(values.map((value, index) => [value, index])),
-        unionScratch: new Uint32Array(words),
-        unionOn: false,
-        excludeUnionScratch: new Uint32Array(words),
-        excludeOn: false,
-      };
-    });
   }
 
   /** Apply facet selections, optionally intersecting a search id list. */
   apply(state: FilterState, options: FilterApplyOptions = {}): FilterApplyResult {
-    const normalized = filterStateForFormatContext(
-      normalizeFilterState(state),
-      options.formatParam,
-    );
+    const normalized = this.contextualState(state, options.formatParam);
     this.computeMask(normalized, this.shownMask, undefined, options);
     const ids: number[] = [];
     forEachSetBit(this.shownMask, this.count, (row) => {
@@ -337,10 +238,7 @@ export class FilterEngine {
    * Live option counts. Each group ignores its own selections; options OR within a group.
    */
   recount(state: FilterState, options: FilterApplyOptions = {}): FacetGroupCounts[] {
-    const normalized = filterStateForFormatContext(
-      normalizeFilterState(state),
-      options.formatParam,
-    );
+    const normalized = this.contextualState(state, options.formatParam);
     this.fillBaseMask(options);
     const activeFields = this.fieldsForApply(options.formatParam);
     const out: FacetGroupCounts[] = [];
@@ -360,11 +258,11 @@ export class FilterEngine {
   /** Facet fields that have catalog options or custom range inputs in the UI. */
   fieldsWithCatalog(): readonly FacetFieldId[] {
     const ids = this.fields.filter((field) => field.values.length > 0).map((field) => field.id);
-    const rangeFields: FacetFieldId[] = ['price', 'atk', 'def', 'level'];
-    for (const id of rangeFields) {
-      if (!ids.includes(id)) ids.push(id);
+    const declared = new Set(this.definitions.map((definition) => definition.id));
+    for (const id of this.game.rangeFieldIds) {
+      if (declared.has(id) && !ids.includes(id)) ids.push(id);
     }
-    if (!ids.includes('banStatus')) ids.unshift('banStatus');
+    if (declared.has('banStatus') && !ids.includes('banStatus')) ids.unshift('banStatus');
     return ids;
   }
 
@@ -404,8 +302,16 @@ export class FilterEngine {
     return [banField, ...this.fields];
   }
 
+  private contextualState(state: FilterState, formatParam: string | null | undefined): FilterState {
+    return filterStateForFormatContext(
+      normalizeFilterState(state),
+      formatParam,
+      this.game.isKnownFormatId,
+    );
+  }
+
   private formatBanField(formatParam: string | null | undefined): IndexedField | null {
-    if (!formatParam || !isKnownFormatId(formatParam)) return null;
+    if (!formatParam || !this.game.isKnownFormatId(formatParam)) return null;
     const key = formatParam.trim().toLowerCase();
     const cached = this.formatBanFields.get(key);
     if (cached) return cached;
@@ -426,7 +332,7 @@ export class FilterEngine {
     };
 
     for (let row = 0; row < this.count; row++) {
-      add(banStatusFacetValue(this.cardsByRow[row], key), row);
+      add(this.game.banStatusValue(this.cardsByRow[row], key), row);
     }
 
     const values = [...table.keys()].sort((a, b) => a.localeCompare(b));
@@ -480,14 +386,15 @@ export class FilterEngine {
       const selection = state.facets[field.id];
       if (!selection) continue;
 
-      if (field.id === 'price') {
+      if (this.game.skipBitsetUnionFieldIds.includes(field.id)) {
         continue;
       }
 
+      const frameFieldId = this.game.frameKeyword?.fieldId;
       if (selection.include && selection.include.length > 0) {
         let started = false;
         for (const value of selection.include) {
-          if (field.id === 'monsterFrame') {
+          if (field.id === frameFieldId) {
             started = this.orFrameKeyword(field, value, started);
             continue;
           }
@@ -507,7 +414,7 @@ export class FilterEngine {
       if (selection.exclude && selection.exclude.length > 0) {
         let started = false;
         for (const value of selection.exclude) {
-          if (field.id === 'monsterFrame') {
+          if (field.id === frameFieldId) {
             this.orFrameKeywordInto(field.excludeUnionScratch, value, started);
             started = true;
             continue;
@@ -527,11 +434,15 @@ export class FilterEngine {
     }
   }
 
+  private rowHasFrameKeyword(card: YugiohCard, keyword: string): boolean {
+    return this.game.frameKeyword?.rowHas(card, keyword) ?? false;
+  }
+
   private orFrameKeyword(field: IndexedField, keyword: string, started: boolean): boolean {
     const scratch = this.scratch;
     scratch.fill(0);
     for (let row = 0; row < this.count; row++) {
-      if (monsterFrameFacetValues(this.cardsByRow[row]).includes(keyword)) setBit(scratch, row);
+      if (this.rowHasFrameKeyword(this.cardsByRow[row], keyword)) setBit(scratch, row);
     }
     if (!started) {
       field.unionScratch.set(scratch);
@@ -545,7 +456,7 @@ export class FilterEngine {
     const scratch = this.scratch;
     scratch.fill(0);
     for (let row = 0; row < this.count; row++) {
-      if (monsterFrameFacetValues(this.cardsByRow[row]).includes(keyword)) setBit(scratch, row);
+      if (this.rowHasFrameKeyword(this.cardsByRow[row], keyword)) setBit(scratch, row);
     }
     if (!started) target.set(scratch);
     else orInPlace(target, scratch);
@@ -557,22 +468,23 @@ export class FilterEngine {
     mask: Uint32Array,
     skipFieldId?: FacetFieldId,
   ): void {
-    for (const fieldId of ['price', 'atk', 'def', 'level'] as const) {
+    for (const fieldId of this.game.rangeFieldIds) {
       if (skipFieldId === fieldId) continue;
       const range = state.facets[fieldId]?.range;
       if (!range || (range.min == null && range.max == null)) continue;
       forEachSetBit(mask, this.count, (row) => {
-        if (!rowMatchesFieldRange(this.cardsByRow[row], fieldId, range)) {
+        if (!this.game.rowMatchesRange(this.cardsByRow[row], fieldId, range)) {
           this.clearRow(mask, row);
         }
       });
     }
 
-    if (skipFieldId !== 'level') {
-      const levelSel = state.facets.level?.include;
+    const levelTokens = this.game.levelTokens;
+    if (levelTokens && skipFieldId !== levelTokens.fieldId) {
+      const levelSel = state.facets[levelTokens.fieldId]?.include;
       if (levelSel && levelSel.length > 0) {
         forEachSetBit(mask, this.count, (row) => {
-          if (!levelMatches(this.cardsByRow[row], levelSel)) this.clearRow(mask, row);
+          if (!levelTokens.rowMatches(this.cardsByRow[row], levelSel)) this.clearRow(mask, row);
         });
       }
     }
@@ -584,74 +496,9 @@ export class FilterEngine {
   }
 }
 
-function levelMatches(card: YugiohCard, tokens: readonly string[]): boolean {
-  for (const token of tokens) {
-    const range = /^(\d+)-(\d+)$/.exec(token);
-    if (range) {
-      const min = Number(range[1]);
-      const max = Number(range[2]);
-      const numeric = cardLevelMetric(card);
-      if (numeric != null && numeric >= min && numeric <= max) return true;
-      continue;
-    }
-    const legacy = /^(?:Level|Rank|Link)-(\d+)$/.exec(token);
-    const plain = legacy ? legacy[1]! : token;
-    if (/^\d+$/.test(plain)) {
-      const n = Number(plain);
-      if (card.level === n || card.rank === n || card.linkRating === n) return true;
-      continue;
-    }
-    if (levelFacetValues(card).includes(token)) return true;
-  }
-  return false;
-}
-
-function cardPriceDollars(card: YugiohCard): number | null {
-  const price = card.prices?.tcgplayer;
-  if (price == null) return null;
-  return price;
-}
-
-function cardLevelMetric(card: YugiohCard): number | null {
-  if (card.level != null) return card.level;
-  if (card.rank != null) return card.rank;
-  if (card.linkRating != null) return card.linkRating;
-  return null;
-}
-
-function inNumericRange(value: number, range: FacetNumericRange): boolean {
-  if (range.min != null && value < range.min) return false;
-  if (range.max != null && value > range.max) return false;
-  return true;
-}
-
-function rowMatchesFieldRange(
-  card: YugiohCard,
-  fieldId: FacetFieldId,
-  range: FacetNumericRange,
-): boolean {
-  if (range.min == null && range.max == null) return true;
-  if (fieldId === 'price') {
-    const dollars = cardPriceDollars(card);
-    if (dollars == null) return false;
-    return inNumericRange(dollars, range);
-  }
-  if (fieldId === 'atk') {
-    if (typeof card.atk !== 'number') return false;
-    return inNumericRange(card.atk, range);
-  }
-  if (fieldId === 'def') {
-    if (typeof card.def !== 'number') return false;
-    return inNumericRange(card.def, range);
-  }
-  if (fieldId === 'level') {
-    const metric = cardLevelMetric(card);
-    if (metric == null) return false;
-    return inNumericRange(metric, range);
-  }
-  return true;
-}
-
-export function buildFilterEngine(cards: readonly YugiohCard[]): FilterEngine {
-  return new FilterEngine(cards);
+export function buildFilterEngine(
+  cards: readonly YugiohCard[],
+  game: GameDefinition = resolveGame(undefined),
+): FilterEngine {
+  return new FilterEngine(cards, game);
 }

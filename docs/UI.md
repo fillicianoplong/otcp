@@ -141,7 +141,7 @@ Type: system UI sans; mono for YDK. Sizes 11–24 px. Space 4–48 px. Radius 4 
 
 Pattern: **faceted search in the style of major card marketplaces** (owner UX reference recorded privately in `requirements-record.md`; no third-party branding or visuals in these mockups).
 
-1. **Game first.** Choosing the product line (game) comes before game-specific facets. v1 selects Yu-Gi-Oh!.
+1. **Game first.** I put a Game section first in the filters sidebar and the phone Filters sheet, above Sort and Format. Yu-Gi-Oh! is selected. Format and every group under it (Category, Attribute, Level, ATK/DEF, Set, and the rest), plus the format list, come from that game's registry entry. I leave the default game out of the Filters badge.
 2. **Two layers.** Core (any TCG) groups always available; game-extension groups appear from declaration data once the game is selected (SRS Filter fields reference; FR-56).
 3. **Facet UI.** Collapsible groups; checkbox options with **live result counts**; long lists get search-within and show more; numeric fields use ranges; Link arrows use an arrow picker.
 4. **Logic.** Include / exclude (NOT) and AND/OR where the field definition allows (FR-58).

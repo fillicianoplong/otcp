@@ -3,12 +3,12 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import {
   facetDefinitionById,
-  facetDefinitionsForGame,
   facetDisplayLabel,
-  SEARCH_FACET_FIELD_ORDER,
   type FacetDefinition,
   type FacetFieldId,
 } from './facets.ts';
+import { gameFilterModel, listGames, resolveGame } from '../games/registry.ts';
+import type { GameDefinition, GameId } from '../games/types.ts';
 import { formatFacetOptionLabel, sortFacetOptionsForDisplay } from './facetOptionOrdering.ts';
 import type { SetIndex } from '../shared/schema/setIndex.ts';
 import { Button } from '../ui/Button.tsx';
@@ -21,11 +21,16 @@ import type {
   FilterStateUpdater,
 } from './filterEngine.ts';
 import { cycleFacetValue, setFacetRange } from './filterSelection.ts';
-import { CollapsibleFilterSection, FORMAT_FILTER_SECTION_ID } from './CollapsibleFilterSection.tsx';
+import {
+  CollapsibleFilterSection,
+  FORMAT_FILTER_SECTION_ID,
+  GAME_FILTER_SECTION_ID,
+} from './CollapsibleFilterSection.tsx';
+import { GameFilterGroup } from './GameFilterGroup.tsx';
 import { FormatFilterGroup } from '../format/FormatFilterGroup.tsx';
 import { CatalogSortControls } from './CatalogSortControls.tsx';
 import type { CatalogTableSortState } from './catalogTableSort.ts';
-import type { FormatId } from '../format/formatCatalog.ts';
+import type { FormatDefinition, FormatId } from '../format/formatCatalog.ts';
 
 const LINK_ARROW_VALUES = [
   'Top',
@@ -66,22 +71,26 @@ function facetHasActiveSelection(definition: FacetDefinition, filterState: Filte
   );
 }
 
-const SEARCH_FACET_FIELD_RANK = new Map(
-  SEARCH_FACET_FIELD_ORDER.map((id, index) => [id, index] as const),
-);
-
 /** Unknown catalog facets render after Category and before Attribute. */
-function searchFacetFieldSortRank(fieldId: FacetFieldId): number {
-  const rank = SEARCH_FACET_FIELD_RANK.get(fieldId);
+function searchFacetFieldSortRank(
+  fieldId: FacetFieldId,
+  fieldRank: ReadonlyMap<FacetFieldId, number>,
+): number {
+  const rank = fieldRank.get(fieldId);
   if (rank != null) return rank;
-  const categoryRank = SEARCH_FACET_FIELD_RANK.get('cardType') ?? 0;
-  const attributeRank = SEARCH_FACET_FIELD_RANK.get('attribute') ?? categoryRank + 1;
+  const categoryRank = fieldRank.get('cardType') ?? 0;
+  const attributeRank = fieldRank.get('attribute') ?? categoryRank + 1;
   return categoryRank + 0.5 + (attributeRank - categoryRank) * 0.001;
 }
 
-function orderFacetDefinitionsForPanel(definitions: readonly FacetDefinition[]): FacetDefinition[] {
+function orderFacetDefinitionsForPanel(
+  definitions: readonly FacetDefinition[],
+  fieldOrder: readonly FacetFieldId[],
+): FacetDefinition[] {
+  const fieldRank = new Map(fieldOrder.map((id, index) => [id, index] as const));
   return [...definitions].sort((a, b) => {
-    const rankDiff = searchFacetFieldSortRank(a.id) - searchFacetFieldSortRank(b.id);
+    const rankDiff =
+      searchFacetFieldSortRank(a.id, fieldRank) - searchFacetFieldSortRank(b.id, fieldRank);
     if (rankDiff !== 0) return rankDiff;
     return a.id.localeCompare(b.id);
   });
@@ -209,6 +218,11 @@ type FacetFilterPanelProps = {
   /** Shared grid and table sort. Omitted on panels that do not sort the catalog. */
   sort?: CatalogTableSortState;
   onSortChange?: (next: CatalogTableSortState) => void;
+  /** Selected game. Defaults to Yu-Gi-Oh!. */
+  gameId?: GameId;
+  onGameChange?: (gameId: GameId) => void;
+  /** Defaults to the app registry. Tests pass a second game to prove the swap. */
+  games?: readonly GameDefinition[];
 };
 
 export function FacetFilterPanel({
@@ -223,8 +237,16 @@ export function FacetFilterPanel({
   formatAllowEmpty = true,
   sort,
   onSortChange,
+  gameId,
+  onGameChange,
+  games = listGames(),
 }: FacetFilterPanelProps) {
-  const definitions = useMemo(() => facetDefinitionsForGame('yugioh'), []);
+  const game = useMemo(() => {
+    const selected = games.find((entry) => entry.id === gameId);
+    return selected ?? games.find((entry) => entry.id === resolveGame(gameId).id) ?? games[0];
+  }, [gameId, games]);
+  const model = useMemo(() => (game ? gameFilterModel(game) : null), [game]);
+  const formats: readonly FormatDefinition[] = model?.formats ?? [];
   const countsByField = useMemo(() => {
     const map = new Map<FacetFieldId, FacetGroupCounts>();
     for (const group of groupCounts) map.set(group.fieldId, group);
@@ -239,6 +261,7 @@ export function FacetFilterPanel({
   const catalogIdSet = useMemo(() => new Set(catalogFieldIds), [catalogFieldIds]);
 
   const visibleDefinitions = useMemo(() => {
+    const definitions = model?.facetDefinitions ?? [];
     const byId = new Map(definitions.map((def) => [def.id, def]));
     const ordered: FacetDefinition[] = [];
     for (const id of catalogFieldIds) {
@@ -255,8 +278,8 @@ export function FacetFilterPanel({
         ordered.push(def);
       }
     }
-    return orderFacetDefinitionsForPanel(ordered);
-  }, [activeFormatId, catalogFieldIds, catalogIdSet, countsByField, definitions, filterState]);
+    return orderFacetDefinitionsForPanel(ordered, game?.facetFieldOrder ?? []);
+  }, [activeFormatId, catalogFieldIds, catalogIdSet, countsByField, filterState, game, model]);
 
   return (
     <div className={className}>
@@ -264,6 +287,20 @@ export function FacetFilterPanel({
         <SectionHeader>Filters</SectionHeader>
       </div>
       <div className="flex flex-col gap-3">
+        {game ? (
+          <CollapsibleFilterSection
+            title="Game"
+            collapsed={collapsedFields[GAME_FILTER_SECTION_ID] ?? false}
+            onToggleCollapse={() => toggleField(GAME_FILTER_SECTION_ID)}
+            className="relative z-20 overflow-visible"
+          >
+            <GameFilterGroup
+              games={games}
+              value={game.id}
+              onChange={(nextId) => onGameChange?.(nextId)}
+            />
+          </CollapsibleFilterSection>
+        ) : null}
         {sort && onSortChange ? (
           <CollapsibleFilterSection
             title="Sort"
@@ -284,6 +321,7 @@ export function FacetFilterPanel({
             <FormatFilterGroup
               value={activeFormatId}
               allowEmpty={formatAllowEmpty}
+              formats={formats}
               onChange={onFormatChange}
             />
           </CollapsibleFilterSection>
@@ -708,6 +746,9 @@ type PhoneFiltersSheetProps = {
   formatAllowEmpty?: boolean;
   draftSort?: CatalogTableSortState;
   onDraftSortChange?: (next: CatalogTableSortState) => void;
+  draftGameId?: GameId;
+  onDraftGameChange?: (gameId: GameId) => void;
+  games?: readonly GameDefinition[];
 };
 
 export function PhoneFiltersSheet({
@@ -726,6 +767,9 @@ export function PhoneFiltersSheet({
   formatAllowEmpty = true,
   draftSort,
   onDraftSortChange,
+  draftGameId,
+  onDraftGameChange,
+  games,
 }: PhoneFiltersSheetProps) {
   const titleId = useId().replace(/:/g, '');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -780,6 +824,9 @@ export function PhoneFiltersSheet({
           formatAllowEmpty={formatAllowEmpty}
           sort={draftSort}
           onSortChange={onDraftSortChange}
+          gameId={draftGameId}
+          onGameChange={onDraftGameChange}
+          games={games}
         />
       </div>
       <footer className="border-t border-border p-4">
