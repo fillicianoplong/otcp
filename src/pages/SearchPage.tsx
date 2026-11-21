@@ -48,6 +48,7 @@ import {
 import { formatCatalogResultCount } from '../catalog/formatCardCount.ts';
 import { ALL_ARTWORKS_QUERY_KEY } from '../catalog/allArtworksPreference.ts';
 import { expandCardsToArtTiles, catalogResultCount, setFilterNames } from '../catalog/cardArt.ts';
+import { useSetArtPrintingsRevision } from '../catalog/setArtPrintings.ts';
 import { useCatalogArtIdWarm } from '../catalog/useCatalogArtIdWarm.ts';
 import {
   filterStateToChips,
@@ -247,6 +248,7 @@ export function SearchPage() {
   }, [catalogState]);
 
   const artCacheRevision = useCatalogArtIdWarm(catalogDerived?.cards ?? null);
+  const setArtRevision = useSetArtPrintingsRevision();
 
   const catalogFieldIds = useMemo(() => {
     if (!catalogDerived) return [];
@@ -286,10 +288,11 @@ export function SearchPage() {
   const visibleTileCount = useMemo(() => {
     if (!catalogDerived) return 0;
     void artCacheRevision;
+    void setArtRevision;
     return catalogResultCount(
       expandCardsToArtTiles(visibleCardsForArt, setFilterNames(filterState)),
     );
-  }, [artCacheRevision, catalogDerived, filterState, visibleCardsForArt]);
+  }, [artCacheRevision, catalogDerived, filterState, setArtRevision, visibleCardsForArt]);
 
   const draftVisibleCardsForArt = useMemo(() => {
     if (!catalogDerived) return [];
@@ -304,10 +307,11 @@ export function SearchPage() {
   const draftVisibleTileCount = useMemo(() => {
     if (!catalogDerived) return 0;
     void artCacheRevision;
+    void setArtRevision;
     return catalogResultCount(
       expandCardsToArtTiles(draftVisibleCardsForArt, setFilterNames(phoneDraft)),
     );
-  }, [artCacheRevision, catalogDerived, draftVisibleCardsForArt, phoneDraft]);
+  }, [artCacheRevision, catalogDerived, draftVisibleCardsForArt, phoneDraft, setArtRevision]);
 
   const activeFilterCount = countListedFilters({
     filterState,

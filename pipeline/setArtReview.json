@@ -1,0 +1,1124 @@
+{
+  "artworks": {
+    "41356845": {
+      "name": "Acid Trap Hole",
+      "konamiId": 4691,
+      "ciid": {
+        "1": 41356845,
+        "2": 41356846
+      }
+    },
+    "86120752": {
+      "name": "Aleister the Invoker",
+      "konamiId": 12843,
+      "ciid": {
+        "1": 86120751,
+        "2": 86120752
+      }
+    },
+    "4280258": {
+      "name": "Apollousa, Bow of the Goddess",
+      "konamiId": 14496,
+      "ciid": {
+        "1": 4280258,
+        "2": 4280259
+      }
+    },
+    "6150044": {
+      "name": "Arcana Knight Joker",
+      "konamiId": 6454,
+      "ciid": {
+        "1": 6150044,
+        "2": 6150045
+      }
+    },
+    "14558127": {
+      "name": "Ash Blossom & Joyous Spring",
+      "konamiId": 12950,
+      "ciid": {
+        "1": 14558127,
+        "2": 14558128,
+        "3": null
+      }
+    },
+    "81480461": {
+      "name": "Barrel Dragon",
+      "konamiId": 4749,
+      "ciid": {
+        "1": 81480461,
+        "2": 81480460
+      }
+    },
+    "73580471": {
+      "name": "Black Rose Dragon",
+      "konamiId": 7898,
+      "ciid": {
+        "1": 73580471,
+        "2": 73580472,
+        "3": null
+      }
+    },
+    "23995348": {
+      "name": "Blue-Eyes Ultimate Dragon",
+      "konamiId": 4386,
+      "ciid": {
+        "1": 23995346
+      }
+    },
+    "89631139": {
+      "name": "Blue-Eyes White Dragon",
+      "konamiId": 4007,
+      "ciid": {
+        "1": 89631139,
+        "2": 89631140,
+        "3": 89631141,
+        "4": 89631142,
+        "5": 89631143,
+        "6": 89631144,
+        "8": 89631145,
+        "9": null,
+        "14": null,
+        "16": null,
+        "17": 89631139
+      }
+    },
+    "31833038": {
+      "name": "Borreload Dragon",
+      "konamiId": 13258,
+      "ciid": {
+        "1": 31833038,
+        "2": 31833039
+      }
+    },
+    "85289965": {
+      "name": "Borrelsword Dragon",
+      "konamiId": 13750,
+      "ciid": {
+        "1": 85289965,
+        "2": 85289966
+      }
+    },
+    "78193831": {
+      "name": "Buster Blader",
+      "konamiId": 4983,
+      "ciid": {
+        "1": 78193831,
+        "2": 78193832
+      }
+    },
+    "91152256": {
+      "name": "Celtic Guardian",
+      "konamiId": 4047,
+      "ciid": {
+        "1": 91152256,
+        "2": 91152257,
+        "3": 91152258
+      }
+    },
+    "55878038": {
+      "name": "Chaos Dragon Levianeer",
+      "konamiId": 13912,
+      "ciid": {
+        "1": 55878038,
+        "2": 55878039
+      }
+    },
+    "82044280": {
+      "name": "Clear Wing Synchro Dragon",
+      "konamiId": 11721,
+      "ciid": {
+        "1": 82044279,
+        "2": 82044280
+      }
+    },
+    "57728570": {
+      "name": "Crush Card Virus",
+      "konamiId": 4667,
+      "ciid": {
+        "1": 57728570,
+        "2": 57728571
+      }
+    },
+    "70095154": {
+      "name": "Cyber Dragon",
+      "konamiId": 6390,
+      "ciid": {
+        "1": 70095154,
+        "2": 70095155
+      }
+    },
+    "10443958": {
+      "name": "Cyber Dragon Infinity",
+      "konamiId": 11765,
+      "ciid": {
+        "1": 10443957,
+        "2": 10443958
+      }
+    },
+    "1546123": {
+      "name": "Cyber End Dragon",
+      "konamiId": 6397,
+      "ciid": {
+        "1": 1546123,
+        "2": 1546124
+      }
+    },
+    "46986420": {
+      "name": "Dark Magician",
+      "konamiId": 4041,
+      "ciid": {
+        "1": 46986414,
+        "2": 46986415,
+        "3": 36996508,
+        "4": 46986416,
+        "5": 46986417,
+        "6": 46986418,
+        "7": 46986419,
+        "8": 46986420,
+        "9": 46986421,
+        "15": null,
+        "17": null
+      }
+    },
+    "38033121": {
+      "name": "Dark Magician Girl",
+      "konamiId": 4766,
+      "ciid": {
+        "1": 38033121,
+        "2": 38033123,
+        "3": 38033122,
+        "4": 38033124,
+        "5": 38033125,
+        "6": null,
+        "8": null,
+        "12": 38033121,
+        "13": null
+      }
+    },
+    "43892409": {
+      "name": "Dark Magician Girl the Dragon Knight",
+      "konamiId": 11151,
+      "ciid": {
+        "1": 43892408,
+        "2": 43892409
+      }
+    },
+    "98502113": {
+      "name": "Dark Paladin",
+      "konamiId": 5628,
+      "ciid": {
+        "1": 98502113,
+        "2": 98502114,
+        "3": 98502115,
+        "5": null
+      }
+    },
+    "16195942": {
+      "name": "Dark Rebellion Xyz Dragon",
+      "konamiId": 11385,
+      "ciid": {
+        "1": 16195942,
+        "2": 16195943
+      }
+    },
+    "1861629": {
+      "name": "Decode Talker",
+      "konamiId": 13036,
+      "ciid": {
+        "1": 1861629,
+        "2": 1861630
+      }
+    },
+    "83965310": {
+      "name": "Destiny HERO - Plasma",
+      "konamiId": 7096,
+      "ciid": {
+        "1": 83965310,
+        "2": 83965311
+      }
+    },
+    "84257640": {
+      "name": "Dian Keto the Cure Master",
+      "konamiId": 4348,
+      "ciid": {
+        "1": 84257640
+      }
+    },
+    "80193356": {
+      "name": "Dramatic Rescue",
+      "konamiId": 5299,
+      "ciid": {
+        "1": 80193356
+      }
+    },
+    "94145021": {
+      "name": "Droll & Lock Bird",
+      "konamiId": 9279,
+      "ciid": {
+        "1": 94145021,
+        "2": 94145022
+      }
+    },
+    "20366275": {
+      "name": "El Shaddoll Construct",
+      "konamiId": 11258,
+      "ciid": {
+        "1": 20366274,
+        "2": 20366275,
+        "3": null
+      }
+    },
+    "94977269": {
+      "name": "El Shaddoll Winda",
+      "konamiId": 11257,
+      "ciid": {
+        "1": 94977269,
+        "2": 94977270
+      }
+    },
+    "95440946": {
+      "name": "Eldlich the Golden Lord",
+      "konamiId": 15123,
+      "ciid": {
+        "1": 95440946,
+        "2": 95440947,
+        "3": 95440947,
+        "4": 95440947
+      }
+    },
+    "21844576": {
+      "name": "Elemental HERO Avian",
+      "konamiId": 6310,
+      "ciid": {
+        "1": 21844576,
+        "2": 21844577
+      }
+    },
+    "58932615": {
+      "name": "Elemental HERO Burstinatrix",
+      "konamiId": 6311,
+      "ciid": {
+        "1": 58932615,
+        "2": 58932616,
+        "3": 58932615
+      }
+    },
+    "89943723": {
+      "name": "Elemental HERO Neos",
+      "konamiId": 6653,
+      "ciid": {
+        "1": 89943723,
+        "2": 89943724,
+        "4": null
+      }
+    },
+    "20721928": {
+      "name": "Elemental HERO Sparkman",
+      "konamiId": 6313,
+      "ciid": {
+        "1": 20721928,
+        "2": 20721929,
+        "3": null
+      }
+    },
+    "40044918": {
+      "name": "Elemental HERO Stratos",
+      "konamiId": 6784,
+      "ciid": {
+        "1": 40044918,
+        "2": 40044919
+      }
+    },
+    "31887905": {
+      "name": "Familiar-Possessed - Aussa",
+      "konamiId": 6507,
+      "ciid": {
+        "1": 31887905,
+        "2": 31887906
+      }
+    },
+    "68881649": {
+      "name": "Familiar-Possessed - Eria",
+      "konamiId": 6508,
+      "ciid": {
+        "1": 68881649,
+        "2": 68881650
+      }
+    },
+    "4376659": {
+      "name": "Familiar-Possessed - Hiita",
+      "konamiId": 6509,
+      "ciid": {
+        "1": 4376658,
+        "2": 4376659
+      }
+    },
+    "40542825": {
+      "name": "Familiar-Possessed - Lyna",
+      "konamiId": 12951,
+      "ciid": {
+        "1": 40542825,
+        "2": 40542826
+      }
+    },
+    "31764354": {
+      "name": "Familiar-Possessed - Wynn",
+      "konamiId": 6510,
+      "ciid": {
+        "1": 31764353,
+        "2": 31764354
+      }
+    },
+    "78661338": {
+      "name": "Fantastical Dragon Phantazmay",
+      "konamiId": 14097,
+      "ciid": {
+        "1": 78661338,
+        "2": 78661339
+      }
+    },
+    "81172176": {
+      "name": "Fiend Comedian",
+      "konamiId": 5405,
+      "ciid": {
+        "1": 81172177
+      }
+    },
+    "73134082": {
+      "name": "Final Flame",
+      "konamiId": 4351,
+      "ciid": {
+        "1": 73134082
+      }
+    },
+    "5043010": {
+      "name": "Firewall Dragon",
+      "konamiId": 13082,
+      "ciid": {
+        "1": 5043010,
+        "2": 5043011,
+        "3": 5043012
+      }
+    },
+    "99267150": {
+      "name": "Five-Headed Dragon",
+      "konamiId": 5502,
+      "ciid": {
+        "1": 99267150,
+        "2": 99267151
+      }
+    },
+    "45231178": {
+      "name": "Flame Swordsman",
+      "konamiId": 4021,
+      "ciid": {
+        "1": 45231177,
+        "2": 45231178
+      }
+    },
+    "81439173": {
+      "name": "Foolish Burial",
+      "konamiId": 5236,
+      "ciid": {
+        "1": 81439174,
+        "2": 81439173,
+        "3": 81439174
+      }
+    },
+    "6368038": {
+      "name": "Gaia The Fierce Knight",
+      "konamiId": 4044,
+      "ciid": {
+        "1": 6368038,
+        "2": 6368039,
+        "3": null
+      }
+    },
+    "69140098": {
+      "name": "Gemini Elf",
+      "konamiId": 4538,
+      "ciid": {
+        "1": 69140098,
+        "3": 69140098
+      }
+    },
+    "73642296": {
+      "name": "Ghost Belle & Haunted Mansion",
+      "konamiId": 13587,
+      "ciid": {
+        "1": 73642296,
+        "2": 73642297,
+        "3": 73642296
+      }
+    },
+    "52038441": {
+      "name": "Ghost Mourner & Moonlit Chill",
+      "konamiId": 15022,
+      "ciid": {
+        "1": 52038441,
+        "2": 52038442,
+        "3": 52038441
+      }
+    },
+    "59438930": {
+      "name": "Ghost Ogre & Snow Rabbit",
+      "konamiId": 11708,
+      "ciid": {
+        "1": 59438930,
+        "2": 59438931,
+        "3": 59438930
+      }
+    },
+    "62015409": {
+      "name": "Ghost Reaper & Winter Cherries",
+      "konamiId": 12312,
+      "ciid": {
+        "1": 62015408,
+        "2": 62015409
+      }
+    },
+    "60643553": {
+      "name": "Ghost Sister & Spooky Dogwood",
+      "konamiId": 14275,
+      "ciid": {
+        "1": 60643553,
+        "2": 60643554,
+        "3": 60643553
+      }
+    },
+    "36354007": {
+      "name": "Gilford the Lightning",
+      "konamiId": 5451,
+      "ciid": {
+        "1": 36354008,
+        "2": 36354007
+      }
+    },
+    "78437364": {
+      "name": "Gouki The Great Ogre",
+      "konamiId": 13084,
+      "ciid": {
+        "1": 78437364,
+        "2": 78437365
+      }
+    },
+    "31122090": {
+      "name": "Gyakutenno Megami",
+      "konamiId": 4096,
+      "ciid": {
+        "1": 31122090,
+        "2": 31122091
+      }
+    },
+    "18144507": {
+      "name": "Harpie's Feather Duster",
+      "konamiId": 4678,
+      "ciid": {
+        "1": 18144506,
+        "2": 18144507,
+        "3": null
+      }
+    },
+    "65741786": {
+      "name": "I:P Masquerena",
+      "konamiId": 14676,
+      "ciid": {
+        "1": 65741786,
+        "2": 65741787,
+        "3": 65741787,
+        "4": null
+      }
+    },
+    "77585513": {
+      "name": "Jinzo",
+      "konamiId": 4758,
+      "ciid": {
+        "1": 77585513,
+        "2": 77585514
+      }
+    },
+    "38342335": {
+      "name": "Knightmare Unicorn",
+      "konamiId": 13601,
+      "ciid": {
+        "1": 38342335,
+        "2": 38342336
+      }
+    },
+    "37390589": {
+      "name": "Kunai with Chain",
+      "konamiId": 4657,
+      "ciid": {
+        "1": 37390589,
+        "2": 37390590
+      }
+    },
+    "40640057": {
+      "name": "Kuriboh",
+      "konamiId": 4064,
+      "ciid": {
+        "1": 40640057,
+        "3": 40640059
+      }
+    },
+    "97590747": {
+      "name": "La Jinn the Mystical Genie of the Lamp",
+      "konamiId": 4385,
+      "ciid": {
+        "1": 97590747,
+        "2": 97590748
+      }
+    },
+    "90330453": {
+      "name": "Last Day of Witch",
+      "konamiId": 4868,
+      "ciid": {
+        "1": 90330454
+      }
+    },
+    "87322377": {
+      "name": "Launcher Spider",
+      "konamiId": 4396,
+      "ciid": {
+        "1": 87322377,
+        "2": 87322378
+      }
+    },
+    "7852509": {
+      "name": "Loop of Destruction",
+      "konamiId": 13643,
+      "ciid": {
+        "1": 7852510
+      }
+    },
+    "101303084": {
+      "name": "Mercurium the Living Quicksilver",
+      "konamiId": 22330,
+      "ciid": {
+        "1": 101303084
+      }
+    },
+    "68540059": {
+      "name": "Metalmorph",
+      "konamiId": 4664,
+      "ciid": {
+        "1": 68540058,
+        "2": 68540059
+      }
+    },
+    "32012841": {
+      "name": "Millennium Shield",
+      "konamiId": 4368,
+      "ciid": {
+        "1": 32012842,
+        "2": 32012841
+      }
+    },
+    "83764719": {
+      "name": "Monster Reborn",
+      "konamiId": 4842,
+      "ciid": {
+        "1": 83764719,
+        "2": 83764718,
+        "3": 83764719,
+        "4": null
+      }
+    },
+    "83011278": {
+      "name": "Mystic Tomato",
+      "konamiId": 4930,
+      "ciid": {
+        "1": 83011278
+      }
+    },
+    "32003338": {
+      "name": "Number 34: Terror-Byte",
+      "konamiId": 9658,
+      "ciid": {
+        "1": 32003338,
+        "2": 32003339
+      }
+    },
+    "84013237": {
+      "name": "Number 39: Utopia",
+      "konamiId": 9575,
+      "ciid": {
+        "1": 84013237,
+        "2": 84013238,
+        "3": null
+      }
+    },
+    "90590303": {
+      "name": "Number 41: Bagooska the Terribly Tired Tapir",
+      "konamiId": 13163,
+      "ciid": {
+        "1": 90590304
+      }
+    },
+    "10000000": {
+      "name": "Obelisk the Tormentor",
+      "konamiId": 4998,
+      "ciid": {
+        "1": 10000000,
+        "2": 10000001,
+        "3": 10000002,
+        "4": 10000000
+      }
+    },
+    "16178683": {
+      "name": "Odd-Eyes Pendulum Dragon",
+      "konamiId": 11213,
+      "ciid": {
+        "1": 16178681,
+        "2": 16178682,
+        "3": 16178683
+      }
+    },
+    "19230408": {
+      "name": "Offerings to the Doomed",
+      "konamiId": 5214,
+      "ciid": {
+        "1": 19230408,
+        "2": 19230407
+      }
+    },
+    "39751094": {
+      "name": "Otohime",
+      "konamiId": 5379,
+      "ciid": {
+        "1": 39751094
+      }
+    },
+    "61307542": {
+      "name": "Paleozoic Anomalocaris",
+      "konamiId": 12086,
+      "ciid": {
+        "1": 61307542
+      }
+    },
+    "42035044": {
+      "name": "Panther Warrior",
+      "konamiId": 4751,
+      "ciid": {
+        "1": 42035044,
+        "2": 42035045
+      }
+    },
+    "27911550": {
+      "name": "Parasite Paracide",
+      "konamiId": 4769,
+      "ciid": {
+        "1": 27911550,
+        "2": 27911549
+      }
+    },
+    "24433920": {
+      "name": "Pendulum Machine",
+      "konamiId": 4394,
+      "ciid": {
+        "1": 24433920,
+        "2": 24433921
+      }
+    },
+    "24094653": {
+      "name": "Polymerization",
+      "konamiId": 4837,
+      "ciid": {
+        "1": 24094653,
+        "2": 27847700,
+        "3": null
+      }
+    },
+    "74677427": {
+      "name": "Red-Eyes Black Dragon",
+      "konamiId": 4088,
+      "ciid": {
+        "1": 74677422,
+        "3": 74677426,
+        "4": 74677425,
+        "5": 74677423,
+        "6": 74677427,
+        "7": null,
+        "8": null,
+        "11": 74677422
+      }
+    },
+    "64335805": {
+      "name": "Red-Eyes Black Metal Dragon",
+      "konamiId": 4748,
+      "ciid": {
+        "1": 64335804,
+        "2": 64335805
+      }
+    },
+    "88264978": {
+      "name": "Red-Eyes Darkness Metal Dragon",
+      "konamiId": 7557,
+      "ciid": {
+        "1": 88264978,
+        "2": 88264979
+      }
+    },
+    "14878871": {
+      "name": "Rescue Cat",
+      "konamiId": 6262,
+      "ciid": {
+        "1": 14878871,
+        "2": 14878872
+      }
+    },
+    "83555666": {
+      "name": "Ring of Destruction",
+      "konamiId": 5005,
+      "ciid": {
+        "1": 83555667,
+        "2": 83555666
+      }
+    },
+    "95658967": {
+      "name": "Ritual Sanctuary",
+      "konamiId": 12539,
+      "ciid": {
+        "1": 95658967
+      }
+    },
+    "41463181": {
+      "name": "Salamangreat Heatleo",
+      "konamiId": 13927,
+      "ciid": {
+        "1": 41463181,
+        "2": 41463182
+      }
+    },
+    "23401839": {
+      "name": "Senju of the Thousand Hands",
+      "konamiId": 4916,
+      "ciid": {
+        "1": 23401840,
+        "2": 23401839
+      }
+    },
+    "63288573": {
+      "name": "Sky Striker Ace - Kagari",
+      "konamiId": 13668,
+      "ciid": {
+        "1": 63288573,
+        "2": 63288574
+      }
+    },
+    "10000020": {
+      "name": "Slifer the Sky Dragon",
+      "konamiId": 4999,
+      "ciid": {
+        "1": 10000020,
+        "2": 10000021,
+        "3": 10000022,
+        "4": 10000020
+      }
+    },
+    "47852924": {
+      "name": "Soul of the Pure",
+      "konamiId": 4347,
+      "ciid": {
+        "1": 47852925
+      }
+    },
+    "18807109": {
+      "name": "Spellbinding Circle",
+      "konamiId": 4355,
+      "ciid": {
+        "1": 18807109
+      }
+    },
+    "44508094": {
+      "name": "Stardust Dragon",
+      "konamiId": 7734,
+      "ciid": {
+        "1": 44508094,
+        "2": 44508095,
+        "4": null
+      }
+    },
+    "41209827": {
+      "name": "Starving Venom Fusion Dragon",
+      "konamiId": 12628,
+      "ciid": {
+        "1": 41209827,
+        "2": 41209828
+      }
+    },
+    "70781052": {
+      "name": "Summoned Skull",
+      "konamiId": 4028,
+      "ciid": {
+        "1": 70781052,
+        "3": 70781054,
+        "4": 70781055,
+        "5": null
+      }
+    },
+    "90740329": {
+      "name": "Taunt",
+      "konamiId": 6140,
+      "ciid": {
+        "1": 90740330
+      }
+    },
+    "84080939": {
+      "name": "The Forgiving Maiden",
+      "konamiId": 5207,
+      "ciid": {
+        "1": 84080939
+      }
+    },
+    "10000010": {
+      "name": "The Winged Dragon of Ra",
+      "konamiId": 5000,
+      "ciid": {
+        "1": 10000010,
+        "2": 10000011,
+        "3": 10000012,
+        "4": 10000010
+      }
+    },
+    "41462083": {
+      "name": "Thousand Dragon",
+      "konamiId": 4075,
+      "ciid": {
+        "1": 41462083,
+        "2": 41462084
+      }
+    },
+    "49791927": {
+      "name": "Tiger Axe",
+      "konamiId": 4070,
+      "ciid": {
+        "1": 49791927,
+        "2": 49791928
+      }
+    },
+    "15259703": {
+      "name": "Toon World",
+      "konamiId": 4798,
+      "ciid": {
+        "1": 15259703,
+        "2": 15259704
+      }
+    },
+    "10802915": {
+      "name": "Tour Guide From the Underworld",
+      "konamiId": 9702,
+      "ciid": {
+        "1": 10802915,
+        "2": 10802916,
+        "3": 10802915,
+        "4": null
+      }
+    },
+    "35686188": {
+      "name": "Tragedy",
+      "konamiId": 4823,
+      "ciid": {
+        "1": 35686188,
+        "2": 35686187
+      }
+    },
+    "32448765": {
+      "name": "Trickstar Holly Angel",
+      "konamiId": 13083,
+      "ciid": {
+        "1": 32448765,
+        "2": 32448766
+      }
+    },
+    "80604092": {
+      "name": "Ultimate Offering",
+      "konamiId": 4851,
+      "ciid": {
+        "1": 80604092,
+        "2": 80604091
+      }
+    },
+    "56043447": {
+      "name": "Viser Des",
+      "konamiId": 5292,
+      "ciid": {
+        "1": 56043446,
+        "2": 56043447
+      }
+    },
+    "14898066": {
+      "name": "Vorse Raider",
+      "konamiId": 5004,
+      "ciid": {
+        "1": 14898066,
+        "2": 14898067
+      }
+    },
+    "56993276": {
+      "name": "Wattcancel",
+      "konamiId": 9791,
+      "ciid": {
+        "1": 56993277,
+        "2": 56993276
+      }
+    },
+    "77754944": {
+      "name": "Widespread Ruin",
+      "konamiId": 4692,
+      "ciid": {
+        "1": 77754944,
+        "2": 77754945
+      }
+    },
+    "57116033": {
+      "name": "Winged Kuriboh",
+      "konamiId": 6314,
+      "ciid": {
+        "1": 57116033,
+        "2": 57116034,
+        "3": null
+      }
+    },
+    "91998119": {
+      "name": "XYZ-Dragon Cannon",
+      "konamiId": 5556,
+      "ciid": {
+        "1": 91998119,
+        "2": 91998120,
+        "3": 91998121,
+        "4": 91998119
+      }
+    }
+  },
+  "printings": {
+    "41356845": {
+      "name": "Acid Trap Hole",
+      "sets": {
+        "SDD-E002": 41356845
+      }
+    },
+    "81480461": {
+      "name": "Barrel Dragon",
+      "sets": {
+        "DL1-E002": 81480461,
+        "MC1-EN002": 81480461
+      }
+    },
+    "89631139": {
+      "name": "Blue-Eyes White Dragon",
+      "sets": {
+        "FL1-EN001": 89631140
+      }
+    },
+    "70095154": {
+      "name": "Cyber Dragon",
+      "sets": {
+        "MF03-EN009": 70095154
+      }
+    },
+    "1546123": {
+      "name": "Cyber End Dragon",
+      "sets": {
+        "STON-ENSE1": 1546124
+      }
+    },
+    "46986420": {
+      "name": "Dark Magician",
+      "sets": {
+        "FL1-EN002": 46986415
+      }
+    },
+    "38033121": {
+      "name": "Dark Magician Girl",
+      "sets": {
+        "RDS-ENSE2": 38033121
+      }
+    },
+    "98502113": {
+      "name": "Dark Paladin",
+      "sets": {
+        "DMG-001": 98502115
+      }
+    },
+    "21844576": {
+      "name": "Elemental HERO Avian",
+      "sets": {
+        "MF03-EN001": 21844576
+      }
+    },
+    "58932615": {
+      "name": "Elemental HERO Burstinatrix",
+      "sets": {
+        "MF03-EN002": 58932615
+      }
+    },
+    "20721928": {
+      "name": "Elemental HERO Sparkman",
+      "sets": {
+        "MF03-EN004": 20721928
+      }
+    },
+    "40044918": {
+      "name": "Elemental HERO Stratos",
+      "sets": {
+        "JMPS-EN008": 40044918
+      }
+    },
+    "45231178": {
+      "name": "Flame Swordsman",
+      "sets": {
+        "MRL-E111": 45231177
+      }
+    },
+    "69140098": {
+      "name": "Gemini Elf",
+      "sets": {
+        "IOC-SE1": 69140098
+      }
+    },
+    "18144507": {
+      "name": "Harpie's Feather Duster",
+      "sets": {
+        "WC4-E003": 18144507
+      }
+    },
+    "77585513": {
+      "name": "Jinzo",
+      "sets": {
+        "OPTP-EN002": 77585513
+      }
+    },
+    "40640057": {
+      "name": "Kuriboh",
+      "sets": {
+        "FL1-EN003": 40640057
+      }
+    },
+    "68540059": {
+      "name": "Metalmorph",
+      "sets": {
+        "WP11-EN020": 68540058
+      }
+    },
+    "39751094": {
+      "name": "Otohime",
+      "sets": {
+        "LART-EN076": 39751093
+      }
+    },
+    "74677427": {
+      "name": "Red-Eyes Black Dragon",
+      "sets": {
+        "JMP-002": 74677426,
+        "JMP-EN002": 74677426
+      }
+    },
+    "83555666": {
+      "name": "Ring of Destruction",
+      "sets": {
+        "IOC-SE3": 83555667
+      }
+    }
+  }
+}

@@ -38,6 +38,7 @@ import {
 import {
   hasCuratedSetArtPrintings,
   isSetRowMarkedForSelectedArt,
+  useSetArtPrintingsRevision,
 } from '../catalog/setArtPrintings.ts';
 import { getCatalogDerived } from '../catalog/catalogDerived.ts';
 import {
@@ -270,6 +271,7 @@ function CardDetailSets({
   } = useTableColumnSetup('card-sets', SET_COLUMNS);
   const sortedSets = useMemo(() => sortCardDetailSets(card.sets, setIndex), [card.sets, setIndex]);
   const totalCount = sortedSets.length;
+  useSetArtPrintingsRevision();
   const shownColumns = orderedVisibleTableColumns(SET_COLUMNS, columnVisibility, columnOrder);
   if (totalCount === 0) return null;
 
@@ -303,7 +305,8 @@ function CardDetailSets({
             {visibleSets.map((entry) => {
               const releaseDate = cardDetailSetRowReleaseDate(entry.setName, setIndex);
               const usesThisArt =
-                showArtMarks && isSetRowMarkedForSelectedArt(card, selectedArtId, entry.setCode);
+                showArtMarks &&
+                isSetRowMarkedForSelectedArt(card, selectedArtId, entry.setCode, entry.setRarity);
               return (
                 <tr key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}>
                   {shownColumns.map((column) => {

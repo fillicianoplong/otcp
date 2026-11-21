@@ -8,3 +8,4 @@ coverage/
 src/format/data/tcg/
 docs/
 README.md
+src/catalog/data/setArtPrintings.json

@@ -10,6 +10,7 @@ import {
   setFilterNames,
   type CatalogArtTile,
 } from './cardArt.ts';
+import { useSetArtPrintingsRevision } from './setArtPrintings.ts';
 import { useArtworkEnrichedCards } from './useArtworkEnrichedCards.ts';
 import { useCatalogArtIdWarm } from './useCatalogArtIdWarm.ts';
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
@@ -356,10 +357,12 @@ export function CardCatalogView({
   const { visibleCards, matchCount } = queryResult;
   const artCacheRevision = useCatalogArtIdWarm(state.status === 'ready' ? state.cards : null);
   const enrichedVisibleCards = useArtworkEnrichedCards(visibleCards, artCacheRevision);
+  const setArtRevision = useSetArtPrintingsRevision();
   const visibleTiles = useMemo(() => {
     void artCacheRevision;
+    void setArtRevision;
     return expandCardsToArtTiles(enrichedVisibleCards, setFilterNames(filterState));
-  }, [artCacheRevision, enrichedVisibleCards, filterState]);
+  }, [artCacheRevision, enrichedVisibleCards, filterState, setArtRevision]);
   const displayCount = catalogResultCount(visibleTiles);
 
   const tableCards = visibleCards;

@@ -1,12 +1,71 @@
-import printings from './data/setArtPrintings.json';
+import { useEffect, useSyncExternalStore } from 'react';
 
-/** One printing of a card: set code, set name, and the artwork id printed in that set. */
-export type SetArtPrintingRow = readonly [setCode: string, setName: string, artId: number];
+/** One printing of a card: set code, set name, the artwork id printed there, and its rarity. */
+export type SetArtPrintingRow = readonly [
+  setCode: string,
+  setName: string,
+  artId: number,
+  rarity: string,
+];
 
-/** Printings keyed by card id, for cards with more than one artwork. */
-export type SetArtPrintingsData = Record<string, readonly SetArtPrintingRow[]>;
+/**
+ * The generated file (see pipeline/setArtPrintingsCli.ts). Set names and rarities are listed once
+ * and each printing refers to them by index: [set code, set index, artwork id, rarity index].
+ */
+export type SetArtPrintingsFile = {
+  sets: readonly string[];
+  rarities: readonly string[];
+  cards: Record<string, readonly (readonly [string, number, number, number])[]>;
+};
 
-const byCardId = printings as unknown as SetArtPrintingsData;
+let byCardId = new Map<string, readonly SetArtPrintingRow[]>();
+let version = 0;
+let loading: Promise<void> | undefined;
+const listeners = new Set<() => void>();
+
+/** Replaces the printings table (used by the loader and by tests). */
+export function setSetArtPrintingsData(file: SetArtPrintingsFile): void {
+  const next = new Map<string, readonly SetArtPrintingRow[]>();
+  for (const [cardId, rows] of Object.entries(file.cards)) {
+    next.set(
+      cardId,
+      rows.map(([setCode, setIndex, artId, rarityIndex]) => [
+        setCode,
+        file.sets[setIndex] ?? '',
+        artId,
+        file.rarities[rarityIndex] ?? '',
+      ]),
+    );
+  }
+  byCardId = next;
+  version += 1;
+  for (const listener of listeners) listener();
+}
+
+/** Loads the printings table once. It is a separate file so it stays out of the main bundle. */
+export function loadSetArtPrintings(): Promise<void> {
+  loading ??= import('./data/setArtPrintings.json').then((module) => {
+    setSetArtPrintingsData(module.default as unknown as SetArtPrintingsFile);
+  });
+  return loading;
+}
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/** Starts loading the printings table and re-renders once it is ready. Returns a revision number. */
+export function useSetArtPrintingsRevision(): number {
+  useEffect(() => {
+    void loadSetArtPrintings();
+  }, []);
+  return useSyncExternalStore(
+    subscribe,
+    () => version,
+    () => version,
+  );
+}
 
 /**
  * A card by its catalog id. The passcode and artwork ids are checked too, since the catalog id
@@ -27,29 +86,26 @@ export function setArtPrintingsForCard(
 ): readonly SetArtPrintingRow[] | undefined {
   const { id, passcode, artIds = [] } = cardRef(card);
   for (const key of [id, ...(passcode != null ? [passcode] : []), ...artIds]) {
-    const rows = byCardId[String(key)];
+    const rows = byCardId.get(String(key));
     if (rows && rows.length > 0) return rows;
   }
   return undefined;
 }
 
-export function setCodesMarkedForArt(
-  card: number | SetArtCardRef,
-  imageId: number,
-): string[] | undefined {
-  const rows = setArtPrintingsForCard(card);
-  if (!rows) return undefined;
-  return rows.filter(([, , artId]) => artId === imageId).map(([setCode]) => setCode);
-}
-
+/**
+ * Whether a set row on the card page is a printing of the selected artwork. The rarity narrows it
+ * down when one set code was printed with different artworks in different rarities.
+ */
 export function isSetRowMarkedForSelectedArt(
   card: number | SetArtCardRef,
   imageId: number,
   setCode: string,
+  rarity?: string,
 ): boolean {
-  const codes = setCodesMarkedForArt(card, imageId);
-  if (!codes) return false;
-  return codes.includes(setCode);
+  const rows = setArtPrintingsForCard(card)?.filter(([code]) => code === setCode);
+  if (!rows || rows.length === 0) return false;
+  const sameRarity = rarity ? rows.filter((row) => row[3] === rarity) : [];
+  return (sameRarity.length > 0 ? sameRarity : rows).some(([, , artId]) => artId === imageId);
 }
 
 export function hasCuratedSetArtPrintings(card: number | SetArtCardRef): boolean {
