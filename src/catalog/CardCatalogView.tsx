@@ -4,7 +4,12 @@ import { useLocation, useNavigate } from 'react-router';
 import { getCatalogDerived } from './catalogDerived.ts';
 import { queryCatalog } from './catalogQueryCache.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
-import { expandCardsToArtTiles, catalogResultCount, type CatalogArtTile } from './cardArt.ts';
+import {
+  expandCardsToArtTiles,
+  catalogResultCount,
+  setFilterNames,
+  type CatalogArtTile,
+} from './cardArt.ts';
 import { useArtworkEnrichedCards } from './useArtworkEnrichedCards.ts';
 import { useCatalogArtIdWarm } from './useCatalogArtIdWarm.ts';
 import { emptyFilterState, type FilterState } from './filterEngine.ts';
@@ -353,8 +358,8 @@ export function CardCatalogView({
   const enrichedVisibleCards = useArtworkEnrichedCards(visibleCards, artCacheRevision);
   const visibleTiles = useMemo(() => {
     void artCacheRevision;
-    return expandCardsToArtTiles(enrichedVisibleCards);
-  }, [artCacheRevision, enrichedVisibleCards]);
+    return expandCardsToArtTiles(enrichedVisibleCards, setFilterNames(filterState));
+  }, [artCacheRevision, enrichedVisibleCards, filterState]);
   const displayCount = catalogResultCount(visibleTiles);
 
   const tableCards = visibleCards;

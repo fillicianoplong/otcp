@@ -277,7 +277,7 @@ function CardDetailSets({
   const visibleSets = sortedSets.slice(0, visibleCount);
   const expandLabel = cardDetailSetsExpandButtonLabel(totalCount);
   const showCollapse = cardDetailSetsShowCollapseButton(totalCount, expanded);
-  const showArtMarks = hasCuratedSetArtPrintings(card.id);
+  const showArtMarks = hasCuratedSetArtPrintings(card);
 
   return (
     <section className="flex min-w-0 flex-col gap-2" aria-labelledby="card-sets-heading">
@@ -303,7 +303,7 @@ function CardDetailSets({
             {visibleSets.map((entry) => {
               const releaseDate = cardDetailSetRowReleaseDate(entry.setName, setIndex);
               const usesThisArt =
-                showArtMarks && isSetRowMarkedForSelectedArt(card.id, selectedArtId, entry.setCode);
+                showArtMarks && isSetRowMarkedForSelectedArt(card, selectedArtId, entry.setCode);
               return (
                 <tr key={`${entry.setCode}-${entry.setRarity}-${entry.setName}`}>
                   {shownColumns.map((column) => {

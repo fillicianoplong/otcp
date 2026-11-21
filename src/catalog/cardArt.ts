@@ -5,7 +5,8 @@ import {
   R2_CARD_IMAGES_PUBLIC_BASE_URL,
 } from '../shared/cardImageUrls.ts';
 import type { YugiohCard } from '../shared/schema/card.ts';
-import { setArtPrintingsForCard } from './setArtPrintings.ts';
+import type { FilterState } from './filterEngine.ts';
+import { artIdsPrintedInSets } from './setArtPrintings.ts';
 import { readCachedYgoproArtIds } from './ygoproArtIds.ts';
 
 export type CatalogArtTile = {
@@ -13,22 +14,13 @@ export type CatalogArtTile = {
   imageId: number;
 };
 
-function curatedArtIdsForCard(cardId: number): number[] {
-  const entry = setArtPrintingsForCard(cardId);
-  if (!entry) return [];
-  return Object.keys(entry.byImageId)
-    .map((key) => Number.parseInt(key, 10))
-    .filter((id) => Number.isFinite(id));
-}
-
 export function resolveArtIds(card: Pick<YugiohCard, 'id' | 'artIds'>): number[] {
   const fromCard = card.artIds && card.artIds.length > 0 ? [...card.artIds] : [card.id];
-  const curated = curatedArtIdsForCard(card.id);
   const fromYgopro = readCachedYgoproArtIds(card.id);
   const ygoproList = fromYgopro && fromYgopro.length > 0 ? [...fromYgopro] : [];
-  if (curated.length === 0 && ygoproList.length === 0) return fromCard;
+  if (ygoproList.length === 0) return fromCard;
 
-  const merged = new Set<number>([...fromCard, ...curated, ...ygoproList]);
+  const merged = new Set<number>([...fromCard, ...ygoproList]);
   const primary = fromCard[0] ?? card.id;
   const rest = [...merged].filter((id) => id !== primary).sort((left, right) => left - right);
   return [primary, ...rest];
@@ -77,10 +69,35 @@ export function catalogLargeImageUrl(card: YugiohCard, imageId: number): string 
   return publishedImagePathsByImageId(imageId, base).large;
 }
 
-export function expandCardsToArtTiles(cards: readonly YugiohCard[]): CatalogArtTile[] {
+/** Set names picked in the Set filter, or an empty list when it is not in use. */
+export function setFilterNames(filterState: FilterState | null | undefined): string[] {
+  const include = filterState?.facets.set?.include;
+  return include && include.length > 0 ? [...include] : [];
+}
+
+/**
+ * Artworks to show for a card. With a Set filter, only the art printed in those sets is shown,
+ * and the default art stands in when that printing's artwork is not known.
+ */
+export function artIdsForSets(
+  card: Pick<YugiohCard, 'id' | 'artIds' | 'passcode'>,
+  setNames: readonly string[] = [],
+): number[] {
+  const artIds = resolveArtIds(card);
+  if (setNames.length === 0 || artIds.length <= 1) return artIds;
+  const printed = artIdsPrintedInSets({ ...card, artIds }, new Set(setNames)).filter((id) =>
+    artIds.includes(id),
+  );
+  return printed.length > 0 ? printed : [artIds[0] ?? card.id];
+}
+
+export function expandCardsToArtTiles(
+  cards: readonly YugiohCard[],
+  setNames: readonly string[] = [],
+): CatalogArtTile[] {
   const tiles: CatalogArtTile[] = [];
   for (const card of cards) {
-    for (const imageId of resolveArtIds(card)) {
+    for (const imageId of artIdsForSets(card, setNames)) {
       tiles.push({ card, imageId });
     }
   }
