@@ -14,7 +14,34 @@ import { CardCatalogProvider } from '../catalog/CardCatalogProvider.tsx';
 import { clearCardCatalogCache } from '../catalog/loadCatalog.ts';
 import { CardDetailPage } from './CardDetailPage.tsx';
 
-function mockCatalogFetch(): void {
+type SampleDataset = typeof sampleDevDataset;
+
+/** Dark Magician with seven printings, so the Sets table starts collapsed with a Show all button. */
+function datasetWithManyDarkMagicianSets(): SampleDataset {
+  const copy = structuredClone(sampleDevDataset) as SampleDataset;
+  const card = copy.cards.find((entry) => entry.id === 46986420);
+  if (!card) throw new Error('Dark Magician missing from the sample dataset');
+  card.sets = [
+    { setCode: 'SDY-006', setName: 'Starter Deck: Yugi', setRarity: 'Ultra Rare' },
+    { setCode: 'LOB-005', setName: 'Legend of Blue Eyes White Dragon', setRarity: 'Ultra Rare' },
+    { setCode: 'DB1-EN101', setName: 'Dark Beginning 1', setRarity: 'Ultra Rare' },
+    {
+      setCode: 'YGLD-ENA03',
+      setName: "Yugi's Legendary Decks: Collector's Box Set with an Extra Long Name",
+      setRarity: 'Quarter Century Secret Rare',
+    },
+    { setCode: 'LDK2-ENY10', setName: 'Legendary Decks II', setRarity: 'Common' },
+    {
+      setCode: 'SS01-ENA01',
+      setName: 'Speed Duel Starter Decks: Destiny Masters',
+      setRarity: 'Common',
+    },
+    { setCode: 'YGLD-ENB02', setName: "Yugi's Legendary Decks", setRarity: 'Common' },
+  ] as SampleDataset['cards'][number]['sets'];
+  return copy;
+}
+
+function mockCatalogFetch(dataset: SampleDataset = sampleDevDataset): void {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL) => {
@@ -32,7 +59,7 @@ function mockCatalogFetch(): void {
         );
       }
       if (url.includes('data/datasets/sample-dev.json')) {
-        return new Response(JSON.stringify(sampleDevDataset), {
+        return new Response(JSON.stringify(dataset), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
@@ -42,9 +69,9 @@ function mockCatalogFetch(): void {
   );
 }
 
-function renderDetail(cardId: number) {
+function renderDetail(cardId: number, state?: unknown) {
   return render(
-    <MemoryRouter initialEntries={[`/search/card/${cardId}`]}>
+    <MemoryRouter initialEntries={[{ pathname: `/search/card/${cardId}`, state }]}>
       <CardCatalogProvider>
         <Routes>
           <Route path="/search/card/:id" element={<CardDetailPage />} />
@@ -180,5 +207,89 @@ describe('CardDetailPage artwork', () => {
     await screen.findByRole('heading', { level: 1, name: 'Dark Magician' });
     expect(screen.queryByRole('link', { name: /Back to/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Back to/ })).toBeNull();
+  });
+});
+
+describe('CardDetailPage sets table', () => {
+  beforeEach(() => {
+    mockCatalogFetch(datasetWithManyDarkMagicianSets());
+  });
+
+  function setsTable() {
+    return screen.getByRole('region', { name: 'Sets (7)' });
+  }
+
+  it('marks the printing of the art on screen with a picture icon instead of a text tag', async () => {
+    renderDetail(46986414);
+
+    await screen.findByRole('heading', { name: 'Sets (7)' });
+    const region = setsTable();
+    await waitFor(() => {
+      expect(within(region).getAllByRole('img', { name: 'Uses this art' }).length).toBeGreaterThan(
+        0,
+      );
+    });
+    const icon = within(region).getAllByRole('img', { name: 'Uses this art' })[0];
+    expect(icon.getAttribute('title')).toBe('Uses this art');
+    expect(icon.querySelector('svg')).not.toBeNull();
+    expect(within(region).queryByText(/^this art$/i)).toBeNull();
+    expect(
+      within(region).getByRole('link', {
+        name: 'Search for cards in Starter Deck: Yugi. Uses this art.',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('lets set names and rarities wrap so the table fits a narrow card', async () => {
+    renderDetail(46986414);
+
+    await screen.findByRole('heading', { name: 'Sets (7)' });
+    const region = setsTable();
+    expect(region.className).toContain('@container');
+    const row = within(region).getAllByRole('row')[1];
+    const [setCell, , rarityCell, releasedCell] = within(row).getAllByRole('cell');
+    expect(setCell.className).not.toContain('whitespace-nowrap');
+    expect(rarityCell.className).not.toContain('whitespace-nowrap');
+    expect(releasedCell.className).not.toMatch(/(^|\s)whitespace-nowrap/);
+    const link = within(setCell).getByRole('link');
+    expect(link.className).not.toContain('truncate');
+    expect(link.className).toContain('[overflow-wrap:anywhere]');
+  });
+
+  it('keeps all sets showing when switching to another artwork', async () => {
+    const user = userEvent.setup();
+    renderDetail(46986414);
+
+    await screen.findByRole('heading', { name: 'Sets (7)' });
+    expect(within(setsTable()).getAllByRole('row')).toHaveLength(6);
+    await user.click(screen.getByRole('button', { name: 'Show all 7 sets' }));
+    expect(within(setsTable()).getAllByRole('row')).toHaveLength(8);
+
+    await user.click(
+      within(screen.getByRole('region', { name: 'Artworks' })).getByRole('button', {
+        name: 'Show artwork 46986415 for Dark Magician',
+      }),
+    );
+    await waitFor(() => {
+      expect(
+        screen
+          .getByRole('button', { name: 'Show artwork 46986415 for Dark Magician' })
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+    });
+    expect(within(setsTable()).getAllByRole('row')).toHaveLength(8);
+    expect(screen.getByRole('button', { name: 'Show fewer' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Show all 7 sets' })).toBeNull();
+  });
+
+  it('starts collapsed on a fresh visit and expanded when history says so', async () => {
+    renderDetail(46986414);
+    await screen.findByRole('button', { name: 'Show all 7 sets' });
+    cleanup();
+    clearCardCatalogCache();
+
+    renderDetail(46986414, { cardDetailSetsExpanded: true });
+    await screen.findByRole('button', { name: 'Show fewer' });
+    expect(within(setsTable()).getAllByRole('row')).toHaveLength(8);
   });
 });

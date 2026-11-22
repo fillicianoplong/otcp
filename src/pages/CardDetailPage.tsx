@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import { cardDetailImageSrc, YGO_CARD_ART_ASPECT_CLASS } from '../catalog/cardArtUrl.ts';
 import { resolveArtIds, resolveSelectedArtId } from '../catalog/cardArt.ts';
@@ -34,6 +34,9 @@ import {
   cardDetailSetsShowCollapseButton,
   cardDetailSetsVisibleCount,
   sortCardDetailSets,
+  CARD_DETAIL_SET_USES_ART_LABEL,
+  readCardDetailSetsExpanded,
+  withCardDetailSetsExpanded,
 } from '../catalog/cardDetailSets.ts';
 import {
   hasCuratedSetArtPrintings,
@@ -61,6 +64,7 @@ import { ColumnHeader } from '../ui/ColumnHeader.tsx';
 import { orderedVisibleTableColumns, type TableColumn } from '../ui/tableColumns.ts';
 import { useTableColumnSetup } from '../ui/useTableColumnVisibility.ts';
 import { focusRingClass } from '../ui/classes.ts';
+import { PictureIcon } from '../ui/ToolbarIconButton.tsx';
 import { buildStoreSearchUrl, STORE_LINK_LABELS } from '../prices/storeLinks.ts';
 import { useCardCatalog } from '../catalog/useCardCatalog.ts';
 import type { CardPrices } from '../shared/schema/core.ts';
@@ -251,18 +255,49 @@ const SET_COLUMNS: readonly TableColumn[] = [
   { id: 'released', label: 'Released' },
 ];
 
-const setLinkClassName = `min-w-0 truncate font-medium text-heading underline-offset-2 hover:underline ${focusRingClass}`;
+const setLinkClassName = `font-medium text-heading underline-offset-2 [overflow-wrap:anywhere] hover:underline ${focusRingClass}`;
+
+/** In a narrow Sets card (phones, tablets), tighter padding lets all four columns fit without scrolling sideways. */
+const setCellClassName = 'px-2 py-2 align-top @lg:px-3';
+
+/** Set name with the picture icon glued to its end so the icon never wraps onto a line alone. */
+function SetNameWithArtMark({ name }: { name: string }) {
+  // Only the final character is held with the icon, so long words can still wrap in a narrow table.
+  const chars = Array.from(name);
+  const last = chars.pop() ?? '';
+  const head = chars.join('');
+  return (
+    <>
+      {head}
+      <span className="whitespace-nowrap">
+        {last}
+        <span
+          role="img"
+          aria-label={CARD_DETAIL_SET_USES_ART_LABEL}
+          title={CARD_DETAIL_SET_USES_ART_LABEL}
+          data-art-mark=""
+          className="ml-1.5 inline-flex align-[-0.125em] text-text-2"
+        >
+          <PictureIcon className="h-[1em] w-[1em]" />
+        </span>
+      </span>
+    </>
+  );
+}
 
 function CardDetailSets({
   card,
   setIndex,
   selectedArtId,
+  expanded,
+  onExpandedChange,
 }: {
   card: YugiohCard;
   setIndex?: SetIndex | null;
   selectedArtId: number;
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const {
     visibility: columnVisibility,
     order: columnOrder,
@@ -282,9 +317,9 @@ function CardDetailSets({
   const showArtMarks = hasCuratedSetArtPrintings(card);
 
   return (
-    <section className="flex min-w-0 flex-col gap-2" aria-labelledby="card-sets-heading">
+    <section className="@container flex min-w-0 flex-col gap-2" aria-labelledby="card-sets-heading">
       <SectionHeader id="card-sets-heading">{cardDetailSetsHeadingCount(totalCount)}</SectionHeader>
-      <div className="min-w-0 overflow-x-auto rounded-md border border-border bg-surface text-sm">
+      <div className="min-w-0 overflow-x-auto rounded-md border border-border bg-surface text-xs @lg:text-sm">
         <table className="min-w-full border-collapse text-left">
           <thead className="bg-surface-2 text-text-2">
             <tr>
@@ -312,34 +347,38 @@ function CardDetailSets({
                   {shownColumns.map((column) => {
                     if (column.id === 'set') {
                       return (
-                        <td key={column.id} className="px-3 py-2">
-                          <span className="flex min-w-0 items-center gap-2">
-                            <Link
-                              to={buildCardDetailSetSearchHref(entry.setName)}
-                              aria-label={`Search for cards in ${entry.setName}`}
-                              className={setLinkClassName}
-                            >
-                              {entry.setName}
-                            </Link>
+                        <td key={column.id} className={`${setCellClassName} @lg:min-w-[7rem]`}>
+                          <Link
+                            to={buildCardDetailSetSearchHref(entry.setName)}
+                            aria-label={
+                              usesThisArt
+                                ? `Search for cards in ${entry.setName}. ${CARD_DETAIL_SET_USES_ART_LABEL}.`
+                                : `Search for cards in ${entry.setName}`
+                            }
+                            className={setLinkClassName}
+                          >
                             {usesThisArt ? (
-                              <span className="shrink-0 rounded-sm border border-border bg-surface-2 px-1.5 py-0.5 text-2xs font-medium uppercase tracking-wide text-text-2">
-                                This art
-                              </span>
-                            ) : null}
-                          </span>
+                              <SetNameWithArtMark name={entry.setName} />
+                            ) : (
+                              entry.setName
+                            )}
+                          </Link>
                         </td>
                       );
                     }
                     if (column.id === 'code') {
                       return (
-                        <td key={column.id} className="whitespace-nowrap px-3 py-2 text-text-2">
+                        <td
+                          key={column.id}
+                          className={`${setCellClassName} text-text-2 @lg:whitespace-nowrap`}
+                        >
                           {entry.setCode}
                         </td>
                       );
                     }
                     if (column.id === 'rarity') {
                       return (
-                        <td key={column.id} className="whitespace-nowrap px-3 py-2 text-text-2">
+                        <td key={column.id} className={`${setCellClassName} text-text-2`}>
                           {entry.setRarity}
                         </td>
                       );
@@ -347,7 +386,7 @@ function CardDetailSets({
                     return (
                       <td
                         key={column.id}
-                        className="whitespace-nowrap px-3 py-2 text-text-2 tabular-nums"
+                        className={`${setCellClassName} text-text-2 tabular-nums @lg:whitespace-nowrap`}
                       >
                         {releaseDate ?? '—'}
                       </td>
@@ -362,7 +401,7 @@ function CardDetailSets({
       {expandLabel && !expanded ? (
         <button
           type="button"
-          onClick={() => setExpanded(true)}
+          onClick={() => onExpandedChange(true)}
           className="w-fit text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
         >
           {expandLabel}
@@ -371,7 +410,7 @@ function CardDetailSets({
       {showCollapse ? (
         <button
           type="button"
-          onClick={() => setExpanded(false)}
+          onClick={() => onExpandedChange(false)}
           className="w-fit text-sm font-medium text-heading underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-strong"
         >
           Show fewer
@@ -464,8 +503,13 @@ function CardDetailReadyView({
   formatParam: string | null;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const derived = useMemo(() => getCatalogDerived(state.cards), [state.cards]);
+  // Each artwork is its own page; the Sets "show all" choice rides along in history state.
+  const [setsExpanded, setSetsExpanded] = useState(() =>
+    readCardDetailSetsExpanded(location.state),
+  );
   const syncResolved = useMemo(
     () => findCatalogCardByRouteId(derived, routeId),
     [derived, routeId],
@@ -541,10 +585,22 @@ function CardDetailReadyView({
     const params = new URLSearchParams(searchParams);
     params.delete('art');
     const search = params.toString();
-    navigate({
-      pathname: `/search/card/${imageId}`,
-      search: search ? `?${search}` : '',
-    });
+    navigate(
+      {
+        pathname: `/search/card/${imageId}`,
+        search: search ? `?${search}` : '',
+      },
+      { state: withCardDetailSetsExpanded(null, setsExpanded) },
+    );
+  };
+
+  const changeSetsExpanded = (expanded: boolean) => {
+    setSetsExpanded(expanded);
+    // Keep this page's history entry in step so Back and Forward restore the table as left.
+    navigate(
+      { pathname: location.pathname, search: location.search, hash: location.hash },
+      { replace: true, state: withCardDetailSetsExpanded(location.state, expanded) },
+    );
   };
 
   if (state.detailSource && detailLoading && !detailCard) {
@@ -604,6 +660,8 @@ function CardDetailReadyView({
               card={card}
               setIndex={state.setIndex}
               selectedArtId={selectedArtId}
+              expanded={setsExpanded}
+              onExpandedChange={changeSetsExpanded}
             />
           </div>
         </div>

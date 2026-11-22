@@ -54,3 +54,28 @@ export function FilterIcon() {
     </svg>
   );
 }
+
+/** Picture frame with a mountain and sun. Marks set printings that use the artwork on screen. */
+export function PictureIcon({ className = 'h-4 w-4' }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 16 16" className={className} fill="none">
+      <rect
+        x="2"
+        y="2.75"
+        width="12"
+        height="10.5"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle cx="10.5" cy="6" r="1.25" stroke="currentColor" strokeWidth="1.25" />
+      <path
+        d="m2.75 12 3.75-4.25 3 3.25 1.5-1.5 2.25 2.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

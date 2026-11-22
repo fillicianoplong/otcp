@@ -23,7 +23,12 @@ import { PageTitle } from '../ui/PageTitle.tsx';
 import { SortSelect } from '../ui/SortSelect.tsx';
 import { SectionHeader } from '../ui/SectionHeader.tsx';
 import { ColumnHeader } from '../ui/ColumnHeader.tsx';
-import { SearchIcon, ToolbarIconButton } from '../ui/ToolbarIconButton.tsx';
+import {
+  FilterIcon,
+  PictureIcon,
+  SearchIcon,
+  ToolbarIconButton,
+} from '../ui/ToolbarIconButton.tsx';
 import { Toolbar } from '../ui/Toolbar.tsx';
 import {
   listRowLinkClass,
@@ -337,6 +342,26 @@ export function StyleGuidePage() {
             <SearchIcon />
           </ToolbarIconButton>
         </div>
+      </section>
+
+      <section className="flex flex-col gap-3" aria-labelledby="sg-icons">
+        <SectionHeader id="sg-icons" size="section">
+          Icons
+        </SectionHeader>
+        <ul className="m-0 flex list-none flex-wrap items-center gap-4 p-0 text-sm text-text-2">
+          <li className="inline-flex items-center gap-1.5">
+            <SearchIcon />
+            Search
+          </li>
+          <li className="inline-flex items-center gap-1.5">
+            <FilterIcon />
+            Filters
+          </li>
+          <li className="inline-flex items-center gap-1.5">
+            <PictureIcon />
+            Uses this art (card detail Sets)
+          </li>
+        </ul>
       </section>
 
       <section className="flex flex-col gap-3" aria-labelledby="sg-fields">

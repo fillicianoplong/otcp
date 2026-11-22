@@ -7,6 +7,27 @@ import type { YugiohCard } from '../shared/schema/card.ts';
 
 export const CARD_DETAIL_SETS_INITIAL_VISIBLE = 5;
 
+/** Tooltip and accessible name for the picture icon on set rows that print the artwork on screen. */
+export const CARD_DETAIL_SET_USES_ART_LABEL = 'Uses this art';
+
+/** History state key that carries the Sets table's "show all" choice between artwork pages. */
+export const CARD_DETAIL_SETS_EXPANDED_STATE_KEY = 'cardDetailSetsExpanded';
+
+export function readCardDetailSetsExpanded(state: unknown): boolean {
+  if (state == null || typeof state !== 'object') return false;
+  return (state as Record<string, unknown>)[CARD_DETAIL_SETS_EXPANDED_STATE_KEY] === true;
+}
+
+export function withCardDetailSetsExpanded(
+  state: unknown,
+  expanded: boolean,
+): Record<string, unknown> {
+  const base =
+    state != null && typeof state === 'object' ? { ...(state as Record<string, unknown>) } : {};
+  base[CARD_DETAIL_SETS_EXPANDED_STATE_KEY] = expanded;
+  return base;
+}
+
 export type CardDetailSetEntry = YugiohCard['sets'][number];
 
 export function sortCardDetailSets(

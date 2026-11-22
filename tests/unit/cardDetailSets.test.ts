@@ -9,6 +9,9 @@ import {
   cardDetailSetsHeadingCount,
   cardDetailSetsShowCollapseButton,
   cardDetailSetsVisibleCount,
+  CARD_DETAIL_SETS_EXPANDED_STATE_KEY,
+  readCardDetailSetsExpanded,
+  withCardDetailSetsExpanded,
 } from '../../src/catalog/cardDetailSets.ts';
 import { readFilterStateFromParams } from '../../src/catalog/filterUrlState.ts';
 
@@ -84,5 +87,26 @@ describe('cardDetailSets printing helpers', () => {
     const params = new URLSearchParams(href.slice('/search?'.length));
     const state = readFilterStateFromParams(params);
     expect(state.facets.set?.include).toEqual(['Phantom Nightmare']);
+  });
+});
+
+describe('cardDetailSets show-all history state', () => {
+  it('reads the show-all choice only when it is explicitly true', () => {
+    expect(readCardDetailSetsExpanded(null)).toBe(false);
+    expect(readCardDetailSetsExpanded(undefined)).toBe(false);
+    expect(readCardDetailSetsExpanded('yes')).toBe(false);
+    expect(readCardDetailSetsExpanded({ [CARD_DETAIL_SETS_EXPANDED_STATE_KEY]: 'true' })).toBe(
+      false,
+    );
+    expect(readCardDetailSetsExpanded({ [CARD_DETAIL_SETS_EXPANDED_STATE_KEY]: true })).toBe(true);
+  });
+
+  it('writes the choice without dropping other history state', () => {
+    const next = withCardDetailSetsExpanded({ from: 'search' }, true);
+    expect(next).toEqual({ from: 'search', [CARD_DETAIL_SETS_EXPANDED_STATE_KEY]: true });
+    expect(readCardDetailSetsExpanded(withCardDetailSetsExpanded(next, false))).toBe(false);
+    expect(withCardDetailSetsExpanded(null, true)).toEqual({
+      [CARD_DETAIL_SETS_EXPANDED_STATE_KEY]: true,
+    });
   });
 });
